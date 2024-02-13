@@ -3,8 +3,9 @@
 #include <GameFramework\SpringArmComponent.h>
 #include <Camera\CameraComponent.h>
 #include "CPP_GrizzlyPS.h"
-#include "Ability/CPP_GA_Reload.h"
+#include "Ability\GrizzlyAbility.h"
 #include "AbilitySystemComponent.h"
+
 #include "ProjectGrizzly/ProjectGrizzly.h"
 
 ACPP_PlayableCharacter::ACPP_PlayableCharacter()
@@ -67,6 +68,7 @@ void ACPP_PlayableCharacter::BeginPlay()
 }
 
 
+// On Client
 void ACPP_PlayableCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
@@ -103,9 +105,13 @@ void ACPP_PlayableCharacter::PossessedBy(AController* NewController)
 		return;
 	}
 
-	AbilitySystemComponent->GiveAbility(
-		FGameplayAbilitySpec(UCPP_GA_Reload::StaticClass(),1, static_cast<int32>(EPGAbilityInputID::Reload), this));
-	
+	//AbilitySystemComponent->GiveAbility(
+	//	FGameplayAbilitySpec(UCPP_GA_Reload::StaticClass(),1, static_cast<int32>(EPGAbilityInputID::Reload), this));
+	for (auto ability : PlayerAbilies)
+	{
+		AbilitySystemComponent->GiveAbility(
+			FGameplayAbilitySpec(ability, 1, static_cast<int32>(Cast<UGrizzlyAbility>(ability->GetDefaultObject())->InputID), this));
+	}
 
 }
 

@@ -32,6 +32,8 @@ protected:
 private:
 	class UAbilitySystemComponent* AbilitySystemComponent;
 	class UGrizzlyAttributeSet* AttributeSet;
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "Ability", meta = (AllowPrivateAccess = "true"))
+	TArray<TSubclassOf<class UGrizzlyAbility>> PlayerAbilies;
 
 	bool ASCInputBound = false;
 	void BindASCInput();

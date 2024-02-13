@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "ProjectGrizzly\ProjectGrizzly.h"
 #include "GrizzlyAbility.generated.h"
 
 /**
@@ -13,5 +14,7 @@ UCLASS()
 class PROJECTGRIZZLY_API UGrizzlyAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
-	
+
+public:
+	EPGAbilityInputID InputID = EPGAbilityInputID::None;
 };
