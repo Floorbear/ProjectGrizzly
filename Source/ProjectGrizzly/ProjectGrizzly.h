@@ -7,15 +7,17 @@
 UENUM(BlueprintType)
 enum class EPGAbilityInputID : uint8
 {
-	// 0 None
+	//  None
 	None			UMETA(DisplayName = "None"),
-	// 1 Confirm
+	//  Confirm
 	Confirm			UMETA(DisplayName = "Confirm"),
-	// 2 Cancel
+	//  Cancel
 	Cancel			UMETA(DisplayName = "Cancel"),
-	// 3 LMB
+	//  LMB
 	Fire			UMETA(DisplayName = "Fire"),
-	// 4 R
+	//  RMB
+	ADS				UMETA(DisplayName = "ADS"),
+	//  R
 	Reload			UMETA(DisplayName = "Reload"),
 
 	Jump			UMETA(DisplayName = "Jump")
