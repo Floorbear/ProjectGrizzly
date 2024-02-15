@@ -19,6 +19,9 @@ public:
 
 
 
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
 	void BeginPlay() override;
 
@@ -52,11 +55,7 @@ public:
 	float MouseYDelta = 0;
 
 
-	// ----- Movement -----
-	UPROPERTY(VisibleDefaultsOnly,BlueprintReadWrite,Category = "Movement")
-	float MoveForwardAxis = 0;
-	UPROPERTY(VisibleDefaultsOnly,BlueprintReadWrite,Category = "Movement")
-	float MoveRightAxis = 0;
+
 
 	// ----- Hands -----
 private:

@@ -23,6 +23,11 @@ ACPP_PlayableCharacter::ACPP_PlayableCharacter()
 	FPWeaponMeshComponent->SetupAttachment(HandsMeshComponent);
 }
 
+void ACPP_PlayableCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+}
+
 void ACPP_PlayableCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);

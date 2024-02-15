@@ -1,4 +1,5 @@
 #include "CPP_PGCharacter.h"
+#include "Net\UnrealNetwork.h"
 
 // Sets default values
 ACPP_PGCharacter::ACPP_PGCharacter()
@@ -8,6 +9,13 @@ ACPP_PGCharacter::ACPP_PGCharacter()
 
 }
 
+
+void ACPP_PGCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ACPP_PGCharacter, MoveForwardAxis);
+	DOREPLIFETIME(ACPP_PGCharacter, MoveRightAxis);
+}
 
 // Called when the game starts or when spawned
 void ACPP_PGCharacter::BeginPlay()
@@ -29,6 +37,43 @@ void ACPP_PGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 
+}
+
+void ACPP_PGCharacter::SetMoveForwardAxis(float _Axis)
+{
+	if (GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		//움직임값 동일하면 서버에 전송하지 않는다
+		if (MoveForwardAxis != _Axis)
+		{
+			SetMoveForwardAxis_Server(_Axis);
+		}
+	}
+	MoveForwardAxis = _Axis;
+}
+
+void ACPP_PGCharacter::SetMoveForwardAxis_Server_Implementation(float _Axis)
+{
+	MoveForwardAxis = _Axis;
+}
+
+void ACPP_PGCharacter::SetMoveRightAxis(float _Axis)
+{
+	if (GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		//움직임값 동일하면 서버에 전송하지 않는다
+		if (MoveRightAxis != _Axis)
+		{
+			SetMoveRightAxis_Server(_Axis);
+		}
+		SetMoveRightAxis_Server(_Axis);
+	}
+	MoveRightAxis = _Axis;
+}
+
+void ACPP_PGCharacter::SetMoveRightAxis_Server_Implementation(float _Axis)
+{
+	MoveRightAxis = _Axis;
 }
 
 ENetRole ACPP_PGCharacter::GetNetRole()

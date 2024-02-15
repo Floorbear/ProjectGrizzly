@@ -14,7 +14,7 @@ enum class EPGAbilityInputID : uint8
 	//  Cancel
 	Cancel			UMETA(DisplayName = "Cancel"),
 	//  LMB
-	Fire			UMETA(DisplayName = "Fire"),
+	Shoot			UMETA(DisplayName = "Shoot"),
 	//  RMB
 	ADS				UMETA(DisplayName = "ADS"),
 	//  R

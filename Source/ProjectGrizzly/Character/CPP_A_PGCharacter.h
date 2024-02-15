@@ -18,8 +18,18 @@ class PROJECTGRIZZLY_API UCPP_A_PGCharacter : public UAnimInstance
 public:
 	UPROPERTY(BlueprintAssignable,BlueprintCallable,EditDefaultsOnly,Category = "Reload")
 	FOnReloadStartDelegate OnReloadStartDelegate;
+
+	void NativeUpdateAnimation(float DeltaSeconds) override;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Movement")
+	float MoveForwardAxis = 0.f;
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Movement")
+	float MoveRightAxis = 0.f;
+
 private:
 	UFUNCTION()
 	void AnimNotify_OnReloadStart();
+
+
 
 };

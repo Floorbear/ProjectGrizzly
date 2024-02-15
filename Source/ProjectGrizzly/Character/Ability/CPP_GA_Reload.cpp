@@ -11,6 +11,13 @@ UCPP_GA_Reload::UCPP_GA_Reload()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	InputID = EPGAbilityInputID::Reload;
+
+	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.Reload")));
+
+	//재장전 중 사격, 정조준 비활성화
+	CancelAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.ADS")));
+	BlockAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.ADS")));
+
 }
 
 void UCPP_GA_Reload::OnCompleted()
