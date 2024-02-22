@@ -2,4 +2,5 @@
 
 
 #include "GrizzlyAbility.h"
+#include "Abilities\Tasks\AbilityTask_WaitGameplayEvent.h"
 

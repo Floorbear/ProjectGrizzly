@@ -4,7 +4,12 @@
 #include "CPP_GA_ADS.h"
 #include "TickTask.h"
 #include "..\CPP_PlayableCharacter.h"
+#include "..\CPP_A_PGCharacter.h"
+#include "AbilitySystemComponent.h"
 #include "Kismet\KismetMathLibrary.h"
+#include "Abilities\Tasks\AbilityTask_WaitInputPress.h"
+#include "Abilities\Tasks\AbilityTask_WaitInputRelease.h"
+
 
 UCPP_GA_ADS::UCPP_GA_ADS()
 {
@@ -16,15 +21,8 @@ UCPP_GA_ADS::UCPP_GA_ADS()
 
 void UCPP_GA_ADS::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
-	//if (!CanBeCanceled())
-	//{
-	//	return;
-	//}
-	//Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 	bShouldCancel = true;
 	bADS = false;
-	UE_LOG(LogTemp, Warning, TEXT("ADS is Cancel"));
-
 }
 
 void UCPP_GA_ADS::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -35,6 +33,10 @@ void UCPP_GA_ADS::InputPressed(const FGameplayAbilitySpecHandle Handle, const FG
 	}
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
 	bADS = true;
+	if (ADSRelieveHandle.IsValid())
+	{
+		ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffect(ADSRelieveHandle);
+	}
 }
 
 void UCPP_GA_ADS::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -45,6 +47,10 @@ void UCPP_GA_ADS::InputReleased(const FGameplayAbilitySpecHandle Handle, const F
 	}
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
 	bADS = false;
+	FGameplayEffectContextHandle Context = CurrentActorInfo->AbilitySystemComponent->MakeEffectContext();
+	FGameplayEffectSpecHandle SpecHandle = CurrentActorInfo->AbilitySystemComponent->MakeOutgoingSpec(GE_ADSRelieve, 1, Context);
+	//ADSRelieveHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle); << 이걸 쓰지못하는 이유는 서버 호출도 아니고, PredictionKey 입력도 아니기 때문
+	ADSRelieveHandle = CurrentActorInfo->AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 }
 
 void UCPP_GA_ADS::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -59,14 +65,20 @@ void UCPP_GA_ADS::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 	Tick->OnTick.AddDynamic(this, &UCPP_GA_ADS::Tick);
 	Tick->ReadyForActivation();
 
-	UE_LOG(LogTemp, Warning, TEXT("ADS is On"));
+	//ACPP_PlayableCharacter* Player = Cast<ACPP_PlayableCharacter>(CurrentActorInfo->AvatarActor);
+	//UCPP_A_PGCharacter* AnimInstance = Cast<UCPP_A_PGCharacter>(Player->GetMesh()->GetAnimInstance());
+	//AnimInstance->bADS = true;
+
 }
 
 void UCPP_GA_ADS::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	bShouldCancel = false;
+	if (ADSRelieveHandle.IsValid())
+	{
+		ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffect(ADSRelieveHandle);
+	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-	UE_LOG(LogTemp, Warning, TEXT("ADS is Off"));
 }
 
 void UCPP_GA_ADS::Tick(float _DeltaTime)
@@ -105,7 +117,10 @@ float UCPP_GA_ADS::GetADSSpeed()
 {
 	if (bShouldCancel)
 	{
-		return 20.f;
+		return 25.f;
 	}
 	return 6.f;
 }
+
+
+

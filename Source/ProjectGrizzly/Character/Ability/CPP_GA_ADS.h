@@ -33,15 +33,23 @@ private:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "ADS",meta = (AllowPrivateAccess = "true"))
 	bool bADS = true;
 
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "ADS",meta = (AllowPrivateAccess = "true"))
 	bool bShouldCancel = false;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "ADS",meta = (AllowPrivateAccess = "true"))
 	FVector IdleHandLocation = {3.8f,6.f,-1.8f};
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "ADS",meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UGameplayEffect> GE_ADSRelieve;
+
+	FActiveGameplayEffectHandle ADSRelieveHandle;
 
 	UFUNCTION()
 	void Tick(float _DeltaTime);
 
 	UFUNCTION(BlueprintCallable)
 	float GetADSSpeed();
+
+
 
 };

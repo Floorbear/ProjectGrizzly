@@ -20,4 +20,15 @@ public:
 protected:
 	void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Montage")
+	UAnimMontage* AM_Hands_Shoot;
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Montage")
+	UAnimMontage* AM_Weapon_Shoot;
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Montage")
+	UAnimMontage* AM_Hip_Shoot;
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Montage")
+	UAnimMontage* AM_ADS_Shoot;
+
+	UFUNCTION()
+	void EventReceivedd(FGameplayEventData Payload);
 };

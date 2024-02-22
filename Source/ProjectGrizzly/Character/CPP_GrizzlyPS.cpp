@@ -22,7 +22,7 @@ UAbilitySystemComponent* ACPP_GrizzlyPS::GetAbilitySystemComponent() const
 	return AbilitySystemCompoent;
 }
 
-class UGrizzlyAttributeSet* ACPP_GrizzlyPS::GetAttributeSet() const
+UGrizzlyAttributeSet* ACPP_GrizzlyPS::GetAttributeSet() const
 {
 	return AttributeSet;
 }

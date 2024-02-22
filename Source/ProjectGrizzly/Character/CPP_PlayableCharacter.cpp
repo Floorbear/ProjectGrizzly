@@ -28,6 +28,7 @@ void ACPP_PlayableCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
+
 void ACPP_PlayableCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -43,7 +44,7 @@ void ACPP_PlayableCharacter::BindASCInput()
 
 		ASCInputBound = true;
 	}*/
-	if (!ASCInputBound && IsValid(AbilitySystemComponent) && IsValid(InputComponent))
+	if (!ASCInputBound && AbilitySystemComponent.IsValid() && IsValid(InputComponent))
 	{
 		AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent, FGameplayAbilityInputBinds(FString("Confirm"),
 			FString("Cancel"), FString("EPGAbilityInputID"), static_cast<int32>(EPGAbilityInputID::Confirm), static_cast<int32>(EPGAbilityInputID::Cancel)));
@@ -59,12 +60,7 @@ void ACPP_PlayableCharacter::BeginPlay()
 	{
 		GetMesh()->HideBoneByName(TEXT("bip01_l_clavicle"),EPhysBodyOp::PBO_None);
 		GetMesh()->HideBoneByName(TEXT("bip01_r_clavicle"), EPhysBodyOp::PBO_None);
-		/*FTimerHandle NewTimer;
-		GetWorld()->GetTimerManager().SetTimer(NewTimer, FTimerDelegate::CreateLambda([&]() 
-			{
-				
-			}
-		), 0.015, true);*/
+		GetTPWeaponComponent()->SetVisibility(false);
 	}
 	else
 	{
@@ -85,7 +81,7 @@ void ACPP_PlayableCharacter::OnRep_PlayerState()
 
 	AbilitySystemComponent = PS->GetAbilitySystemComponent();
 	AbilitySystemComponent->InitAbilityActorInfo(PS, this);
-	AttributeSet = PS->GetAttributeSet();
+	AttributeSet =PS->GetAttributeSet();
 
 	BindASCInput();
 }
@@ -105,14 +101,14 @@ void ACPP_PlayableCharacter::PossessedBy(AController* NewController)
 	//InitializeAttributes();
 		// Grant abilities, but only on the server	
 
-	if (GetLocalRole() != ROLE_Authority || !IsValid(AbilitySystemComponent))
+	if (GetLocalRole() != ROLE_Authority || !AbilitySystemComponent.IsValid())
 	{
 		return;
 	}
 
 	//AbilitySystemComponent->GiveAbility(
 	//	FGameplayAbilitySpec(UCPP_GA_Reload::StaticClass(),1, static_cast<int32>(EPGAbilityInputID::Reload), this));
-	for (auto ability : PlayerAbilies)
+	for (auto ability : PlayerAbilities)
 	{
 		AbilitySystemComponent->GiveAbility(
 			FGameplayAbilitySpec(ability, 1, static_cast<int32>(Cast<UGrizzlyAbility>(ability->GetDefaultObject())->InputID), this));

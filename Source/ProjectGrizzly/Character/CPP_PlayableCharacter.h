@@ -17,9 +17,6 @@ class PROJECTGRIZZLY_API ACPP_PlayableCharacter : public ACPP_PGCharacter
 public:
 	ACPP_PlayableCharacter();
 
-
-
-
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
@@ -33,10 +30,9 @@ protected:
 
 	// ----- GAS ------
 private:
-	class UAbilitySystemComponent* AbilitySystemComponent;
-	class UGrizzlyAttributeSet* AttributeSet;
+
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "Ability", meta = (AllowPrivateAccess = "true"))
-	TArray<TSubclassOf<class UGrizzlyAbility>> PlayerAbilies;
+	TArray<TSubclassOf<class UGrizzlyAbility>> PlayerAbilities;
 
 	bool ASCInputBound = false;
 	void BindASCInput();
