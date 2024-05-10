@@ -28,6 +28,11 @@ private:
 	void AnimNotify_OnLeftHandIK();
 	UFUNCTION()
 	void AnimNotify_OffLeftHandIK();
+	// LeftHandIK를 해제하는 대신 이 몽타주가 종료되면 LeftHandIK 를 ON합니다
+	UFUNCTION()
+	void AnimNotify_OffLeftHandIKWhenMontage();
+
+	void OnMontageBlendingOutWhenOffIK(UAnimMontage* Montage, bool bInterrupted);
 
 	//ToDo : Struct 화 해야함, 이유 : Linked AnimGraph에 넘길 파라미터를 간소화하기 위해서
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "AnimSequence", meta = (AllowPrivateAccess = "true"))

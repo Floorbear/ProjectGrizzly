@@ -15,8 +15,12 @@ void UCPP_WeaponAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 
 	USkeletalMeshComponent* HandSKComponent = Player->GetHandsMeshComponent();
-	FTransform LeftHandTransform = HandSKComponent->GetSocketTransform(TEXT("LeftHand"), RTS_Component);
-	LeftHandLocation = LeftHandTransform.GetLocation();
+	if (IsValid(HandSKComponent->SkeletalMesh))
+	{
+		FTransform LeftHandTransform = HandSKComponent->GetSocketTransform(TEXT("LeftHand"), RTS_Component);
+		LeftHandLocation = LeftHandTransform.GetLocation();
+	}
+
 }
 
 void UCPP_WeaponAnimInstance::AnimNotify_OnLeftHandIK()
@@ -27,4 +31,17 @@ void UCPP_WeaponAnimInstance::AnimNotify_OnLeftHandIK()
 void UCPP_WeaponAnimInstance::AnimNotify_OffLeftHandIK()
 {
 	LeftHandIKAlpha = 0.f;
+}
+
+void UCPP_WeaponAnimInstance::AnimNotify_OffLeftHandIKWhenMontage()
+{
+	LeftHandIKAlpha = 0.f;
+	FOnMontageBlendingOutStarted BlendingOutDelegate;
+	BlendingOutDelegate.BindUObject(this,&UCPP_WeaponAnimInstance::OnMontageBlendingOutWhenOffIK);
+	Montage_SetBlendingOutDelegate(BlendingOutDelegate,GetCurrentActiveMontage());
+}
+
+void UCPP_WeaponAnimInstance::OnMontageBlendingOutWhenOffIK(UAnimMontage* Montage, bool bInterrupted)
+{
+	LeftHandIKAlpha = 1.f;
 }

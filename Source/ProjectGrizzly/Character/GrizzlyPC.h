@@ -15,4 +15,12 @@ class PROJECTGRIZZLY_API AGrizzlyPC : public APlayerController
 {
 	GENERATED_BODY()
 	
+public:
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
+	void OnDeadNotificationUI();
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void OffDeadNotificationUI();
+
+	UFUNCTION(BlueprintCallable)
+	bool IsMyComputer();
 };

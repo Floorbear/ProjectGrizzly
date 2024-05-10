@@ -21,6 +21,7 @@ public:
 
 	void NativeUpdateAnimation(float DeltaSeconds) override;
 
+
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Movement")
 	float MoveForwardAxis = 0.f;
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Movement")
@@ -67,4 +68,26 @@ private:
 
 
 
+
+	// ----------------------------------
+	// --------------Die-----------------
+	// ----------------------------------
+private:
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Die",meta = (AllowPrivateAccess = "true"))
+	bool bIsDead;
+
+	void UpdateDead();
+
+	// ----------------------------------
+	//				Sprint
+	// ----------------------------------
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Sprint",meta = (AllowPrivateAccess = "true"))
+	bool bSprint = false;
+	void UpdateSprint(class ACPP_PlayableCharacter* Character);
+
+	// ----------------------------------
+	//				Crouch
+	// ----------------------------------
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Crouch",meta = (AllowPrivateAccess = "true"))
+	bool bIsCrouching = false;
 };

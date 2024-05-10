@@ -22,7 +22,9 @@ UCPP_GA_ADS::UCPP_GA_ADS()
 void UCPP_GA_ADS::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
 	bShouldCancel = true;
-	bADS = false;
+	ACPP_PlayableCharacter* Player = Cast<ACPP_PlayableCharacter>(CurrentActorInfo->AvatarActor);
+	Player->SetADS(false);
+	//Super::K2_CancelAbility();
 }
 
 void UCPP_GA_ADS::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -32,7 +34,11 @@ void UCPP_GA_ADS::InputPressed(const FGameplayAbilitySpecHandle Handle, const FG
 		return;
 	}
 	Super::InputPressed(Handle, ActorInfo, ActivationInfo);
-	bADS = true;
+	ACPP_PlayableCharacter* Player = Cast<ACPP_PlayableCharacter>(CurrentActorInfo->AvatarActor);
+	Player->SetADS(true);
+
+	ApplyADSEffect();
+
 	if (ADSRelieveHandle.IsValid())
 	{
 		ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffect(ADSRelieveHandle);
@@ -46,10 +52,23 @@ void UCPP_GA_ADS::InputReleased(const FGameplayAbilitySpecHandle Handle, const F
 		return;
 	}
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
-	bADS = false;
+	ACPP_PlayableCharacter* Player = Cast<ACPP_PlayableCharacter>(CurrentActorInfo->AvatarActor);
+	Player->SetADS(false);
+
+	ApplyADSRelieveEffect();
+
+
+	if (ADSHandle.IsValid())
+	{
+		ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffect(ADSHandle);
+	}
+
+}
+
+void UCPP_GA_ADS::ApplyADSRelieveEffect()
+{
 	FGameplayEffectContextHandle Context = CurrentActorInfo->AbilitySystemComponent->MakeEffectContext();
 	FGameplayEffectSpecHandle SpecHandle = CurrentActorInfo->AbilitySystemComponent->MakeOutgoingSpec(GE_ADSRelieve, 1, Context);
-	//ADSRelieveHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle); << 이걸 쓰지못하는 이유는 서버 호출도 아니고, PredictionKey 입력도 아니기 때문
 	ADSRelieveHandle = CurrentActorInfo->AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 }
 
@@ -60,7 +79,12 @@ void UCPP_GA_ADS::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	bADS = true;
+	ACPP_PlayableCharacter* Player = Cast<ACPP_PlayableCharacter>(CurrentActorInfo->AvatarActor);
+	Player->SetADS(true);
+	
+
+	ApplyADSEffect();
+
 	UTickTask* Tick = UTickTask::CreateTickTask(this, NAME_None);//->
 	Tick->OnTick.AddDynamic(this, &UCPP_GA_ADS::Tick);
 	Tick->ReadyForActivation();
@@ -71,12 +95,30 @@ void UCPP_GA_ADS::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 
 }
 
+void UCPP_GA_ADS::ApplyADSEffect()
+{
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(GE_ADS);
+	SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Data.MovementSpeed")), GetADSMovementSpeed());
+	ADSHandle = CurrentActorInfo->AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+}
+
 void UCPP_GA_ADS::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	bShouldCancel = false;
 	if (ADSRelieveHandle.IsValid())
 	{
 		ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffect(ADSRelieveHandle);
+	}
+	ACPP_PlayableCharacter* Player = Cast<ACPP_PlayableCharacter>(CurrentActorInfo->AvatarActor);
+	Player->SetADS(false);
+	//이펙트 제거
+	if (ADSRelieveHandle.IsValid())
+	{
+		ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffect(ADSRelieveHandle);
+	}
+	if (ADSHandle.IsValid())
+	{
+		ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffect(ADSHandle);
 	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -88,27 +130,14 @@ void UCPP_GA_ADS::Tick(float _DeltaTime)
 	{
 		return;
 	}
-
-	USkeletalMeshComponent* Hands = Player->GetHandsMeshComponent();
-	FVector CurrentLocation = Hands->GetRelativeLocation();
-	FVector InterpoValue = { 0,0,0 };
-	if (bADS)
+	
+	// 어빌리티의 종료 체크는 오토노머스에서 하겠다
+	bool IsMyComputer = Player->IsMyComputer();
+	if (IsMyComputer)
 	{
-		InterpoValue = FMath::VInterpTo(CurrentLocation, { 0,0,0 }, _DeltaTime, GetADSSpeed());
-		Hands->SetRelativeLocation(InterpoValue);
-	}
-	else
-	{
-		InterpoValue = FMath::VInterpTo(CurrentLocation, IdleHandLocation, _DeltaTime, GetADSSpeed());
-		Hands->SetRelativeLocation(InterpoValue);
-
-		//줌을 거의 다 풀면 어빌리티 비활성화
-		float Distance = FVector::Distance(InterpoValue, IdleHandLocation);
-		float MarginOfError = 0.02;
-		if (Distance < MarginOfError)
+		if (Player->GetADSFactor() < 0.02 && !Player->GetADS())
 		{
-			Hands->SetRelativeLocation(IdleHandLocation);
-			EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+			K2_EndAbility();
 		}
 	}
 }

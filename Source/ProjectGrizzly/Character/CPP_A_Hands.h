@@ -19,6 +19,10 @@ public:
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+	void UpdateSprint();
+
+	void UpdateADS();
+
 private:
 	TWeakObjectPtr<class ACPP_PlayableCharacter> Player;
 public:
@@ -40,10 +44,30 @@ private:
 	float HandSwayYFactorDuringAiming= 1.0f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "HandSway", meta = (AllowPrivateAccess = "true"));
 	FRotator HandSwayRotator;
-private:
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sequence", meta = (AllowPrivateAccess = "true"));
 	UAnimSequenceBase* IdleSequence;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sequence", meta = (AllowPrivateAccess = "true"));
-	UAnimSequenceBase* WalkSequence;
+	UAnimSequenceBase* MoveForwardSequence;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sequence", meta = (AllowPrivateAccess = "true"));
+	UAnimSequenceBase* MoveBackSequence;
+
+	//-------------------------------
+	//				ADS
+	//-------------------------------
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ADS", meta = (AllowPrivateAccess = "true"));
+	bool bADS = false;
+
+	//-------------------------------
+	//			Sprint
+	//-------------------------------
+	public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sequence", meta = (AllowPrivateAccess = "true"));
+	UAnimSequenceBase* SprintSequence;
+	private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sprint", meta = (AllowPrivateAccess = "true"));
+	bool bSprint = false;
 };

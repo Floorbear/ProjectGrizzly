@@ -28,6 +28,43 @@ void UCPP_A_Hands::NativeUpdateAnimation(float DeltaSeconds)
 
 	float YawDelta = FMath::GetMappedRangeValueClamped(TRange<float>(1.f, -1.f), TRange<float>(-10 * HandSwayXFactorDuringAiming, 10 * HandSwayXFactorDuringAiming), MouseXDelta);
 	HandSwayRotator.Yaw = FMath::FInterpTo(HandSwayRotator.Yaw, YawDelta, DeltaSeconds, 6.f);
+
+	UpdateADS();
+	UpdateSprint();
+}
+
+void UCPP_A_Hands::UpdateSprint()
+{
+	ACPP_PGCharacter* Character = Cast<ACPP_PGCharacter>(TryGetPawnOwner());
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+	if (IsValid(ASC))
+	{
+		if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.Sprint"))))
+		{
+			bSprint = true;
+		}
+		else
+		{
+			bSprint = false;
+		}
+	}
+}
+
+void UCPP_A_Hands::UpdateADS()
+{
+	ACPP_PGCharacter* Character = Cast<ACPP_PGCharacter>(TryGetPawnOwner());
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+	if (IsValid(ASC))
+	{
+		if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.ADS"))) && !ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.ADSRelieve"))))
+		{
+			bADS = true;
+		}
+		else
+		{
+			bADS = false;
+		}
+	}
 }
 
 class ACPP_PlayableCharacter* UCPP_A_Hands::GetPlayer()

@@ -19,6 +19,10 @@ enum class EPGAbilityInputID : uint8
 	ADS				UMETA(DisplayName = "ADS"),
 	//  R
 	Reload			UMETA(DisplayName = "Reload"),
+	// Shift
+	Sprint			UMETA(DisplayName = "Sprint"),
+	// C
+	Crouch			UMETA(DisplayName = "Crouch"),
 
 	Jump			UMETA(DisplayName = "Jump")
 };

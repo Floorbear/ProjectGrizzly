@@ -32,7 +32,10 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-		// ----- Movement -----
+	// ----------------------------------
+	//			Movement
+	// ----------------------------------
+
 	UPROPERTY(Replicated,VisibleDefaultsOnly,BlueprintReadWrite,Category = "Movement")
 	float MoveForwardAxis = 0;
 	UPROPERTY(Replicated,VisibleDefaultsOnly,BlueprintReadWrite,Category = "Movement")
@@ -48,15 +51,18 @@ public:
 	UFUNCTION(BlueprintCallable,Server,Unreliable)
 	void SetMoveRightAxis_Server(float _Axis);
 
-	UPROPERTY(Replicated,VisibleDefaultsOnly,BlueprintReadWrite,Category = "Movement")
-	float BendDownDegree = 0.f;
-	//현재 컨트롤러의 피치 각도로 업데이트 합니다 , 아직 PGCharacter 에 있어야 할지, PlayableCharacter에 있어야 할 지 모르겠어서 여기다 둠
-	UFUNCTION(BlueprintCallable)
-	virtual void UpdateBendDownDegree();
-	UFUNCTION(BlueprintCallable,Server,Unreliable)
-	virtual void SetBendDownDegree_Server(float _Degree);
 
-	// ----- GAS
+
+	UFUNCTION(BlueprintCallable,Reliable,NetMulticast)
+	void SetSpeed_Multicast(float _Speed);
+	UFUNCTION(BlueprintCallable,Reliable,Server)
+	void SetSpeed_Server(float _Speed);
+	void SetSpeed(float _Speed);
+
+	// ---------------
+	// ----- GAS -----
+	// ---------------
+
 	TWeakObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	TWeakObjectPtr<UGrizzlyAttributeSet> AttributeSet;
 
@@ -68,14 +74,15 @@ public:
 	bool IsMyComputer(); // 싱글, 멀티 둘 다 고려
 	public:
 	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	
-	// ----- TPWeapon -----
-private:
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "Weapon",meta = (AllowPrivateAccess="true"))
-	USkeletalMeshComponent* TPWeaponComponent;
 
+
+	// ---------------
+	// ----- Dead ----
+	// ---------------
 public:
+	virtual void Die();
+
 	UFUNCTION(BlueprintCallable)
-	USkeletalMeshComponent* GetTPWeaponComponent() const;
+	virtual bool IsDead() const {return false;};
 
 };

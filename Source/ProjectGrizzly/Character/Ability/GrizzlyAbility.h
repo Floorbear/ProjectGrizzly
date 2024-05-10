@@ -17,4 +17,14 @@ class PROJECTGRIZZLY_API UGrizzlyAbility : public UGameplayAbility
 
 public:
 	EPGAbilityInputID InputID = EPGAbilityInputID::None;
+
+protected:
+	UFUNCTION(BlueprintCallable)
+	class ACPP_PlayableCharacter* GetCharacter() const;
+
+	UFUNCTION(BlueprintCallable)
+	class UWeaponComponent* GetWeaponComponent() const;
+
+	UFUNCTION(BlueprintCallable)
+	bool IsAIControl() const;
 };

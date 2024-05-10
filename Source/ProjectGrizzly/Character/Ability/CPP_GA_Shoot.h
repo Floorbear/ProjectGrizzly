@@ -25,17 +25,14 @@ public:
 
 	void InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
+
+
+
+	void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
+
 protected:
 	void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Montage")
-	UAnimMontage* AM_Hands_Shoot;
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Montage")
-	UAnimMontage* AM_Weapon_Shoot;
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Montage")
-	UAnimMontage* AM_Hip_Shoot;
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Montage")
-	UAnimMontage* AM_ADS_Shoot;
 
 	UFUNCTION()
 	void OnEndAbility(FGameplayEventData Payload);
@@ -45,10 +42,10 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void Shoot();
-
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_Shoot();
 	UFUNCTION(BlueprintCallable)
-	float GetRPM();
-
+	float GetRPM() const;
 
 	void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
@@ -61,8 +58,8 @@ private:
 	// ------------------------
 private:
 	
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Recoil", meta = (AllowPrivateAccess = "true"))
-	class UCurveVector* WeaponRecoilCurve;
+	//UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Recoil", meta = (AllowPrivateAccess = "true"))
+	//class UCurveVector* WeaponRecoilCurve;
 	class UAbilityTask_PlayMontageAndWait* MontageTask;
 	class UAbilityTask_WaitGameplayEvent* EventReceivedTask;
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Recoil", meta = (AllowPrivateAccess = "true"))
@@ -77,10 +74,60 @@ private:
 
 	UFUNCTION()
 	void OnShootWaitFinish();
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Recoil", meta = (AllowPrivateAccess = "true"))
-	float RecoilRecoveryTime = 0.15f;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Recoil", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class UCameraShakeBase> VisualRecoil;
+
+public:
+
+
+
+
+	// ------------------------
+	// -------- Bullet --------
+	// ------------------------
+private:
+	UFUNCTION( Category = "Bullet")
+	void SpawnBullet(const FTransform& CharacterTransform,const FTransform& BulletTransform);
+
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Bullet", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AActor> BulletClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Bullet", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UGameplayEffect> BulletDamageEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Bullet", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UGameplayEffect> BulletHitParticleEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Bullet", meta = (AllowPrivateAccess = "true"))
+	float BulletDamage = 40.f;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	FTransform GetBulletSpawnTransform(const FTransform& _CameraPos) const;
+
+	// ------------------------
+	// ------- Sync Loading ---
+	// ------------------------
+private:
+	void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+
+	// ------------------------
+	//			AI
+	// ------------------------
+	UFUNCTION()
+	void OnReceiveStopShoot(FGameplayEventData Payload);
+
+	// ------------------------
+	//			Threat
+	// ------------------------
+	private:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Treat", meta = (AllowPrivateAccess = "true"))
+	float ThreatRadius = 500.f;
+
+	void ApplyThreatToAICharacter(const FTransform& CharacterTransform);
+
+	float GetWeaponThreat();
 
 };

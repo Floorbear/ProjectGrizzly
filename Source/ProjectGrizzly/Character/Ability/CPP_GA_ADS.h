@@ -25,24 +25,27 @@ public:
 protected:
 	void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+	void ApplyADSEffect();
+
 	void InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+
+	void ApplyADSRelieveEffect();
 
 	void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 private:
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "ADS",meta = (AllowPrivateAccess = "true"))
-	bool bADS = true;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "ADS",meta = (AllowPrivateAccess = "true"))
 	bool bShouldCancel = false;
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "ADS",meta = (AllowPrivateAccess = "true"))
-	FVector IdleHandLocation = {3.8f,6.f,-1.8f};
-
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "ADS",meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UGameplayEffect> GE_ADSRelieve;
 
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "ADS",meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UGameplayEffect> GE_ADS;
+
 	FActiveGameplayEffectHandle ADSRelieveHandle;
+	FActiveGameplayEffectHandle ADSHandle;
 
 	UFUNCTION()
 	void Tick(float _DeltaTime);
@@ -50,6 +53,9 @@ private:
 	UFUNCTION(BlueprintCallable)
 	float GetADSSpeed();
 
-
-
+	//ToDo : WeaponData¿¡ ADSMovementSpeed Ãß°¡
+	float GetADSMovementSpeed()
+	{
+		return 0.7f;
+	}
 };

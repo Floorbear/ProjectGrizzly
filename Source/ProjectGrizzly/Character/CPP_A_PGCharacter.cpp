@@ -2,26 +2,62 @@
 
 
 #include "CPP_A_PGCharacter.h"
-#include "CPP_PGCharacter.h"
+#include "CPP_PlayableCharacter.h"
 #include "AbilitySystemComponent.h"
-
+#include "GameFrameWork\CharacterMovementComponent.h"
 void UCPP_A_PGCharacter::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	ACPP_PGCharacter* Character = Cast<ACPP_PGCharacter>(TryGetPawnOwner());
+	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(TryGetPawnOwner());
 	if (!IsValid(Character))
 	{
 		return;
 	}
 
-	MoveForwardAxis = Character->MoveForwardAxis;
+	//AI는 속도로 MoveForwardAxis를 업데이트
+	if (Character->bIsAI)
+	{
+		FVector Velocity = Character->GetMovementComponent()->Velocity;
+		Velocity.Z = 0;
+		if (Velocity.Length() > 0)
+		{
+			MoveForwardAxis = 1.f;
+		}
+		else
+		{
+			MoveForwardAxis = 0.f;
+		}
+	}
+	else
+	{
+		MoveForwardAxis = Character->MoveForwardAxis;
+	}
 	MoveRightAxis = Character->MoveRightAxis;
 	BendDownDegree = Character->BendDownDegree;
 
 	UpdateAxis(DeltaSeconds);
 	UpdateADS();
 	UpdateLeftHandIK();
+	UpdateDead();
+	UpdateSprint(Character);
+	bIsCrouching = Character->GetCharacterMovement()->IsCrouching();
+}
+
+void UCPP_A_PGCharacter::UpdateSprint(ACPP_PlayableCharacter* Character)
+{
+	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
+	if (IsValid(ASC))
+	{
+		if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.Sprint"))))
+		{
+			bSprint = true;
+		}
+		else
+		{
+			bSprint = false;
+		}
+	}
 }
 
 
@@ -55,7 +91,7 @@ void UCPP_A_PGCharacter::UpdateAxis(float _DeltaSeconds)
 
 void UCPP_A_PGCharacter::UpdateADS()
 {
-	ACPP_PGCharacter* Character = Cast<ACPP_PGCharacter>(TryGetPawnOwner());
+	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(TryGetPawnOwner());
 	UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();
 	if (!IsValid(ASC))
 	{
@@ -73,7 +109,7 @@ void UCPP_A_PGCharacter::UpdateADS()
 
 void UCPP_A_PGCharacter::UpdateLeftHandIK()
 {
-	ACPP_PGCharacter* Character = Cast<ACPP_PGCharacter>(TryGetPawnOwner());
+	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(TryGetPawnOwner());
 	USkeletalMeshComponent* TPWeapon = Character->GetTPWeaponComponent();
 	if (!IsValid(TPWeapon))
 	{
@@ -87,4 +123,11 @@ void UCPP_A_PGCharacter::UpdateLeftHandIK()
 	LeftHandTransform.SetLocation(OutputVector);
 	LeftHandTransform.SetRotation(OutputRotator.Quaternion());
 
+}
+
+
+void UCPP_A_PGCharacter::UpdateDead()
+{
+	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(TryGetPawnOwner());
+	bIsDead = Character->IsDead();
 }

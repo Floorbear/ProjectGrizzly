@@ -1,5 +1,8 @@
 #include "CPP_PGCharacter.h"
 #include "Net\UnrealNetwork.h"
+#include "CPP_GrizzlyPS.h"
+#include <GameFramework\CharacterMovementComponent.h>
+#include "AIModule\Classes\AIController.h"
 
 // Sets default values
 ACPP_PGCharacter::ACPP_PGCharacter()
@@ -7,8 +10,7 @@ ACPP_PGCharacter::ACPP_PGCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	TPWeaponComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("TPWeaponComponent"));
-	TPWeaponComponent->SetupAttachment(GetMesh(),TEXT("WeaponRight"));
+
 }
 
 
@@ -17,7 +19,6 @@ void ACPP_PGCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACPP_PGCharacter, MoveForwardAxis);
 	DOREPLIFETIME(ACPP_PGCharacter, MoveRightAxis);
-	DOREPLIFETIME(ACPP_PGCharacter, BendDownDegree);
 }
 
 // Called when the game starts or when spawned
@@ -31,15 +32,12 @@ void ACPP_PGCharacter::BeginPlay()
 void ACPP_PGCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	UpdateBendDownDegree();
 }
 
 // Called to bind functionality to input
 void ACPP_PGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-
 }
 
 void ACPP_PGCharacter::SetMoveForwardAxis(float _Axis)
@@ -78,22 +76,32 @@ void ACPP_PGCharacter::SetMoveRightAxis_Server_Implementation(float _Axis)
 	MoveRightAxis = _Axis;
 }
 
-void ACPP_PGCharacter::UpdateBendDownDegree()
+
+void ACPP_PGCharacter::SetSpeed_Multicast_Implementation(float _Speed)
 {
-	if (IsMyComputer())
-	{
-		float CurrentDegree = GetControlRotation().Pitch;
-		if (FMath::Abs(CurrentDegree - BendDownDegree) >= 0.01)
-		{
-			SetBendDownDegree_Server(CurrentDegree);
-		}
-		BendDownDegree = CurrentDegree;
-	}
+	float CrouchRate = 0.7f;
+	GetCharacterMovement()->MaxWalkSpeed = _Speed;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = _Speed * CrouchRate;
 }
 
-void ACPP_PGCharacter::SetBendDownDegree_Server_Implementation(float _Degree)
+void ACPP_PGCharacter::SetSpeed_Server_Implementation(float _Speed)
 {
-	BendDownDegree = _Degree;
+	SetSpeed_Multicast(_Speed);
+}
+
+void ACPP_PGCharacter::SetSpeed(float _Speed)
+{
+	float CrouchRate = 0.7f;
+	GetCharacterMovement()->MaxWalkSpeed = _Speed;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = _Speed * CrouchRate;
+	if (HasAuthority())
+	{
+		SetSpeed_Multicast(_Speed);
+	}
+	else
+	{	
+		SetSpeed_Server(_Speed);
+	}
 }
 
 ENetRole ACPP_PGCharacter::GetNetRole()
@@ -112,6 +120,11 @@ ENetRole ACPP_PGCharacter::GetNetRole()
 
 bool ACPP_PGCharacter::IsMyComputer()
 {
+	//AAIController* AIController = Cast<AAIController>(GetController());
+	//if (AIController != NULL)
+	//{
+	//	return false;
+	//}
 	if (GetNetMode() == NM_Standalone)
 	{
 		return true;
@@ -132,9 +145,12 @@ UAbilitySystemComponent* ACPP_PGCharacter::GetAbilitySystemComponent() const
 	return AbilitySystemComponent.Get();
 }
 
-USkeletalMeshComponent* ACPP_PGCharacter::GetTPWeaponComponent() const
+
+
+void ACPP_PGCharacter::Die()
 {
-	return TPWeaponComponent;
+
 }
+
 
 
