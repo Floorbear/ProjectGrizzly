@@ -123,8 +123,8 @@ private:
 	//			Threat
 	// ------------------------
 	private:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Treat", meta = (AllowPrivateAccess = "true"))
-	float ThreatRadius = 500.f;
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Treat", meta = (AllowPrivateAccess = "true"))
+	//float ThreatRadius = 500.f;
 
 	void ApplyThreatToAICharacter(const FTransform& CharacterTransform);
 

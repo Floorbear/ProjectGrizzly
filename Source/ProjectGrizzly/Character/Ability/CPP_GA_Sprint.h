@@ -40,4 +40,10 @@ private:
 
 	UFUNCTION()
 	void OnCrouchCheck();
+
+	// ------------------------------------------
+	//					AI
+	// ------------------------------------------
+	UFUNCTION()
+	void OnReceiveUnSprintEvent(FGameplayEventData Payload);
 };

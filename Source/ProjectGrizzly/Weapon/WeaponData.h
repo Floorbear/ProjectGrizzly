@@ -32,6 +32,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Loudness;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Threat;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ThreatRadius;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSoftObjectPtr<UCurveVector> WeaponRecoilCurve;
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite)
 	TSubclassOf<class UGameplayEffect> MuzzleFlashEffect;

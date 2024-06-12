@@ -9,6 +9,7 @@
 #include "Kismet\KismetMathLibrary.h"
 #include "Abilities\Tasks\AbilityTask_WaitInputPress.h"
 #include "Abilities\Tasks\AbilityTask_WaitInputRelease.h"
+#include "Abilities/\Tasks/AbilityTask_WaitGameplayEvent.h"
 
 
 UCPP_GA_ADS::UCPP_GA_ADS()
@@ -92,6 +93,12 @@ void UCPP_GA_ADS::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 	//ACPP_PlayableCharacter* Player = Cast<ACPP_PlayableCharacter>(CurrentActorInfo->AvatarActor);
 	//UCPP_A_PGCharacter* AnimInstance = Cast<UCPP_A_PGCharacter>(Player->GetMesh()->GetAnimInstance());
 	//AnimInstance->bADS = true;
+	// 
+	//AI Control Task »ý¼º
+	UAbilityTask_WaitGameplayEvent* AIADSRelieveTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this,FGameplayTag::RequestGameplayTag(TEXT("Ability.State.ADSRelieve")));
+	AIADSRelieveTask->EventReceived.AddDynamic(this, &UCPP_GA_ADS::OnReceivedADSRelieveEvent);
+	AIADSRelieveTask->ReadyForActivation();
+	
 
 }
 
@@ -149,6 +156,11 @@ float UCPP_GA_ADS::GetADSSpeed()
 		return 25.f;
 	}
 	return 6.f;
+}
+
+void UCPP_GA_ADS::OnReceivedADSRelieveEvent(FGameplayEventData _Payload)
+{
+	K2_EndAbility();
 }
 
 

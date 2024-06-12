@@ -6,6 +6,7 @@
 #include "Abilities\Tasks\AbilityTask_WaitDelay.h"
 #include "..\CPP_PlayableCharacter.h"
 #include "CPP_GA_Crouch.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 UCPP_GA_Sprint::UCPP_GA_Sprint()
 {	
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -51,6 +52,11 @@ void UCPP_GA_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	UAbilityTask_WaitDelay* Delay = UAbilityTask_WaitDelay::WaitDelay(this,0.05f);
 	Delay->OnFinish.AddDynamic(this,&UCPP_GA_Sprint::TimerTick);
 	Delay->ReadyForActivation();
+
+	//AI End Callback
+	auto AIUnSprintListener = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag(TEXT("Ability.State.UnSprint")));
+	AIUnSprintListener->EventReceived.AddDynamic(this, &UCPP_GA_Sprint::OnReceiveUnSprintEvent);
+	AIUnSprintListener->ReadyForActivation();
 }
 
 void UCPP_GA_Sprint::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
@@ -65,13 +71,21 @@ void UCPP_GA_Sprint::EndAbility(const FGameplayAbilitySpecHandle Handle, const F
 void UCPP_GA_Sprint::TimerTick()
 {
 	ACPP_PlayableCharacter* Character =Cast<ACPP_PlayableCharacter>(CurrentActorInfo->AvatarActor);
-	if (Character->MoveRightAxis == 0 && Character->MoveForwardAxis > 0.98f)
+	if (!IsAIControl())
 	{
-		if (K2_CommitAbilityCost())
+		if (Character->MoveRightAxis == 0 && Character->MoveForwardAxis > 0.98f)
 		{
-			UAbilityTask_WaitDelay* Delay = UAbilityTask_WaitDelay::WaitDelay(this, 0.05f);
-			Delay->OnFinish.AddDynamic(this, &UCPP_GA_Sprint::TimerTick);
-			Delay->ReadyForActivation();
+			if (K2_CommitAbilityCost())
+			{
+				UAbilityTask_WaitDelay* Delay = UAbilityTask_WaitDelay::WaitDelay(this, 0.05f);
+				Delay->OnFinish.AddDynamic(this, &UCPP_GA_Sprint::TimerTick);
+				Delay->ReadyForActivation();
+			}
+			else
+			{
+				K2_EndAbility();
+				return;
+			}
 		}
 		else
 		{
@@ -79,15 +93,14 @@ void UCPP_GA_Sprint::TimerTick()
 			return;
 		}
 	}
-	else
-	{
-		K2_EndAbility();
-		return;
-	}
-	
 }
 
 void UCPP_GA_Sprint::OnCrouchCheck()
 {
 	K2_ActivateAbility();
+}
+
+void UCPP_GA_Sprint::OnReceiveUnSprintEvent(FGameplayEventData Payload)
+{
+	K2_EndAbility();
 }

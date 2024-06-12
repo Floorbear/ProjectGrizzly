@@ -48,7 +48,7 @@ void UCPP_GA_Crouch::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	ToggleCrouch->OnPress.AddDynamic(this,&UCPP_GA_Crouch::OnPressed);
 	ToggleCrouch->ReadyForActivation();
 
-	//AI용 크라우치 
+	//AI Crouch 해제용 콜백 
 	auto AIUnCrouchListener = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this,FGameplayTag::RequestGameplayTag(TEXT("Ability.State.UnCrouch")));
 	AIUnCrouchListener->EventReceived.AddDynamic(this,&UCPP_GA_Crouch::OnReceiveUnCrouchEvent);
 	AIUnCrouchListener->ReadyForActivation();

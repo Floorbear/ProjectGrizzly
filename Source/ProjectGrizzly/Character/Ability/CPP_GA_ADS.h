@@ -58,4 +58,11 @@ private:
 	{
 		return 0.7f;
 	}
+
+	// -------------------------------------
+	//				AI Control
+	// -------------------------------------
+	UFUNCTION()
+	void OnReceivedADSRelieveEvent(struct FGameplayEventData _Payload);
+
 };

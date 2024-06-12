@@ -64,6 +64,8 @@ void ACPP_AIPlayableCharacter::BeginPlay()
 		{
 			AbilitySystemComponent->
 				GetGameplayAttributeValueChangeDelegate(AttributeSet->GetHealthAttribute()).AddUObject(this, &ACPP_AIPlayableCharacter::HealthChanged);
+			AbilitySystemComponent->
+				GetGameplayAttributeValueChangeDelegate(AttributeSet->GetSpeedAttribute()).AddUObject(this, &ACPP_AIPlayableCharacter::SpeedChanged);
 		}
 	}
 	
@@ -78,6 +80,15 @@ void ACPP_AIPlayableCharacter::HealthChanged(const struct FOnAttributeChangeData
 	{
 		Die();
 	}
+}
+
+void ACPP_AIPlayableCharacter::SpeedChanged(const struct FOnAttributeChangeData& Data)
+{
+	if (IsAlive() && HasAuthority())
+	{
+		this->SetSpeed(Data.NewValue);
+	}
+
 }
 
 bool ACPP_AIPlayableCharacter::IsAlive() const

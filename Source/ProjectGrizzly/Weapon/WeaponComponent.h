@@ -69,6 +69,16 @@ public:
 		return WeaponData->RPM;
 	}
 	UFUNCTION(BlueprintCallable)
+	float GetWeaponThreat() const
+	{
+		return WeaponData->Threat;
+	}
+	UFUNCTION(BlueprintCallable)
+	float GetWeaponThreatRadius() const
+	{
+		return WeaponData->ThreatRadius;
+	}
+	UFUNCTION(BlueprintCallable)
 	float GetRandomSpread() const
 	{
 		return WeaponData->RandomSpread;

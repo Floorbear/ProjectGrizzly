@@ -23,7 +23,8 @@ protected:
 	void BeginPlay() override;
 
 	private:
-	void HealthChanged(const struct FOnAttributeChangeData& Data);
+		void HealthChanged(const struct FOnAttributeChangeData& Data);
+		void SpeedChanged(const struct FOnAttributeChangeData& Data);
 
 	UFUNCTION(BlueprintCallable)
 	bool IsAlive() const;

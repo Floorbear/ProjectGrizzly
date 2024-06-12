@@ -356,7 +356,7 @@ void UCPP_GA_Shoot::ApplyThreatToAICharacter(const FTransform& CharacterTransfor
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> IgnoreActors;
 	IgnoreActors.Add(CurrentActorInfo->AvatarActor.Get());
-	UKismetSystemLibrary::SphereTraceMultiForObjects(GetWorld(), CharacterTransform.GetLocation(), EndPos, ThreatRadius, ObjectTypes, false, IgnoreActors,
+	UKismetSystemLibrary::SphereTraceMultiForObjects(GetWorld(), CharacterTransform.GetLocation(), EndPos, GetWeaponComponent()->GetWeaponThreatRadius(), ObjectTypes, false, IgnoreActors,
 		EDrawDebugTrace::None, HitResults, true);
 
 	//트레이스에 충돌된 AI캐릭터의 위협도 증가
@@ -374,5 +374,5 @@ void UCPP_GA_Shoot::ApplyThreatToAICharacter(const FTransform& CharacterTransfor
 
 float UCPP_GA_Shoot::GetWeaponThreat()
 {
-	return 0.2f;
+	return	GetWeaponComponent()->GetWeaponThreat();
 }
