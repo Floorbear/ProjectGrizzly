@@ -13,6 +13,9 @@ UCPP_GA_Sprint::UCPP_GA_Sprint()
 	//bReplicateInputDirectly 는 InputReleased , InputPressed 함수를 사용할 때 true로 해야 함
 	bReplicateInputDirectly = true;
 	InputID = EPGAbilityInputID::Sprint;
+
+	//기울이는 도중에 달리면 기울이기 취소
+	CancelAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.Leaning")));
 }
 
 void UCPP_GA_Sprint::InputReleased(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)

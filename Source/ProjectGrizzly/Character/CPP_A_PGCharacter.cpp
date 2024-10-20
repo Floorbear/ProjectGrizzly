@@ -41,6 +41,7 @@ void UCPP_A_PGCharacter::NativeUpdateAnimation(float DeltaSeconds)
 	UpdateLeftHandIK();
 	UpdateDead();
 	UpdateSprint(Character);
+	UpdateLeaning(DeltaSeconds);
 	bIsCrouching = Character->GetCharacterMovement()->IsCrouching();
 }
 
@@ -123,6 +124,13 @@ void UCPP_A_PGCharacter::UpdateLeftHandIK()
 	LeftHandTransform.SetLocation(OutputVector);
 	LeftHandTransform.SetRotation(OutputRotator.Quaternion());
 
+}
+
+void UCPP_A_PGCharacter::UpdateLeaning(float _DeltaSeconds)
+{
+	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(TryGetPawnOwner());
+	float LeaningSpeed = 10.0f;
+	LeaningRate = FMath::Lerp(LeaningRate, Character->GetLeaningAxis(), _DeltaSeconds * LeaningSpeed);
 }
 
 

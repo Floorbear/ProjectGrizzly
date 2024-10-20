@@ -4,11 +4,32 @@
 
 #include "CoreMinimal.h"
 #include "CPP_PGCharacter.h"
+#include <Engine/DataTable.h>
 #include "CPP_PlayableCharacter.generated.h"
 
 /**
- * 
+ *
  */
+UENUM(BlueprintType)
+enum class ECharacterModel : uint8
+{
+	None				UMETA(DisplayName = "None"),
+	Merc_2a				UMETA(DisplayName = "Merc_2a"),
+	Bandit_3a			UMETA(DisplayName = "Bandit_3a")
+};
+
+USTRUCT(BlueprintType)
+struct FCharacterModel : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSoftObjectPtr<USkeletalMesh> Character;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSoftObjectPtr<USkeletalMesh> Hands;
+};
+
+
 UCLASS()
 class PROJECTGRIZZLY_API ACPP_PlayableCharacter : public ACPP_PGCharacter
 {
@@ -22,6 +43,7 @@ public:
 
 	void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable)
 	void UpdateADS(float DeltaTime);
 
 protected:
@@ -29,68 +51,120 @@ protected:
 
 
 
+	// ------------------------------------------------
+	//					Visual Model
+	// ------------------------------------------------
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = VisualModel, meta = (AllowPrivateAccess = "true"), ReplicatedUsing = OnRep_SetCharacterModel)
+	ECharacterModel CharacterModel = ECharacterModel::None;
+	UFUNCTION()
+	void OnRep_SetCharacterModel();
+	UFUNCTION(Server, Reliable)
+	void SetCharacterModel_Server(ECharacterModel _Model);
+public:
+	UFUNCTION(BlueprintCallable)
+	void SetCharacterModel(ECharacterModel _Model);
 
+	// ----------------------------------
+	//			Shadow
+	// ----------------------------------
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Shadow, meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* ShadowModelComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Shadow, meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* ShadowWeaponComponent;
+public:
+	UFUNCTION(BlueprintCallable, Category = Shadow)
+	USkeletalMeshComponent* GetShadowWeaponComponent() const
+	{
+		return ShadowWeaponComponent;
+	}
 	// ----------------
 	// ----- GAS ------
 	// ----------------
-	protected:
+protected:
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "Ability", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability", meta = (AllowPrivateAccess = "true"))
 	TArray<TSubclassOf<class UGrizzlyAbility>> PlayerAbilities;
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "Ability", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability", meta = (AllowPrivateAccess = "true"))
 	TArray<TSubclassOf<class UGameplayEffect>> StartEffects;
 
 	bool ASCInputBound = false;
-	
+
 
 	// ------------------
 	// ----- Camera -----
 	// ------------------
 private:
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* Camera;
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* SpringArm;
 
 public:
-	UPROPERTY(VisibleDefaultsOnly,BlueprintReadWrite,Category = "Camera")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Camera")
 	float MouseXDelta = 0;
-	UPROPERTY(VisibleDefaultsOnly,BlueprintReadWrite,Category = "Camera")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Camera")
 	float MouseYDelta = 0;
 
 	UFUNCTION(BlueprintCallable)
 	class UCameraComponent* GetCamera() const;
 
-
 	// ----------------------------------
 	// ----- First Person Hands ---------
 	// ----------------------------------
 private:
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Hands", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hands", meta = (AllowPrivateAccess = "true"))
 	class USkeletalMeshComponent* HandsMeshComponent;
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Hands", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hands", meta = (AllowPrivateAccess = "true"))
 	float ADSFactor = 0.f; // 0 : IdleHand , 1 : ADSHand
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Hands", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hands", meta = (AllowPrivateAccess = "true"))
 	bool bADS = false;
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Hands",meta = (AllowPrivateAccess = "true"))
-	FVector IdleHandLocation = {3.8f,6.f,-1.8f};
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hands", meta = (AllowPrivateAccess = "true"))
+	FVector IdleHandLocation = { 3.8f,6.f,-1.8f };
+public:
+	// 소규모 게임이므로 프로퍼티 리플리케이션 X
+	// 클라이언트에서만 필요한 데이터지만 대규모 게임에서 타당성 검증을 해야함
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hands")
+	bool bHighReady = false;
 public:
 	UFUNCTION(BlueprintCallable)
 	class USkeletalMeshComponent* GetHandsMeshComponent();
 
-	UFUNCTION(BlueprintCallable , Category = "Hands")
+	UFUNCTION(BlueprintCallable, Category = "Hands")
 	float GetADSSpeed();
-	UFUNCTION(BlueprintCallable , Category = "Hands")
+	UFUNCTION(BlueprintCallable, Category = "Hands")
 	void SetADS(bool _NewBool);
-	UFUNCTION(BlueprintCallable , Category = "Hands")
+	UFUNCTION(BlueprintCallable, Category = "Hands")
 	bool GetADS() const;
 
-	UFUNCTION(BlueprintCallable , Category = "Hands") 
+	UFUNCTION(BlueprintCallable, Category = "Hands")
 	float GetADSFactor() const; // 0 : IdleHand , 1 : ADSHand
 
+	UFUNCTION(BlueprintCallable, Category = "Hands")
+	void ReturnToHands(float _DeltaTime);
+
+	// ADS 상태 ㅇ: ADS 로케이션 리턴 
+	// ADS 상태 X : Idle 로캐이션 리턴
+	UFUNCTION(BlueprintCallable, Category = "Hands")
+	FVector GetCurrentHandsLocation() const
+	{
+		if (bADS)
+		{
+			return { 0,0,0 };
+		}
+		return IdleHandLocation;
+	}
+
 	// ----------------------------------
-	// ---------------Die----------------
+	//			Damage
+	// ----------------------------------
+	virtual float TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+	// ----------------------------------
+	//			Die
 	// ----------------------------------
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Die", meta = (AllowPrivateAccess = "true"))
@@ -98,13 +172,12 @@ private:
 	FVector DeadLocation;
 public:
 	void Die() override;
-	UFUNCTION(NetMulticast,Reliable)
+	UFUNCTION(NetMulticast, Reliable)
 	void Die_Multicast();
 
-	bool IsDead() const override;
-
+	virtual bool IsDead() const override;
 	// ----------------------------------
-	// ------- Third Person Cam ---------
+	//		 Third Person Cam
 	// ----------------------------------
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "TPCam", meta = (AllowPrivateAccess = "true"))
@@ -119,24 +192,47 @@ private:
 
 
 	// ----------------------------------
-	//			Bending
+	//			Bending & Leaning
 	// ----------------------------------
+private:
+	// 순수한 Axis 값. 기울이기 수치값을 전달 받기위해서는 GetLeaningAxis 를 사용
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float RawLeaningAxis = 0.f;
 
-	public:
-	UPROPERTY(Replicated,VisibleDefaultsOnly,BlueprintReadWrite,Category = "Movement")
+	// Leaning 어빌리티의 LeaningAxis를 감시하는 값
+	UPROPERTY(Replicated, EditDefaultsOnly, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float LeaningAxis;
+public:
+	UFUNCTION(BlueprintCallable)
+	float GetLeaningAxis() const;
+	UFUNCTION(BlueprintCallable)
+	void SetLeaningAxis(float _LeaningAxis);
+	UFUNCTION(BlueprintCallable)
+	float GetRawLeaningAxis() const
+	{
+		return RawLeaningAxis;
+	}
+	UFUNCTION()
+	void SetRawLeaningAxis(float _LeaningAxis);
+private:
+	UFUNCTION(Server, Unreliable)
+	void SetRawLeaningAxis_Server(float _LeaningAxis);
+
+public:
+	UPROPERTY(Replicated, VisibleDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 	float BendDownDegree = 0.f;
 	UFUNCTION(BlueprintCallable)
 	virtual void UpdateBendDownDegree();
-	UFUNCTION(BlueprintCallable,Server,Unreliable)
+	UFUNCTION(BlueprintCallable, Server, Unreliable)
 	virtual void SetBendDownDegree_Server(float _Degree);
 
 	// --------------------
 	// ----- Weapon -----
 	// --------------------
 protected:
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "Weapon",meta = (AllowPrivateAccess="true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	class UWeaponComponent* WeaponComponent;
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "Weapon",meta = (AllowPrivateAccess="true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* TPWeaponComponent;
 
 public:
@@ -145,19 +241,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 	USkeletalMeshComponent* GetTPWeaponComponent() const;
 private:
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	class USkeletalMeshComponent* FPWeaponMeshComponent;
 
 public:
 	UFUNCTION(BlueprintCallable)
 	class USkeletalMeshComponent* GetFPWeaponMeshComponent();
-	
+
 	// ------------------------------
 	//				AI
 	// ------------------------------
 public:
 	UPROPERTY(Replicated, VisibleDefaultsOnly, BlueprintReadWrite, Category = "AI")
 	bool bIsAI = false;
+
 
 
 };

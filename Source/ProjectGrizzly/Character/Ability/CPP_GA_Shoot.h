@@ -105,7 +105,7 @@ private:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	FTransform GetBulletSpawnTransform(const FTransform& _CameraPos) const;
+	FTransform CalculateBulletSpawnTransform(const FTransform& _CameraPos) const;
 
 	// ------------------------
 	// ------- Sync Loading ---

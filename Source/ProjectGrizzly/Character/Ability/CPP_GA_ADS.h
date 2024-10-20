@@ -56,7 +56,7 @@ private:
 	//ToDo : WeaponData¿¡ ADSMovementSpeed Ãß°¡
 	float GetADSMovementSpeed()
 	{
-		return 0.7f;
+		return 0.6f;
 	}
 
 	// -------------------------------------

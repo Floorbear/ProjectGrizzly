@@ -50,10 +50,10 @@ void UCPP_GA_Shoot::CancelAbility(const FGameplayAbilitySpecHandle Handle, const
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 }
 
-FTransform UCPP_GA_Shoot::GetBulletSpawnTransform(const FTransform& _CameraPos) const
+FTransform UCPP_GA_Shoot::CalculateBulletSpawnTransform(const FTransform& _CameraPos) const
 {
 	FTransform BulletSpawnPos = _CameraPos;
-	float RandomValue = GetWeaponComponent()->GetRandomSpread();
+	float RandomSpread = GetWeaponComponent()->GetRandomSpread();
 
 	ACPP_PGCharacter* Character = GetCharacter();
 	//이동할 경우 랜덤 스프레드 값이 커짐
@@ -73,14 +73,36 @@ FTransform UCPP_GA_Shoot::GetBulletSpawnTransform(const FTransform& _CameraPos) 
 	float ADSFactor = 1.f - Cast<ACPP_PlayableCharacter>(GetCharacter())->GetADSFactor();
 
 
-	RandomValue *= AxisWeight * ADSFactor;
-	auto Rotator = BulletSpawnPos.Rotator();
-	Rotator.Yaw += UKismetMathLibrary::RandomFloatInRange(-RandomValue, RandomValue);
-	Rotator.Pitch += UKismetMathLibrary::RandomFloatInRange(-RandomValue, RandomValue);
 
+
+	//AI일경우 난이도에 따라 랜덤 스프레드 값이 추가됨
+	float DifficultyFactor = 0.f;
+	if (IsAIControl())
+	{
+		switch (GetDifficulty())
+		{
+		case EDifficulty::Novice:
+			DifficultyFactor = RandomSpread * 2.f;
+			break;
+		case EDifficulty::Standard:
+			DifficultyFactor = RandomSpread * 1.5f;
+			break;
+		case EDifficulty::Expert:
+			DifficultyFactor = RandomSpread * 1.f;
+			break;
+		default:
+			break;
+		}
+	}
+
+
+	RandomSpread *= AxisWeight * (ADSFactor);
+	RandomSpread += DifficultyFactor;
+	auto Rotator = BulletSpawnPos.Rotator();
+	Rotator.Yaw += UKismetMathLibrary::RandomFloatInRange(-RandomSpread, RandomSpread);
+	Rotator.Pitch += UKismetMathLibrary::RandomFloatInRange(-RandomSpread, RandomSpread);
 	BulletSpawnPos.SetRotation(Rotator.Quaternion());
 
-	//UE_LOG(LogTemp,Warning,TEXT("%f"),RandomValue);
 	return BulletSpawnPos;
 }
 
@@ -98,10 +120,10 @@ void UCPP_GA_Shoot::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, co
 		{
 			GCM->LoadNotifyForEditorPreview(FGameplayTag::RequestGameplayTag(TEXT("GameplayCue.Weapon.Gun.MuzzleFlash")));
 		}
-		
+
 	}
 #endif // #if WITH_EDITOR
-	
+
 }
 
 void UCPP_GA_Shoot::OnReceiveStopShoot(FGameplayEventData Payload)
@@ -142,7 +164,7 @@ void UCPP_GA_Shoot::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 void UCPP_GA_Shoot::OnEndAbility(FGameplayEventData Payload)
 {
 	if (CanContinueShoot())
-	{		
+	{
 		Shoot();
 	}
 	else
@@ -177,7 +199,7 @@ void UCPP_GA_Shoot::Shoot()
 	ACPP_PlayableCharacter* Player = Cast<ACPP_PlayableCharacter>(CurrentActorInfo->AvatarActor);
 
 	//탄창에서 총알 감소
-	GetWeaponComponent()->SetCurrentMagazineRounds(GetWeaponComponent()->GetCurrentMagazineRounds()-1);
+	GetWeaponComponent()->SetCurrentMagazineRounds(GetWeaponComponent()->GetCurrentMagazineRounds() - 1);
 
 	//RPM 으로 몽타주 Rate 계산
 	// 기준 : 1.0 Rate = 400 RPM = 0.15초당 1발
@@ -215,10 +237,10 @@ void UCPP_GA_Shoot::Shoot()
 			MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, GetWeaponComponent()->Get_TP_Montage(TEXT("HipShoot")), AnimationRate, NAME_None, false);
 		}
 	}
-	
+
 	//노이즈  
 	float Loudness = GetWeaponComponent()->GetLoudness();
-	UAISense_Hearing::ReportNoiseEvent(GetWorld(),GetAvatarActorFromActorInfo()->GetActorLocation(), Loudness,GetAvatarActorFromActorInfo());
+	UAISense_Hearing::ReportNoiseEvent(GetWorld(), GetAvatarActorFromActorInfo()->GetActorLocation(), Loudness, GetAvatarActorFromActorInfo());
 
 	//카메라 흔들림
 	if (!IsAIControl())
@@ -241,12 +263,12 @@ void UCPP_GA_Shoot::Shoot()
 	BP_Shoot();
 	// 총알 생성
 	//if (Player->IsMyComputer() == true)
-	if(HasAuthority(&CurrentActivationInfo))
+	if (HasAuthority(&CurrentActivationInfo))
 	{
 		FTransform CharacterTransform = Player->GetCamera()->GetComponentTransform();
 		CharacterTransform.SetRotation(Player->GetController()->GetControlRotation().Quaternion());
 		//SpawnBullet(BulletSpawnPos);
-		SpawnBullet(CharacterTransform,GetBulletSpawnTransform(CharacterTransform));
+		SpawnBullet(CharacterTransform, CalculateBulletSpawnTransform(CharacterTransform));
 	}
 	// 다음 사격에 대한 콜백 등록
 	EventReceivedTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag(("Event.Montage.Gunplay.ShootEnd")));
@@ -315,7 +337,7 @@ void UCPP_GA_Shoot::Tick(float _DeltaTime)
 	Pitch *= -1.f;
 	if (!IsAIControl())
 	{
-		
+
 		CurrentActorInfo->PlayerController->AddPitchInput(Pitch);
 		CurrentActorInfo->PlayerController->AddYawInput(Yaw);
 	}
@@ -333,9 +355,9 @@ void UCPP_GA_Shoot::SpawnBullet(const FTransform& CharacterTransform, const FTra
 {
 	ACPP_PGCharacter* Character = GetCharacter();
 	ACPP_Bullet* Bullet = GetWorld()->SpawnActorDeferred<ACPP_Bullet>
-	(BulletClass, BulletTransform, CurrentActorInfo->OwnerActor.Get(), Character, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-	FGameplayEffectSpecHandle DamageEffectHandle = MakeOutgoingGameplayEffectSpec(BulletDamageEffect,GetAbilityLevel());
-	FGameplayEffectSpecHandle HitParticleEffectHandle = MakeOutgoingGameplayEffectSpec(BulletHitParticleEffect,GetAbilityLevel());
+		(BulletClass, BulletTransform, CurrentActorInfo->OwnerActor.Get(), Character, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	FGameplayEffectSpecHandle DamageEffectHandle = MakeOutgoingGameplayEffectSpec(BulletDamageEffect, GetAbilityLevel());
+	FGameplayEffectSpecHandle HitParticleEffectHandle = MakeOutgoingGameplayEffectSpec(BulletHitParticleEffect, GetAbilityLevel());
 	Bullet->DamageEffectHandle = DamageEffectHandle;
 	Bullet->HitParticleEffectHandle = HitParticleEffectHandle;
 	DamageEffectHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("Data.Damage")), BulletDamage);
@@ -356,7 +378,8 @@ void UCPP_GA_Shoot::ApplyThreatToAICharacter(const FTransform& CharacterTransfor
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> IgnoreActors;
 	IgnoreActors.Add(CurrentActorInfo->AvatarActor.Get());
-	UKismetSystemLibrary::SphereTraceMultiForObjects(GetWorld(), CharacterTransform.GetLocation(), EndPos, GetWeaponComponent()->GetWeaponThreatRadius(), ObjectTypes, false, IgnoreActors,
+	UKismetSystemLibrary::SphereTraceMultiForObjects(GetWorld(), CharacterTransform.GetLocation(), EndPos, GetWeaponComponent()->GetWeaponThreatRadius(),
+		ObjectTypes, false, IgnoreActors,
 		EDrawDebugTrace::None, HitResults, true);
 
 	//트레이스에 충돌된 AI캐릭터의 위협도 증가
@@ -368,7 +391,13 @@ void UCPP_GA_Shoot::ApplyThreatToAICharacter(const FTransform& CharacterTransfor
 			break;
 		}
 		ACPP_AI_PlayableCharacter_PC* Controller = Cast<ACPP_AI_PlayableCharacter_PC>(Character->GetController());
-		Controller->SetBulletThreat(Controller->GetBulletThreat()+ GetWeaponThreat());
+		//Controller->SetBulletThreat(Controller->GetBulletThreat()+ GetWeaponThreat());
+		FThreatenResult ThreatenResult;
+		ThreatenResult.Causer = GetCharacter();
+		ThreatenResult.Investigator = GetCharacter()->GetController();
+		ThreatenResult.ThreatValue = GetWeaponThreat();
+		Controller->ApplyThreat(ThreatenResult);
+		//Character->TakeDamage()
 	}
 }
 

@@ -8,51 +8,51 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnReloadStartDelegate);
 /**
- * 
+ *
  */
 UCLASS()
 class PROJECTGRIZZLY_API UCPP_A_PGCharacter : public UAnimInstance
 {
 	GENERATED_BODY()
-	
+
 public:
-	UPROPERTY(BlueprintAssignable,BlueprintCallable,EditDefaultsOnly,Category = "Reload")
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, EditDefaultsOnly, Category = "Reload")
 	FOnReloadStartDelegate OnReloadStartDelegate;
 
 	void NativeUpdateAnimation(float DeltaSeconds) override;
 
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 	float MoveForwardAxis = 0.f;
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 	float MoveRightAxis = 0.f;
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 	float RightRotationInterpo = 0.f;
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 	float BendDownDegree = 0.f;
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	bool bADS = false;
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "AnimSequence")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
 	UAnimSequenceBase* Hip_IdleSequence;
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "AnimSequence")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
 	UAnimSequenceBase* Hip_ForwardSequence;
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "AnimSequence")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
 	UAnimSequenceBase* Hip_BackwardSequence;
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "AnimSequence")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
 	UAnimSequenceBase* ADS_IdleSequence;
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "AnimSequence")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
 	UAnimSequenceBase* ADS_ForwardSequence;
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "AnimSequence")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
 	UAnimSequenceBase* ADS_BackwardSequence;
 
 	// ------ LeftHandIK ------
 public:
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "LeftHandIK")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LeftHandIK")
 	FTransform LeftHandTransform;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,Category = "LeftHandIK")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LeftHandIK")
 	float LeftHandIKAlpha = 1.0f;
 private:
 	UFUNCTION()
@@ -66,14 +66,20 @@ private:
 
 	void UpdateLeftHandIK();
 
+	void UpdateLeaning(float _DeltaSeconds);
 
 
-
+	// ----------------------------------
+	//				Leaning
+	// ----------------------------------
+private:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Leaning", meta = (AllowPrivateAccess = "true"))
+	float LeaningRate;
 	// ----------------------------------
 	// --------------Die-----------------
 	// ----------------------------------
 private:
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Die",meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Die", meta = (AllowPrivateAccess = "true"))
 	bool bIsDead;
 
 	void UpdateDead();
@@ -81,13 +87,13 @@ private:
 	// ----------------------------------
 	//				Sprint
 	// ----------------------------------
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Sprint",meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Sprint", meta = (AllowPrivateAccess = "true"))
 	bool bSprint = false;
 	void UpdateSprint(class ACPP_PlayableCharacter* Character);
 
 	// ----------------------------------
 	//				Crouch
 	// ----------------------------------
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Crouch",meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Crouch", meta = (AllowPrivateAccess = "true"))
 	bool bIsCrouching = false;
 };

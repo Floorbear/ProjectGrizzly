@@ -1,4 +1,3 @@
-
 #include "CPP_PlayableCharacter.h"
 #include <GameFramework\SpringArmComponent.h>
 #include <Camera\CameraComponent.h>
@@ -10,32 +9,34 @@
 #include <Components/CapsuleComponent.h>
 #include "..\Weapon\WeaponComponent.h"
 #include "Net\UnrealNetwork.h"
-
+#include "Ability/CPP_GA_Leaning.h"
 #include "ProjectGrizzly/ProjectGrizzly.h"
 //ToDo : AI쪽으로 가야할 헤더
 #include "AIModule\Classes\AIController.h"
 
 ACPP_PlayableCharacter::ACPP_PlayableCharacter()
 {
+	GetCapsuleComponent()->SetCapsuleRadius(45.0f);
+	GetCapsuleComponent()->SetCapsuleHalfHeight(88.f);
+	GetMesh()->SetRelativeLocation({ -16.f,0,-90.f });
+	GetMesh()->SetRelativeRotation(FRotator(0, 270.f, 0).Quaternion());
+	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	GetMesh()->SetIsReplicated(true);
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetRelativeLocation({37.f,0,77.f});
+	Camera->SetRelativeLocation({ 0,0,0.6f });
 	Camera->SetFieldOfView(70.f);
 	Camera->bUsePawnControlRotation = true;
-	Camera->SetupAttachment(RootComponent);
+	//Camera->SetupAttachment(RootComponent);
+	Camera->SetupAttachment(GetMesh(), TEXT("bip01_head"));
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->TargetArmLength = 0.f;
 	SpringArm->SetupAttachment(Camera);
 
-
-	GetCapsuleComponent()->SetCapsuleRadius(34.0f);
-	GetCapsuleComponent()->SetCapsuleHalfHeight(88.f);
-
 	HandsMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HandsMeshComponent"));
 	HandsMeshComponent->SetRelativeLocation(IdleHandLocation);
-	HandsMeshComponent->SetRelativeRotation(FRotator(0, -90.f,0).Quaternion());
-	//ToDo : 복장에 따른 손 메쉬 변화
+	HandsMeshComponent->SetRelativeRotation(FRotator(0, -90.f, 0).Quaternion());
 	//static auto HandsMesh = ConstructorHelpers::FObjectFinder<USkeletalMesh>(TEXT("/Game/ProjectGrizzly/Character/FirstPersonHand/HandMesh/Merc_Metro/hand_merc_metro.hand_merc_metro"));
 	//HandsMeshComponent->SetSkeletalMesh(HandsMesh.Object);
 	//static auto HandsMeshClass = ConstructorHelpers::FClassFinder<UAnimInstance>(TEXT("/Game/ProjectGrizzly/Character/FirstPersonHand/ABP_Hand.ABP_Hand_C"));
@@ -47,22 +48,31 @@ ACPP_PlayableCharacter::ACPP_PlayableCharacter()
 
 	FPWeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FPWeaponMeshComponent"));
 	FPWeaponMeshComponent->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-	FPWeaponMeshComponent->SetBoundsScale(1.5f);
+	FPWeaponMeshComponent->SetBoundsScale(1.5f); //총이 카메라에 달라 붙어있기 때문에 바운드 스케일을 키우지 않으면 클리핑 되는 버그가 존재
 	FPWeaponMeshComponent->SetupAttachment(HandsMeshComponent);
 
-	GetMesh()->SetRelativeLocation({0,0,-90.f});
-	GetMesh()->SetRelativeRotation(FRotator(0, 270.f, 0).Quaternion());
-	//ToDo : 복장에 따른 캐릭터 메쉬 변화
-	//static auto CharacterMesh = ConstructorHelpers::FObjectFinder<USkeletalMesh>(TEXT("/Game/ProjectGrizzly/Character/Model/Merc/Merc_2a/SKM_Merc_2a.SKM_Merc_2a"));
-	//GetMesh()->SetSkeletalMesh(CharacterMesh.Object);
-	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-	//static auto CharacterMeshClass = ConstructorHelpers::FClassFinder<UAnimInstance>(TEXT("/Game/ProjectGrizzly/Character/ABP_Stalker.ABP_Stalker_C"));
-	//GetMesh()->SetAnimInstanceClass(CharacterMeshClass.Class);
-	GetMesh()->SetIsReplicated(true);
+	//그림자
+	ShadowModelComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ShadowModelComponent"));
+	ShadowModelComponent->SetAnimationMode(EAnimationMode::AnimationBlueprint);
+	//ShadowModelComponent->SetAnimInstanceClass(CharacterMeshClass.Class);
+	ShadowModelComponent->SetRelativeLocation({ -16.f,0,-90.f });
+	ShadowModelComponent->SetRelativeRotation(FRotator(0, 270.f, 0).Quaternion());
+	ShadowModelComponent->bRenderInMainPass = false;
+	ShadowModelComponent->SetCastShadow(false);
+	ShadowModelComponent->SetIsReplicated(false);
+	ShadowModelComponent->SetupAttachment(RootComponent);
+
+
+	ShadowWeaponComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ShadowWeaponComponent"));
+	ShadowWeaponComponent->bRenderInMainPass = false;
+	ShadowWeaponComponent->SetCastShadow(false);
+	ShadowWeaponComponent->SetIsReplicated(false);
+	ShadowWeaponComponent->SetupAttachment(ShadowModelComponent, TEXT("WeaponRight"));
 
 
 
 	TPSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("TPSpringArm"));
+	TPSpringArm->SetRelativeLocation({ -16.f,0,0 });
 	TPSpringArm->SetupAttachment(RootComponent);
 	TPSpringArm->TargetArmLength = 100.f;
 
@@ -75,6 +85,38 @@ ACPP_PlayableCharacter::ACPP_PlayableCharacter()
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(TEXT("WeaponComponent"));
 	WeaponComponent->SetIsReplicated(true);
 	RemoteViewPitch = true;
+}
+float ACPP_PlayableCharacter::GetLeaningAxis() const
+{
+	return LeaningAxis;
+	//if(!ASCInputBound)
+	//	return 0.f;
+	////Leaning 어빌리티 인스턴스의 LeaningAxis 참조
+	//FGameplayAbilitySpec* LeaningAbilitySpec = AbilitySystemComponent->FindAbilitySpecFromInputID(static_cast<int32>(EPGAbilityInputID::Leaning));
+	//if (!LeaningAbilitySpec)
+	//	return 0.f;
+	//UCPP_GA_Leaning* LeaningAbility = Cast<UCPP_GA_Leaning>(LeaningAbilitySpec->GetAbilityInstances()[0]);
+	//if (!LeaningAbility)
+	//	return 0.f;
+	//return LeaningAbility->GetLeaningAxis();
+}
+void ACPP_PlayableCharacter::SetLeaningAxis(float _LeaningAxis)
+{
+	LeaningAxis = _LeaningAxis;
+}
+void ACPP_PlayableCharacter::SetRawLeaningAxis_Server_Implementation(float _LeaningAxis)
+{
+	RawLeaningAxis = _LeaningAxis;
+}
+void ACPP_PlayableCharacter::SetRawLeaningAxis(float _LeaningAxis)
+{
+	//_LeaningAxis의 변화가 있을때만 서버에 데이터를 전송한다.
+	if (_LeaningAxis != RawLeaningAxis)
+	{
+		SetRawLeaningAxis_Server(_LeaningAxis);
+	}
+	
+	RawLeaningAxis = _LeaningAxis;
 }
 void ACPP_PlayableCharacter::UpdateBendDownDegree()
 {
@@ -94,6 +136,8 @@ void ACPP_PlayableCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACPP_PlayableCharacter, BendDownDegree);
 	DOREPLIFETIME(ACPP_PlayableCharacter, bIsAI);
+	DOREPLIFETIME(ACPP_PlayableCharacter, CharacterModel);
+	DOREPLIFETIME(ACPP_PlayableCharacter, LeaningAxis);
 }
 void ACPP_PlayableCharacter::SetBendDownDegree_Server_Implementation(float _Degree)
 {
@@ -114,10 +158,10 @@ void ACPP_PlayableCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	UpdateBendDownDegree();
-	//UpdateADS , Only Update My computer
-	if(IsMyComputer())
+	//UpdateADS(DeltaTime);
+	if (IsMyComputer())
 	{
-		UpdateADS(DeltaTime);
+
 		if (IsDead())
 		{
 			UpdateDeathCam(DeltaTime);
@@ -135,10 +179,18 @@ void ACPP_PlayableCharacter::UpdateADS(float DeltaTime)
 	if (bADS)
 	{
 		InterpoValue = FMath::VInterpTo(CurrentLocation, { 0,0,0 }, DeltaTime, GetADSSpeed());
+		FRotator InterpoRotator = FMath::RInterpTo(Hands->GetRelativeRotation(), FRotator(0, -90, 0), DeltaTime, GetADSSpeed());
+		float Distance = FVector::Distance(InterpoValue, IdleHandLocation);
+		ADSFactor = Distance / OriginDistance;
+		Hands->SetRelativeLocation(InterpoValue);
+
+		Hands->SetRelativeRotation(InterpoRotator);
 	}
 	else
 	{
 		InterpoValue = FMath::VInterpTo(CurrentLocation, IdleHandLocation, DeltaTime, GetADSSpeed());
+		float Distance = FVector::Distance(InterpoValue, IdleHandLocation);
+		ADSFactor = Distance / OriginDistance;
 		// Except : 재장전 등 이유로 캔슬될 때 즉시 포지션 이동
 
 		//줌을 거의 다 풀면 어빌리티 비활성화
@@ -153,14 +205,9 @@ void ACPP_PlayableCharacter::UpdateADS(float DeltaTime)
 		}
 
 	}
-	float Distance = FVector::Distance(InterpoValue, IdleHandLocation);
-	ADSFactor = Distance / OriginDistance;
-	//float MarginOfError = 0.002;
-	//if (ADSFactor + MarginOfError > 0 && 1.0f - MarginOfError > ADSFactor)
-	//{
-
-	//}
-	Hands->SetRelativeLocation(InterpoValue);
+	//float Distance = FVector::Distance(InterpoValue, IdleHandLocation);
+	//ADSFactor = Distance / OriginDistance;
+	//Hands->SetRelativeLocation(InterpoValue);
 }
 
 
@@ -174,9 +221,55 @@ void ACPP_PlayableCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	TPCamera->SetActive(false);
+	if (!IsLocallyControlled())
+	{
+		ShadowModelComponent->SetActive(false);
+		ShadowWeaponComponent->SetActive(false);
+	}
+}
+
+void ACPP_PlayableCharacter::OnRep_SetCharacterModel()
+{
+	const UEnum* CharacterModelEnum = FindObject<UEnum>(ANY_PACKAGE, TEXT("ECharacterModel"), true);
+	ensure(CharacterModelEnum);
+	FName EnumToName(CharacterModelEnum->GetDisplayNameTextByValue((int64)CharacterModel).ToString());
+
+	static const UDataTable* DT_CHARACTERMODEL = LoadObject<UDataTable>(NULL, TEXT("/Game/ProjectGrizzly/Character/DT_CharacterModel.DT_CharacterModel"));
+
+	FCharacterModel* Model = DT_CHARACTERMODEL->FindRow<FCharacterModel>(EnumToName, FString(""));
+	ensure(Model); //_Model이 NonSet입니당
+
+	if (Model->Character.IsPending()) //에셋이 로딩돼있지 않은 경우 에셋 로딩
+	{
+		Model->Character.LoadSynchronous();
+		Model->Character.Get();
+	}
+
+	//캐릭터 모델로 변경
+	GetMesh()->SetSkeletalMesh(Model->Character.Get());
+	ShadowModelComponent->SetSkeletalMesh(Model->Character.Get());
 }
 
 
+void ACPP_PlayableCharacter::SetCharacterModel(ECharacterModel _Model)
+{
+	//서버 & 싱글 모드일경우 프로퍼티를 변경하고 OnRep함수 호출
+	if (HasAuthority())
+	{
+		CharacterModel = _Model;
+		OnRep_SetCharacterModel();
+		return;
+	}
+
+	//클라이언트일경우 서버의 프로퍼티 변경 요청
+	SetCharacterModel_Server(_Model);
+}
+
+void ACPP_PlayableCharacter::SetCharacterModel_Server_Implementation(ECharacterModel _Model)
+{
+	CharacterModel = _Model;
+	OnRep_SetCharacterModel();
+}
 
 
 class USkeletalMeshComponent* ACPP_PlayableCharacter::GetHandsMeshComponent()
@@ -204,12 +297,40 @@ float ACPP_PlayableCharacter::GetADSFactor() const
 	return ADSFactor;
 }
 
+void ACPP_PlayableCharacter::ReturnToHands(float _DeltaTime)
+{
+	// 정조준 상태면 이전 함수에서 정조준에 맞춰 트랜스폼이 보간됨
+	// 하이레디도 동일함
+	if (bADS || bHighReady)
+	{
+		return;
+	}
+
+	FTransform CurrentTransform = GetHandsMeshComponent()->GetRelativeTransform();
+	//위치 보간
+	float InterpoSpeed = 10.f;
+	FVector InterpoLocation = FMath::VInterpTo(CurrentTransform.GetLocation(),GetCurrentHandsLocation(),_DeltaTime,InterpoSpeed);
+	GetHandsMeshComponent()->SetRelativeLocation(InterpoLocation);
+	// 회전 보간
+	FRotator IdleRotator = FRotator(0,-90.f,0);
+	FRotator InterpoRotator = FMath::RInterpTo(CurrentTransform.Rotator(), IdleRotator,_DeltaTime,InterpoSpeed);
+	GetHandsMeshComponent()->SetRelativeRotation(InterpoRotator);
+}
+
+
+float ACPP_PlayableCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+	const FPointDamageEvent* PointDamageEvent = static_cast<const FPointDamageEvent*>(&DamageEvent);
+	return ActualDamage;
+}
+
 void ACPP_PlayableCharacter::Die()
 {
 	Super::Die();
 	//Die 이펙트 적용
 	FGameplayEffectContextHandle Context = GetAbilitySystemComponent()->MakeEffectContext();
-	FGameplayEffectSpecHandle SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(DeadGameplayEffect,1,Context);
+	FGameplayEffectSpecHandle SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(DeadGameplayEffect, 1, Context);
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetSimulatePhysics(true);
@@ -234,9 +355,9 @@ void ACPP_PlayableCharacter::Die_Multicast_Implementation()
 		TPCamera->SetActive(true);
 		float xPos = FMath::RandRange(-100.f, 100.f);
 		float yPos = FMath::RandRange(-100.f, 100.f);
-		float zPos = FMath::RandRange(-20.f,100.f);
-		TPSpringArm->SetRelativeLocation({xPos,yPos,zPos},true);
-		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(TPSpringArm->GetComponentLocation(),DeadLocation);
+		float zPos = FMath::RandRange(-20.f, 100.f);
+		TPSpringArm->SetRelativeLocation({ xPos,yPos,zPos }, true);
+		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(TPSpringArm->GetComponentLocation(), DeadLocation);
 		TPSpringArm->SetWorldRotation(LookAtRotation);
 
 		//UI
@@ -260,13 +381,15 @@ bool ACPP_PlayableCharacter::IsDead() const
 
 void ACPP_PlayableCharacter::UpdateDeathCam(float _DeltaTime)
 {
-	DeathCamSpeed = FMath::FInterpTo(DeathCamSpeed,0, _DeltaTime,5.0);
+	DeathCamSpeed = FMath::FInterpTo(DeathCamSpeed, 0, _DeltaTime, 5.0);
 	FVector LookAtDir = TPSpringArm->GetComponentLocation() - DeadLocation;
 	LookAtDir.Normalize();
-	TPSpringArm->AddWorldOffset(LookAtDir * DeathCamSpeed,true);
+	TPSpringArm->AddWorldOffset(LookAtDir * DeathCamSpeed, true);
 }
 
 class USkeletalMeshComponent* ACPP_PlayableCharacter::GetFPWeaponMeshComponent()
 {
 	return FPWeaponMeshComponent;
 }
+
+

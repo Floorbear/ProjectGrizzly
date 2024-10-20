@@ -44,6 +44,8 @@ UWeaponComponent::UWeaponComponent()
 		TP_MontageMap.Add(TEXT("Crouch_Shoot"), Data.Object);
 	}
 
+	//컴포넌트의 레플리케이션 설정은 액터에서 한다
+
 
 }
 
@@ -71,6 +73,8 @@ void UWeaponComponent::InitWeaponData()
 	ensure(Character != NULL);
 	USkeletalMesh* WeaponMesh = LoadObject<USkeletalMesh>(NULL, *WeaponData->WeaponSkeletalMesh.ToSoftObjectPath().ToString());
 	Character->GetTPWeaponComponent()->SetSkeletalMesh(WeaponMesh);
+	//총 그림자
+	Character->GetShadowWeaponComponent()->SetSkeletalMesh(WeaponMesh);
 
 	//탄창
 	PerMagazineRounds = WeaponData->Rounds;

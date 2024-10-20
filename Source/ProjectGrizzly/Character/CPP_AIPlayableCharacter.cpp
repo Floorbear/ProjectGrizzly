@@ -10,6 +10,7 @@
 #include "GrizzlyPC.h"
 #include <Kismet/KismetMathLibrary.h>
 #include <Components/CapsuleComponent.h>
+#include "CPP_AI_PlayableCharacter_PC.h"
 #include "..\Weapon\WeaponComponent.h"
 #include "Net\UnrealNetwork.h"
 
@@ -23,14 +24,33 @@ ACPP_AIPlayableCharacter::ACPP_AIPlayableCharacter()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 	AttributeSet = CreateDefaultSubobject<UGrizzlyAttributeSet>(TEXT("AttributeSet"));
 	checkf(IsValid(AttributeSet.Get()), TEXT("Not Created"))
-	bIsAI = true;
+		bIsAI = true;
+
+	FactionComponent = CreateDefaultSubobject<UFactionComponent>(TEXT("Faction"));
+	FactionComponent->SetIsReplicated(true);
 }
 
 void ACPP_AIPlayableCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-//	UE_LOG(LogTemp, Warning, TEXT("%f << Current HP"), AttributeSet->GetHealth());
+	//	UE_LOG(LogTemp, Warning, TEXT("%f << Current HP"), AttributeSet->GetHealth());
 }
+
+EFaction ACPP_AIPlayableCharacter::GetFaction() const
+{
+	return FactionComponent->GetFaction();
+}
+
+float ACPP_AIPlayableCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+	const FPointDamageEvent* PointDamageEvent = static_cast<const FPointDamageEvent*>(&DamageEvent);
+	GetAIController()->SetBulletThreat(GetAIController()->GetBulletThreat() + Damage / 100.f); // 데미지 40이면 Threat 는 0.4
+	return ActualDamage;
+	
+}
+
+
 
 void ACPP_AIPlayableCharacter::BeginPlay()
 {
@@ -68,7 +88,7 @@ void ACPP_AIPlayableCharacter::BeginPlay()
 				GetGameplayAttributeValueChangeDelegate(AttributeSet->GetSpeedAttribute()).AddUObject(this, &ACPP_AIPlayableCharacter::SpeedChanged);
 		}
 	}
-	
+
 
 	//1인칭 메쉬 숨기기 
 	GetHandsMeshComponent()->SetVisibility(false, true);
@@ -96,9 +116,24 @@ bool ACPP_AIPlayableCharacter::IsAlive() const
 	return GetHealth() > 0.f;
 }
 
+bool ACPP_AIPlayableCharacter::IsDead() const
+{
+	//왠지 모르지만 스폰하자마자 캐릭터의 체력이 0이되서 죽는 모션을 취함
+	if (GetHealth() > 0)
+	{
+		return false;
+	}
+	return true;
+}
+
 float ACPP_AIPlayableCharacter::GetHealth() const
 {
 	return AttributeSet->GetHealth();
+}
+
+ACPP_AI_PlayableCharacter_PC* ACPP_AIPlayableCharacter::GetAIController() const
+{
+	return Cast<ACPP_AI_PlayableCharacter_PC>(GetController());
 }
 
 

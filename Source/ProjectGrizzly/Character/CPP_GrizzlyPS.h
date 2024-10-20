@@ -5,16 +5,17 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
 #include "AbilitySystemInterface.h"
+#include "FactionComponent.h"
 #include "CPP_GrizzlyPS.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
-class PROJECTGRIZZLY_API ACPP_GrizzlyPS : public APlayerState , public IAbilitySystemInterface
+class PROJECTGRIZZLY_API ACPP_GrizzlyPS : public APlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
-	
+
 public:
 	ACPP_GrizzlyPS();
 
@@ -46,15 +47,15 @@ public:
 	// ----------------------------
 	// ----------G A S-------------
 	// ----------------------------
-	public:
+public:
 	bool bIsAbilityGiven = false;
 protected:
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category = "Ability",meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ability", meta = (AllowPrivateAccess = "true"))
 	UAbilitySystemComponent* AbilitySystemCompoent;
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category = "Ability",meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ability", meta = (AllowPrivateAccess = "true"))
 	class UGrizzlyAttributeSet* AttributeSet;
 
-	
+
 	void BeginPlay() override;
 
 	void HealthChanged(const struct FOnAttributeChangeData& Data);
@@ -70,5 +71,20 @@ public:
 private:
 	UPROPERTY(Replicated)
 	bool bIsDead = false;
+
+	// ----------------------------
+	//			Faction
+	// ----------------------------
+public:
+	UFUNCTION(BlueprintCallable)
+	EFaction GetFaction() const;
+	UFUNCTION(BlueprintCallable)
+	UFactionComponent* GetFactionComponent() const
+	{
+		return FactionComponent;
+	}
+private:
+	UPROPERTY(VisibleAnywhere)
+	UFactionComponent* FactionComponent;
 
 };

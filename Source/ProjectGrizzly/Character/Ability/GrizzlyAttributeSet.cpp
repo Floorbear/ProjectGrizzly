@@ -5,6 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
 #include <GameFramework\Character.h>
+#include <Kismet/GameplayStatics.h>
 #include "..\CPP_PGCharacter.h"
 
 UGrizzlyAttributeSet::UGrizzlyAttributeSet()
@@ -28,18 +29,26 @@ void UGrizzlyAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 void UGrizzlyAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
-	UAbilitySystemComponent* Source = Data.EffectSpec.GetContext().GetInstigatorAbilitySystemComponent();
+
 
 	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 	{
-		//ToDo : HitResult를 이용한 추가 로직 구현
-		float LocalDamage = Data.EvaluatedData.Magnitude;
-		SetDamage(0.f);
+		UAbilitySystemComponent* Source = Data.EffectSpec.GetContext().GetInstigatorAbilitySystemComponent();
+		ACPP_PGCharacter* SourceActor = Cast<ACPP_PGCharacter>(Source->AvatarActor);
+		AController* SourceController = SourceActor->GetController();
 
+
+		//ToDo : HitResult를 이용한 추가 로직 구현
+		float LocalDamage = Data.EvaluatedData.Magnitude;;
+		SetDamage(0.f);
 		if (LocalDamage > 0.f)
 		{
-			SetHealth(FMath::Clamp(GetHealth() - LocalDamage ,0.f,GetMaxHealth()));
+			SetHealth(FMath::Clamp(GetHealth() - LocalDamage, 0.f, GetMaxHealth()));
 		}
+		//데미지에 의한 HP감소를 제외한 이벤트들은 폰에서 처리한다
+		const FHitResult* HitResult = Data.EffectSpec.GetContext().GetHitResult();
+		TSubclassOf<UDamageType> DamageType;
+		UGameplayStatics::ApplyPointDamage(Data.Target.AvatarActor,LocalDamage,HitResult->ImpactNormal,*HitResult,SourceController,SourceActor, DamageType);
 	}
 
 	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())

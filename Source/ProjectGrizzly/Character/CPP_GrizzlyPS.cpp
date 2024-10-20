@@ -17,6 +17,9 @@ ACPP_GrizzlyPS::ACPP_GrizzlyPS()
 
 	AttributeSet = CreateDefaultSubobject<UGrizzlyAttributeSet>(TEXT("AttributeSet"));
 
+	FactionComponent = CreateDefaultSubobject<UFactionComponent>(TEXT("Faction"));
+	FactionComponent->SetIsReplicated(true);
+
 	NetUpdateFrequency = 100.f;
 
 }
@@ -91,6 +94,11 @@ bool ACPP_GrizzlyPS::IsAlive() const
 	return GetHealth() > 0.f;
 }
 
+EFaction ACPP_GrizzlyPS::GetFaction() const
+{
+	return FactionComponent->GetFaction();
+}
+
 void ACPP_GrizzlyPS::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -107,6 +115,7 @@ void ACPP_GrizzlyPS::BeginPlay()
 		AbilitySystemCompoent->
 		GetGameplayAttributeValueChangeDelegate(AttributeSet->GetSpeedAttribute()).AddUObject(this, &ACPP_GrizzlyPS::SpeedChanged);
 	}
+	
 }
 
 void ACPP_GrizzlyPS::HealthChanged(const FOnAttributeChangeData& Data)

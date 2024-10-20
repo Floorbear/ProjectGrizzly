@@ -3,4 +3,5 @@
 #include "ProjectGrizzly.h"
 #include "Modules/ModuleManager.h"
 
+DEFINE_LOG_CATEGORY(LogGrizzly)
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, ProjectGrizzly, "ProjectGrizzly" );

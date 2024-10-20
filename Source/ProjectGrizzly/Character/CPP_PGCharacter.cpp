@@ -79,7 +79,6 @@ void ACPP_PGCharacter::SetMoveRightAxis_Server_Implementation(float _Axis)
 
 void ACPP_PGCharacter::SetSpeed_Multicast_Implementation(float _Speed)
 {
-	float CrouchRate = 0.7f;
 	GetCharacterMovement()->MaxWalkSpeed = _Speed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = _Speed * CrouchRate;
 }
@@ -91,7 +90,6 @@ void ACPP_PGCharacter::SetSpeed_Server_Implementation(float _Speed)
 
 void ACPP_PGCharacter::SetSpeed(float _Speed)
 {
-	float CrouchRate = 0.7f;
 	GetCharacterMovement()->MaxWalkSpeed = _Speed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = _Speed * CrouchRate;
 	if (HasAuthority())
@@ -152,5 +150,96 @@ void ACPP_PGCharacter::Die()
 
 }
 
+bool ACPP_PGCharacter::CanBeSeenFrom(const FVector& ObserverLocation, FVector& OutSeenLocation, int32& NumberOfLoSChecksPerformed, float& OutSightStrength, const AActor* IgnoreActor, const bool* bWasVisible, int32* UserData) const
+{
+	static const FName NAME_AILineOfSight = FName(TEXT("TestPawnLineOfSight"));
 
+	FHitResult HitResult;
+
+	//우선 Torso가 보이면 사격
+	{
+		FVector socketLocation = GetMesh()->GetSocketLocation(TEXT("Torso"));
+		const bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, ObserverLocation, socketLocation
+			, FCollisionObjectQueryParams(ECC_TO_BITFIELD(ECC_WorldStatic) | ECC_TO_BITFIELD(ECC_WorldDynamic)) // << Changed this line
+			, FCollisionQueryParams(NAME_AILineOfSight, true, IgnoreActor));
+
+		NumberOfLoSChecksPerformed++;
+
+		if (bHit == false || (IsValid(HitResult.GetActor()) && HitResult.GetActor()->IsOwnedBy(this)))
+		{
+			OutSeenLocation = GetActorLocation();
+			OutSightStrength = 1;
+
+			return true;
+		}
+	}
+	//Torso가 보이지 않으면 머리 테스트
+	{
+		FVector socketLocation = GetMesh()->GetSocketLocation(TEXT("Head"));
+		const bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, ObserverLocation, socketLocation
+			, FCollisionObjectQueryParams(ECC_TO_BITFIELD(ECC_WorldStatic) | ECC_TO_BITFIELD(ECC_WorldDynamic)) // << Changed this line
+			, FCollisionQueryParams(NAME_AILineOfSight, true, IgnoreActor));
+
+		NumberOfLoSChecksPerformed++;
+
+		if (bHit == false || (IsValid(HitResult.GetActor()) && HitResult.GetActor()->IsOwnedBy(this)))
+		{
+			OutSeenLocation = GetActorLocation();
+			OutSightStrength = 1;
+
+			return true;
+		}
+	}
+
+	//Torso가 보이지 않으면 나머지 부위(팔,다리, 머리) 테스트
+	auto sockets = GetMesh()->GetAllSocketNames();
+
+	for (int i = 0; i < sockets.Num(); i++)
+	{
+		FVector socketLocation = GetMesh()->GetSocketLocation(sockets[i]);
+
+		const bool bHitSocket = GetWorld()->LineTraceSingleByObjectType(HitResult, ObserverLocation, socketLocation
+			, FCollisionObjectQueryParams(ECC_TO_BITFIELD(ECC_WorldStatic) | ECC_TO_BITFIELD(ECC_WorldDynamic)) // << Changed this line
+			, FCollisionQueryParams(NAME_AILineOfSight, true, IgnoreActor));
+
+		NumberOfLoSChecksPerformed++;
+
+		if (bHitSocket == false || (IsValid(HitResult.GetActor()) && HitResult.GetActor()->IsOwnedBy(this))) {
+			OutSeenLocation = socketLocation;
+			OutSightStrength = 1;
+
+			return true;
+		}
+	}
+
+
+
+	OutSightStrength = 0;
+	return false;
+
+
+
+	//static const FName NAME_AILineOfSight = FName(TEXT("TestPawnLineOfSight"));
+	//FHitResult HitResult;
+	////Get the names of all the sockets in a mesh. Not used in this example.
+	//auto sockets = GetMesh()->GetAllSocketNames();
+	////Here we consider the Head as the source
+	//FVector socketLocation = GetMesh()->GetSocketLocation("Head");
+
+	////Check if the neck socket is visible
+	//const bool bHitSocket = GetWorld()->LineTraceSingleByObjectType(HitResult, ObserverLocation, socketLocation, FCollisionObjectQueryParams(ECC_TO_BITFIELD(ECC_WorldStatic) | ECC_TO_BITFIELD(ECC_WorldDynamic)), FCollisionQueryParams(NAME_AILineOfSight, true, IgnoreActor));
+	//NumberOfLoSChecksPerformed++;
+	//if (bHitSocket == false || (IsValid(HitResult.GetActor()) && HitResult.GetActor()->IsOwnedBy(this)))
+	//{
+	//	OutSeenLocation = socketLocation;
+	//	OutSightStrength = 1;
+	//	UE_LOG(LogTemp, Warning, TEXT("TRUE"));
+	//	return true;
+	//}
+
+
+	//UE_LOG(LogTemp, Warning, TEXT("FALSE"));
+	//OutSightStrength = 0;
+	//return false;
+}
 
