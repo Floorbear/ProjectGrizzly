@@ -156,35 +156,36 @@ bool ACPP_PGCharacter::CanBeSeenFrom(const FVector& ObserverLocation, FVector& O
 
 	FHitResult HitResult;
 
-	//우선 Torso가 보이면 사격
+	//우선 몸통에 트레이스를 쏴서 중간에 장애물이 없으면(히트가 없으면) 몸통의 위치를 리턴
 	{
+		//트레이스 시작점 , 끝점 = 관찰자 위치 to 내 몸통
 		FVector socketLocation = GetMesh()->GetSocketLocation(TEXT("Torso"));
 		const bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, ObserverLocation, socketLocation
-			, FCollisionObjectQueryParams(ECC_TO_BITFIELD(ECC_WorldStatic) | ECC_TO_BITFIELD(ECC_WorldDynamic)) // << Changed this line
+			, FCollisionObjectQueryParams(ECC_TO_BITFIELD(ECC_WorldStatic) | ECC_TO_BITFIELD(ECC_WorldDynamic))
 			, FCollisionQueryParams(NAME_AILineOfSight, true, IgnoreActor));
 
 		NumberOfLoSChecksPerformed++;
 
 		if (bHit == false || (IsValid(HitResult.GetActor()) && HitResult.GetActor()->IsOwnedBy(this)))
 		{
-			OutSeenLocation = GetActorLocation();
+			OutSeenLocation = socketLocation;
 			OutSightStrength = 1;
 
 			return true;
 		}
 	}
-	//Torso가 보이지 않으면 머리 테스트
+	//몸통이 보이지 않을 때 머리에 트레이스를 쏴서 중간에 장애물이 없으면 머리의 위치를 리턴
 	{
 		FVector socketLocation = GetMesh()->GetSocketLocation(TEXT("Head"));
 		const bool bHit = GetWorld()->LineTraceSingleByObjectType(HitResult, ObserverLocation, socketLocation
-			, FCollisionObjectQueryParams(ECC_TO_BITFIELD(ECC_WorldStatic) | ECC_TO_BITFIELD(ECC_WorldDynamic)) // << Changed this line
+			, FCollisionObjectQueryParams(ECC_TO_BITFIELD(ECC_WorldStatic) | ECC_TO_BITFIELD(ECC_WorldDynamic))
 			, FCollisionQueryParams(NAME_AILineOfSight, true, IgnoreActor));
 
 		NumberOfLoSChecksPerformed++;
 
 		if (bHit == false || (IsValid(HitResult.GetActor()) && HitResult.GetActor()->IsOwnedBy(this)))
 		{
-			OutSeenLocation = GetActorLocation();
+			OutSeenLocation = socketLocation;
 			OutSightStrength = 1;
 
 			return true;
@@ -213,7 +214,7 @@ bool ACPP_PGCharacter::CanBeSeenFrom(const FVector& ObserverLocation, FVector& O
 	}
 
 
-
+	OutSeenLocation = GetActorLocation();
 	OutSightStrength = 0;
 	return false;
 

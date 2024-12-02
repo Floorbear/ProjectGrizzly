@@ -19,12 +19,13 @@ enum class EDifficulty : uint8
 {
 	Novice				UMETA(DisplayName = "Novice"),
 	Standard			UMETA(DisplayName = "Standard"),
-	Expert				UMETA(DisplayName = "Expert")
+	Expert				UMETA(DisplayName = "Expert"),
+	Laser				UMETA(DisplayName = "Laser")
 };
 
 static EDifficulty GetDifficulty()
 {
-	return EDifficulty::Novice;
+	return EDifficulty::Expert;
 }
 
 USTRUCT(BlueprintType)
@@ -78,6 +79,7 @@ public:
 
 
 protected:
+	//타겟에게 Focus했을때 Focus하는 위치
 	virtual FVector GetFocalPointOnActor(const AActor* Actor) const override;
 private:
 	void TransmitTargetInformation(AActor* _Actor, FAIStimulus _Stimulus);
@@ -149,7 +151,13 @@ private:
 	// ----------------------------------
 	//				Difficulty
 	// ----------------------------------
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Difficulty", meta = (AllowPrivateAccess = "true"))
+	EDifficulty Difficulty;
+public:
+	EDifficulty GetDifficulty() const
+	{
+		return Difficulty;
+	}
 public:
 	//UPROPERTY(EditAnywhere,Category = Difficulty)
 	//static TEnumAsByte<enum EDifficulty> CurrentDifficulty; //ToDo : GameInstance로 가야함

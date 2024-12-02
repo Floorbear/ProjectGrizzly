@@ -278,6 +278,7 @@ ACPP_PGCharacter* ACPP_AI_PlayableCharacter_PC::CalculateTargetActor()
 			float RightDistance = FVector::Dist(_Right.StimulusLocation, GetPawn()->GetActorLocation());
 			return LeftDistance < RightDistance;
 		});
+	// 거리가 가까운 적부터 엄폐물을 끼고 있지 않으면 리턴
 	for (auto& i : PerceptionTable)
 	{
 		if (i.Value.WasSuccessfullySensed())

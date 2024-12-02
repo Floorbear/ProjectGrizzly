@@ -32,6 +32,9 @@ public:
 	float Weight = 1.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText Description;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<UPaperSprite*> Tiles;
 };
 
@@ -47,7 +50,7 @@ class PROJECTGRIZZLY_API UCPP_Item : public UObject
 public:
 	UCPP_Item();
 
-	//°´Ã¼¸¦ »ý¼ºÇÏ°í InitÇÔ¼ö¸¦ ¶Ç È£ÃâÇÏ±â ½È¾î¼­ ¸¸µç ÆÑÅä¸® ÇÔ¼ö
+	//ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ Initï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½È¾î¼­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ä¸® ï¿½Ô¼ï¿½
 	UFUNCTION(BlueprintCallable)
 	static UCPP_Item* CreateItem(FName _ItemRowName, int _Amount = 0);
 
@@ -69,7 +72,7 @@ public:
 	{
 		return Amount;
 	}
-	//Private º¯¼ö´Â ½ºÆù½Ã ³ëÃâ X
+	//Private ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ X
 	//UPROPERTY(EditAnywhere,BlueprintReadWrite, meta = (ExposeOnSpawn = true))
 
 private:

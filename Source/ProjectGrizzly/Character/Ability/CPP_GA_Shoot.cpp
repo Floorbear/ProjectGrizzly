@@ -73,13 +73,13 @@ FTransform UCPP_GA_Shoot::CalculateBulletSpawnTransform(const FTransform& _Camer
 	float ADSFactor = 1.f - Cast<ACPP_PlayableCharacter>(GetCharacter())->GetADSFactor();
 
 
-
-
 	//AI일경우 난이도에 따라 랜덤 스프레드 값이 추가됨
 	float DifficultyFactor = 0.f;
 	if (IsAIControl())
 	{
-		switch (GetDifficulty())
+		ACPP_AIPlayableCharacter* AIActor = Cast<ACPP_AIPlayableCharacter>(CurrentActorInfo->AvatarActor);
+		ACPP_AI_PlayableCharacter_PC* AIController= Cast<ACPP_AI_PlayableCharacter_PC>(AIActor->GetAIController());
+		switch (AIController->GetDifficulty())
 		{
 		case EDifficulty::Novice:
 			DifficultyFactor = RandomSpread * 2.f;
@@ -89,6 +89,9 @@ FTransform UCPP_GA_Shoot::CalculateBulletSpawnTransform(const FTransform& _Camer
 			break;
 		case EDifficulty::Expert:
 			DifficultyFactor = RandomSpread * 1.f;
+			break;
+		case EDifficulty::Laser:
+			DifficultyFactor = 0.f;
 			break;
 		default:
 			break;
