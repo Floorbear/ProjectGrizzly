@@ -339,8 +339,8 @@ void ACPP_PlayableCharacter::Die()
 
 void ACPP_PlayableCharacter::Die_Multicast_Implementation()
 {
-	//Autonomus Proxy or Single Mode
-	if (IsMyComputer() && !bIsAI)
+	//조작중인 머신일 경우
+	if (IsLocallyControlled() && !bIsAI)
 	{
 		//사망시 3인칭 캐릭터 제대로 보이게 & 1인칭 메쉬 끄기
 		DeadLocation = GetMesh()->GetSocketLocation(TEXT("Pelvis"));

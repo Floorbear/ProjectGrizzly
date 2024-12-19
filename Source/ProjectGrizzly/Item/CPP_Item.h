@@ -9,7 +9,12 @@
 #include "CPP_Item.generated.h"
 
 
-
+UENUM(BlueprintType)
+enum class EItemInteraction : uint8
+{
+	Equip			UMETA(DisplayName = "Equip"),
+	Use			UMETA(DisplayName = "Use")
+};
 
 USTRUCT(BlueprintType)
 struct FItemData : public FTableRowBase
@@ -36,6 +41,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<UPaperSprite*> Tiles;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<EItemInteraction> Interactions;
 };
 
 
@@ -50,7 +58,7 @@ class PROJECTGRIZZLY_API UCPP_Item : public UObject
 public:
 	UCPP_Item();
 
-	//ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ Initï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½È¾î¼­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ä¸® ï¿½Ô¼ï¿½
+	//Item »ý¼º ÆÑÅä¸® ÇÔ¼ö
 	UFUNCTION(BlueprintCallable)
 	static UCPP_Item* CreateItem(FName _ItemRowName, int _Amount = 0);
 
@@ -64,7 +72,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddAmount(int _Amount)
 	{
-		Amount += _Amount;
+		Amount = FMath::Clamp(Amount + _Amount,0,9999);
 	}
 
 	UFUNCTION(BlueprintCallable)
@@ -72,8 +80,15 @@ public:
 	{
 		return Amount;
 	}
-	//Private ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ X
-	//UPROPERTY(EditAnywhere,BlueprintReadWrite, meta = (ExposeOnSpawn = true))
+	
+	UFUNCTION(BlueprintCallable)
+	bool IsEmpty() const
+	{
+		if(Amount == 0)
+			return true;
+		return false;
+	}
+
 
 private:
 	FItemData ItemData;

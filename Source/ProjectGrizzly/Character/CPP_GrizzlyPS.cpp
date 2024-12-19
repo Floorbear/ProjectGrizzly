@@ -96,6 +96,10 @@ bool ACPP_GrizzlyPS::IsAlive() const
 
 EFaction ACPP_GrizzlyPS::GetFaction() const
 {
+	if(FactionComponent == nullptr)
+	{
+		int a = 0;
+	}
 	return FactionComponent->GetFaction();
 }
 

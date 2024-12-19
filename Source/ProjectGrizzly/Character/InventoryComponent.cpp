@@ -35,7 +35,6 @@ void UInventoryComponent::AddItemToInventory(FName _ItemName, int _Amount)
 	if (_Amount <= 0)
 	{
 		Grizzly_LOG(TEXT("%d is not over 1"), _Amount);
-
 	}
 
 
@@ -47,6 +46,7 @@ void UInventoryComponent::AddItemToInventory(FName _ItemName, int _Amount)
 		if (Item)
 		{
 			Item->AddAmount(_Amount);
+			OnInventoryChanged.Broadcast();
 			return;
 		}
 	}
@@ -57,8 +57,30 @@ void UInventoryComponent::AddItemToInventory(FName _ItemName, int _Amount)
 		Grizzly_LOG(TEXT("%s is not included in Table"), *_ItemName.ToString());
 	}
 	Inventory.Add(_ItemName, NewItem);
+	OnInventoryChanged.Broadcast();
 }
 
+UCPP_Item* UInventoryComponent::RemoveItemFromInventory(FName _ItemName, int _Amount)
+{
+	// 아이템이 존재하지 않으면 함수 종료
+	if(!Inventory.Contains(_ItemName))
+	{
+		return nullptr;
+	}
+	UCPP_Item* Item = *Inventory.Find(_ItemName);
+
+	
+	Item->AddAmount(-_Amount);
+	if(Item->IsEmpty())
+	{
+		//Map에서 아이템 제거
+		Inventory.Remove(_ItemName);
+	}
+	OnInventoryChanged.Broadcast();
+	return Item;
+}
+
+// _HoriSize : UI의 가로 칸의 수
 TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) const
 {
 	if (_HoriSize <= 0)

@@ -3,6 +3,8 @@
 
 #include "CPP_Item.h"
 
+
+
 UCPP_Item::UCPP_Item()
 {
 	const auto DT = ConstructorHelpers::FObjectFinder<UDataTable>(TEXT("/Game/ProjectGrizzly/Item/DT_Item.DT_Item"));

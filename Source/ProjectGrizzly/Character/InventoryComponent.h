@@ -9,7 +9,7 @@
 #include "..\Item\CPP_Item.h"
 #include "InventoryComponent.generated.h"
 
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryChanged);
 
 USTRUCT(BlueprintType)
 struct FInventoryTileNode : public FTableRowBase
@@ -73,9 +73,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddItemToInventory(FName _ItemName, int _Amount = 1);
 
+	UFUNCTION(BlueprintCallable)
+	UCPP_Item* RemoveItemFromInventory(FName _ItemName, int _Amount = 1);
+
+	
+
 	//_HoriSize : 인벤토리의 가로 사이즈
 	UFUNCTION(BlueprintCallable)
 	TArray<FInventoryTileRow> GetInventoryTile(int _HoriSize) const;
+
+	// 인벤토리 변경이 일어날 때 호출되는 델리게이트
+	UPROPERTY(BlueprintAssignable)
+	FOnInventoryChanged OnInventoryChanged;
+
 
 private:
 	TMap<FName,UCPP_Item*> Inventory;

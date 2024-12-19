@@ -312,7 +312,12 @@ void ACPP_Player::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdju
 
 EFaction ACPP_Player::GetFaction() const
 {
+	//시체가 되면 PS 캐스팅하면 nullptr 리턴. 이것의 예외처리를 해야 함
 	ACPP_GrizzlyPS* PS = Cast<ACPP_GrizzlyPS>(GetPlayerState());
+	if(PS == nullptr)
+	{
+		return EFaction::NonSet;
+	}
 	return PS->GetFaction();
 }
 
