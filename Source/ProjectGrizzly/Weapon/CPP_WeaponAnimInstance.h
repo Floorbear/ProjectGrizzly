@@ -21,6 +21,10 @@ public:
 private:
 	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly,Category = "IK", meta = (AllowPrivateAccess = "true"))
 	FVector LeftHandLocation;
+	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly,Category = "IK", meta = (AllowPrivateAccess = "true"))
+	FVector RightHandLocation;
+	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly,Category = "IK", meta = (AllowPrivateAccess = "true"))
+	FRotator RightHandRotator;
 	UPROPERTY(VisibleDefaultsOnly,BlueprintReadWrite,Category = "IK", meta = (AllowPrivateAccess = "true"))
 	float LeftHandIKAlpha = 1.0f;
 

@@ -122,7 +122,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hands", meta = (AllowPrivateAccess = "true"))
 	bool bADS = false;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Hands", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hands", meta = (AllowPrivateAccess = "true"))
 	FVector IdleHandLocation = { 3.8f,6.f,-1.8f };
 public:
 	// 소규모 게임이므로 프로퍼티 리플리케이션 X
