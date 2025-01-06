@@ -36,6 +36,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ThreatRadius;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector IdleHandsLocation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector ADSHandsLocation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FRotator HandsRotation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSoftObjectPtr<UCurveVector> WeaponRecoilCurve;
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite)
 	TSubclassOf<class UGameplayEffect> MuzzleFlashEffect;

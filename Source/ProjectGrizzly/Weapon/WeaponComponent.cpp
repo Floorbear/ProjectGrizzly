@@ -96,6 +96,11 @@ void UWeaponComponent::InitWeaponData()
 	LoadFPAnim(WeaponAnim->Weapon_Reload, WeaponAnim->Hands_Reload, TEXT("Reload"));
 	LoadFPAnim(WeaponAnim->Weapon_TacReload, WeaponAnim->Hands_TacReload, TEXT("TacReload"));
 
+	//손 위치 & 회전
+	Character->SetIdleHandsLocation(WeaponData->IdleHandsLocation);
+	Character->SetADSHandsLocation(WeaponData->ADSHandsLocation);
+	Character->SetHandsRotation(WeaponData->HandsRotation);
+
 	//손 애니메이션 초기화
 	UCPP_A_Hands* HandsAnimInstance = Cast<UCPP_A_Hands>(Character->GetHandsMeshComponent()->GetAnimInstance());
 	{

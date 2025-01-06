@@ -111,9 +111,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	class UCameraComponent* GetCamera() const;
 
-	// ----------------------------------
-	// ----- First Person Hands ---------
-	// ----------------------------------
+	// ----------------------------------------------------------------
+	//				 First Person Hands			
+	// ----------------------------------------------------------------
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hands", meta = (AllowPrivateAccess = "true"))
 	class USkeletalMeshComponent* HandsMeshComponent;
@@ -124,6 +124,42 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hands", meta = (AllowPrivateAccess = "true"))
 	FVector IdleHandLocation = { 3.8f,6.f,-1.8f };
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hands", meta = (AllowPrivateAccess = "true"))
+	FVector ADSHandsLocation = { 0,0,0 };
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hands", meta = (AllowPrivateAccess = "true"))
+	FRotator IdleHandRotation = { 0,-90.f,0 };
+public:
+	UFUNCTION(BlueprintCallable)
+	FVector GetIdleHandsLocation() const
+	{
+		return IdleHandLocation;
+	}
+	UFUNCTION(BlueprintCallable)
+	FVector GetADSHandsLocation() const
+	{
+		return ADSHandsLocation;
+	}
+	UFUNCTION(BlueprintCallable)
+	FRotator GetHandsRotation() const
+	{
+		return IdleHandRotation;
+	}
+	UFUNCTION(BlueprintCallable)
+	void SetIdleHandsLocation(FVector _Location)
+	{
+		IdleHandLocation = _Location;
+	}
+	UFUNCTION(BlueprintCallable)
+	void SetADSHandsLocation(FVector _Location)
+	{
+		ADSHandsLocation = _Location;
+	}
+	UFUNCTION(BlueprintCallable)
+	void SetHandsRotation(FRotator _Rotator)
+	{
+		IdleHandRotation = _Rotator;
+	}
+	
 public:
 	// 소규모 게임이므로 프로퍼티 리플리케이션 X
 	// 클라이언트에서만 필요한 데이터지만 대규모 게임에서 타당성 검증을 해야함
@@ -153,9 +189,9 @@ public:
 	{
 		if (bADS)
 		{
-			return { 0,0,0 };
+			return GetADSHandsLocation();
 		}
-		return IdleHandLocation;
+		return GetIdleHandsLocation();
 	}
 
 	// ----------------------------------

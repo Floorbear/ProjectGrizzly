@@ -35,8 +35,8 @@ ACPP_PlayableCharacter::ACPP_PlayableCharacter()
 	SpringArm->SetupAttachment(Camera);
 
 	HandsMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("HandsMeshComponent"));
-	HandsMeshComponent->SetRelativeLocation(IdleHandLocation);
-	HandsMeshComponent->SetRelativeRotation(FRotator(0, -90.f, 0).Quaternion());
+	HandsMeshComponent->SetRelativeLocation( GetIdleHandsLocation());
+	HandsMeshComponent->SetRelativeRotation(GetHandsRotation().Quaternion());
 	//static auto HandsMesh = ConstructorHelpers::FObjectFinder<USkeletalMesh>(TEXT("/Game/ProjectGrizzly/Character/FirstPersonHand/HandMesh/Merc_Metro/hand_merc_metro.hand_merc_metro"));
 	//HandsMeshComponent->SetSkeletalMesh(HandsMesh.Object);
 	//static auto HandsMeshClass = ConstructorHelpers::FClassFinder<UAnimInstance>(TEXT("/Game/ProjectGrizzly/Character/FirstPersonHand/ABP_Hand.ABP_Hand_C"));
@@ -48,7 +48,7 @@ ACPP_PlayableCharacter::ACPP_PlayableCharacter()
 
 	FPWeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FPWeaponMeshComponent"));
 	FPWeaponMeshComponent->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-	FPWeaponMeshComponent->SetBoundsScale(1.5f); //총이 카메라에 달라 붙어있기 때문에 바운드 스케일을 키우지 않으면 클리핑 되는 버그가 존재
+	FPWeaponMeshComponent->SetBoundsScale(3.f); //총이 카메라에 달라 붙어있기 때문에 바운드 스케일을 키우지 않으면 클리핑 되는 버그가 존재
 	FPWeaponMeshComponent->SetupAttachment(HandsMeshComponent);
 
 	//그림자
@@ -173,14 +173,14 @@ void ACPP_PlayableCharacter::UpdateADS(float DeltaTime)
 {
 	USkeletalMeshComponent* Hands = GetHandsMeshComponent();
 	FVector CurrentLocation = Hands->GetRelativeLocation();
-	FVector InterpoValue = { 0,0,0 };
-	float OriginDistance = FVector::Distance({ 0,0,0 }, IdleHandLocation);
+	FVector InterpoValue =GetADSHandsLocation();
+	float OriginDistance = FVector::Distance(GetADSHandsLocation(),  GetIdleHandsLocation());
 
 	if (bADS)
 	{
-		InterpoValue = FMath::VInterpTo(CurrentLocation, { 0,0,0 }, DeltaTime, GetADSSpeed());
-		FRotator InterpoRotator = FMath::RInterpTo(Hands->GetRelativeRotation(), FRotator(0, -90, 0), DeltaTime, GetADSSpeed());
-		float Distance = FVector::Distance(InterpoValue, IdleHandLocation);
+		InterpoValue = FMath::VInterpTo(CurrentLocation, GetADSHandsLocation(), DeltaTime, GetADSSpeed());
+		FRotator InterpoRotator = FMath::RInterpTo(Hands->GetRelativeRotation(), GetHandsRotation(), DeltaTime, GetADSSpeed());
+		float Distance = FVector::Distance(InterpoValue, GetIdleHandsLocation());
 		ADSFactor = Distance / OriginDistance;
 		Hands->SetRelativeLocation(InterpoValue);
 
@@ -188,8 +188,8 @@ void ACPP_PlayableCharacter::UpdateADS(float DeltaTime)
 	}
 	else
 	{
-		InterpoValue = FMath::VInterpTo(CurrentLocation, IdleHandLocation, DeltaTime, GetADSSpeed());
-		float Distance = FVector::Distance(InterpoValue, IdleHandLocation);
+		InterpoValue = FMath::VInterpTo(CurrentLocation,  GetIdleHandsLocation(), DeltaTime, GetADSSpeed());
+		float Distance = FVector::Distance(InterpoValue,  GetIdleHandsLocation());
 		ADSFactor = Distance / OriginDistance;
 		// Except : 재장전 등 이유로 캔슬될 때 즉시 포지션 이동
 
@@ -312,7 +312,7 @@ void ACPP_PlayableCharacter::ReturnToHands(float _DeltaTime)
 	FVector InterpoLocation = FMath::VInterpTo(CurrentTransform.GetLocation(),GetCurrentHandsLocation(),_DeltaTime,InterpoSpeed);
 	GetHandsMeshComponent()->SetRelativeLocation(InterpoLocation);
 	// 회전 보간
-	FRotator IdleRotator = FRotator(0,-90.f,0);
+	FRotator IdleRotator = GetHandsRotation();
 	FRotator InterpoRotator = FMath::RInterpTo(CurrentTransform.Rotator(), IdleRotator,_DeltaTime,InterpoSpeed);
 	GetHandsMeshComponent()->SetRelativeRotation(InterpoRotator);
 }
