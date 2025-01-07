@@ -38,6 +38,17 @@ private:
 
 	void OnMontageBlendingOutWhenOffIK(UAnimMontage* Montage, bool bInterrupted);
 
+	//-------------------------------------------------------------------------------------------
+	//								Idle 상태 관리
+	//-------------------------------------------------------------------------------------------
+public:
+	UFUNCTION(BlueprintCallable)
+	void SetIdle(UAnimSequence* _Sequence)
+	{
+		IdleSequence = _Sequence;
+	}
+
+private:
 	//ToDo : Struct 화 해야함, 이유 : Linked AnimGraph에 넘길 파라미터를 간소화하기 위해서
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "AnimSequence", meta = (AllowPrivateAccess = "true"))
 	UAnimSequence* IdleSequence;

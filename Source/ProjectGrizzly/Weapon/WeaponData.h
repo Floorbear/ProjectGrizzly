@@ -63,7 +63,14 @@ struct FWeaponAnim : public FTableRowBase
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TSoftObjectPtr<UAnimSequenceBase> Weapon_Idle;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TSoftObjectPtr<UAnimSequenceBase> Weapon_EmptyIdle;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	TSoftObjectPtr<UAnimMontage> Weapon_Shoot;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TSoftObjectPtr<UAnimMontage> Weapon_LastShoot;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	TSoftObjectPtr<UAnimMontage> Hands_Shoot;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -81,6 +88,6 @@ public:
 	TSoftObjectPtr<UAnimSequenceBase> Hands_WalkBackward;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	TSoftObjectPtr<UAnimSequenceBase> Hands_Idle;
-		UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	TSoftObjectPtr<UAnimSequenceBase> Hands_Sprint;
 };

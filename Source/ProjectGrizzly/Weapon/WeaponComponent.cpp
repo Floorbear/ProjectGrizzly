@@ -3,6 +3,7 @@
 
 #include "WeaponComponent.h"
 
+#include "CPP_WeaponAnimInstance.h"
 #include "..\Character\CPP_PlayableCharacter.h"
 #include "..\Character\CPP_PGCharacter.h"
 #include "..\Character\CPP_A_Hands.h"
@@ -90,11 +91,26 @@ void UWeaponComponent::InitWeaponData()
 	// 무기 반동 데이터
 	WeaponRecoilCurve = LoadObject<UCurveVector>(NULL, *WeaponData->WeaponRecoilCurve.ToSoftObjectPath().ToString());
 
+	//Empty 애니메이션이 존재하면 로딩
+	if(!WeaponAnim->Weapon_EmptyIdle.IsNull())
+	{
+		LoadObject<UAnimMontage>(NULL, *WeaponAnim->Weapon_EmptyIdle.ToSoftObjectPath().ToString());
+	}
+	
 	//애니메이션
 	UAnimMontage* WeaponShoot = LoadObject<UAnimMontage>(NULL, *WeaponAnim->Weapon_Shoot.ToSoftObjectPath().ToString());
 	FP_Weapon_MontageMap.Add(TEXT("Shoot"), WeaponShoot);
 	UAnimMontage* HandsShoot = LoadObject<UAnimMontage>(NULL, *WeaponAnim->Hands_Shoot.ToSoftObjectPath().ToString());
 	FP_Hands_MontageMap.Add(TEXT("Shoot"), HandsShoot);
+
+	//마지막 한발 애니메이션이 있으면 추가
+	if(!WeaponAnim->Weapon_LastShoot.IsNull())
+	{
+		UAnimMontage* WeaponLastShoot = LoadObject<UAnimMontage>(NULL, *WeaponAnim->Weapon_LastShoot.ToSoftObjectPath().ToString());
+		FP_Weapon_MontageMap.Add(TEXT("Shoot_Last"), WeaponLastShoot);
+	}
+	UAnimMontage* WeaponLastShoot = LoadObject<UAnimMontage>(NULL, *WeaponAnim->Weapon_Shoot.ToSoftObjectPath().ToString());
+	FP_Weapon_MontageMap.Add(TEXT("Shoot"), WeaponShoot);
 
 	LoadFPAnim(WeaponAnim->Weapon_Reload, WeaponAnim->Hands_Reload, TEXT("Reload"));
 	LoadFPAnim(WeaponAnim->Weapon_TacReload, WeaponAnim->Hands_TacReload, TEXT("TacReload"));
@@ -149,7 +165,25 @@ void UWeaponComponent::LoadFPAnim(TSoftObjectPtr<UAnimMontage> _WeaponAnim, TSof
 
 UAnimMontage* UWeaponComponent::Get_FP_Weapon_Montage(FName _Name) const
 {
-	UAnimMontage* ReturnValue = *FP_Weapon_MontageMap.Find(_Name);
+	UAnimMontage* ReturnValue = nullptr;
+	
+	//_Name == Shoot 일경우 LastShoot 모션이 존재하고 1발 남은 상황이면 그 모션을 재생한다
+	if(CurrentMagazineRounds == 0)
+	{
+		if(_Name.Compare(TEXT("Shoot")) == 0)
+		{
+			if(FP_Weapon_MontageMap.Contains(TEXT("Shoot_Last")))
+			{
+				ReturnValue = *FP_Weapon_MontageMap.Find(TEXT("Shoot_Last"));
+			}
+			else
+			{
+				ReturnValue = *FP_Weapon_MontageMap.Find(TEXT("Shoot"));
+			}
+			return ReturnValue;
+		}
+	}
+	ReturnValue = *FP_Weapon_MontageMap.Find(_Name);
 	ensure(ReturnValue != NULL); // _Name에 해당하는 애니메이션이 Map에 존재하지 않음
 	return ReturnValue;
 }
@@ -185,6 +219,15 @@ void UWeaponComponent::SetCurrentMagazineRounds(int _NewValue)
 	if (GetOwner()->HasAuthority())
 	{
 		CurrentMagazineRounds = FMath::Clamp(_NewValue, 0, PerMagazineRounds + 1);
+
+		//총알이 없을때 Empty 애니메이션이 있다면 변경
+		if(CurrentMagazineRounds == 0 && !WeaponAnim->Weapon_EmptyIdle.IsNull())
+		{
+			ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(GetOwner());
+			UCPP_WeaponAnimInstance* AnimInstance = Cast<UCPP_WeaponAnimInstance>(Character->GetFPWeaponMeshComponent()->GetAnimInstance());
+			UAnimSequence* EmptyAnimation = Cast<UAnimSequence>(WeaponAnim->Weapon_EmptyIdle.Get());
+			AnimInstance->SetIdle(EmptyAnimation);
+		}
 	}
 }
 
@@ -226,6 +269,12 @@ void UWeaponComponent::Reload_Inner()
 		CurrentMagazineRounds = RemainRounds;
 		RemainRounds = 0;
 	}
+	
+	//Idle애니메이션으로 변경 : Empty Idle을 사용했을경우 재장전 하고 정상 Idle로 돌아가야함
+	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(GetOwner());
+	UCPP_WeaponAnimInstance* AnimInstance = Cast<UCPP_WeaponAnimInstance>(Character->GetFPWeaponMeshComponent()->GetAnimInstance());
+	UAnimSequence* IdleAnimation = Cast<UAnimSequence>(WeaponAnim->Weapon_Idle.Get());
+	AnimInstance->SetIdle(IdleAnimation);
 }
 
 void UWeaponComponent::Reload_RPC_Implementation()
