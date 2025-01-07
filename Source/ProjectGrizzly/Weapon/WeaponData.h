@@ -8,9 +8,12 @@
 #include "WeaponData.generated.h"
 
 
-/**
- * 
- */
+UENUM(BlueprintType)
+enum class EWeaponMode : uint8
+{
+	Auto			UMETA(DisplayName = "Auto"),
+	SemiAuto			UMETA(DisplayName = "SemiAuto")
+};
 
 USTRUCT(BlueprintType)
 struct FWeaponData : public FTableRowBase
@@ -21,6 +24,8 @@ public:
 	int ItemClassID;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString WeaponName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<EWeaponMode> WeaponModes;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float RPM;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

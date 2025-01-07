@@ -84,6 +84,9 @@ void UWeaponComponent::InitWeaponData()
 	Character->GetFPWeaponMeshComponent()->SetSkeletalMesh(WeaponMesh);
 	Character->GetFPWeaponMeshComponent()->SetAnimInstanceClass(WeaponData->WeaponAnimClass);
 
+	//무기 발사 모드
+	CurrentWeaponMode = WeaponData->WeaponModes[0];
+
 	// 무기 반동 데이터
 	WeaponRecoilCurve = LoadObject<UCurveVector>(NULL, *WeaponData->WeaponRecoilCurve.ToSoftObjectPath().ToString());
 
@@ -191,5 +194,42 @@ void UWeaponComponent::SetRemainRounds(int _NewValue)
 	{
 		RemainRounds = FMath::Clamp(_NewValue, 0, 999);
 	}
+}
+
+void UWeaponComponent::Reload_Inner()
+{
+	if (RemainRounds + CurrentMagazineRounds >= PerMagazineRounds)
+	{
+		if (CurrentMagazineRounds > 0)
+		{
+			RemainRounds += CurrentMagazineRounds;
+			if (RemainRounds == PerMagazineRounds)
+			{
+				CurrentMagazineRounds = PerMagazineRounds;
+			}
+			else
+			{
+				CurrentMagazineRounds = PerMagazineRounds + 1;
+			}
+			RemainRounds -= CurrentMagazineRounds;
+		}
+		else
+		{
+			RemainRounds += CurrentMagazineRounds;
+			CurrentMagazineRounds = PerMagazineRounds;
+			RemainRounds -= CurrentMagazineRounds;
+		}
+	}
+	else
+	{
+		RemainRounds += CurrentMagazineRounds;
+		CurrentMagazineRounds = RemainRounds;
+		RemainRounds = 0;
+	}
+}
+
+void UWeaponComponent::Reload_RPC_Implementation()
+{
+	Reload_Inner();
 }
 

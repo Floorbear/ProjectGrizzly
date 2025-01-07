@@ -4,6 +4,7 @@
 #include "CPP_GA_Reload.h"
 #include "Abilities\Tasks\AbilityTask.h"
 #include "Abilities\Tasks\AbilityTask_PlayMontageAndWait.h"
+#include "Abilities\Tasks\AbilityTask_WaitGameplayEvent.h"
 #include "..\..\Weapon\\WeaponComponent.h"
 #include "..\CPP_A_PGCharacter.h"
 #include "..\CPP_PlayableCharacter.h"
@@ -48,7 +49,7 @@ void UCPP_GA_Reload::CancelAbility(const FGameplayAbilitySpecHandle Handle, cons
 	
 }
 
-void UCPP_GA_Reload::OnCompleted()
+void UCPP_GA_Reload::OnCompleted(FGameplayEventData Payload)
 {
 	GetWeaponComponent()->Reload();
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo,true,true);
@@ -71,22 +72,33 @@ void UCPP_GA_Reload::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	BP_ActivateAbility();
 
 	bool bIsCrouching = GetCharacter()->GetCharacterMovement()->IsCrouching();
-	UAbilityTask_PlayMontageAndWait* Task;
-	if (bIsCrouching)
-	{
-		Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, GetWeaponComponent()->Get_TP_Montage(TEXT("Crouch_Reload")), GetCurrentTPReloadRate());
 
-	}
-	else
+	UAbilityTask_PlayMontageAndWait* Task;
+	//로컬 머신에선 TP 재장전 애니메이션 재생 X
+	if(!IsLocallyControlled())
 	{
-		Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, GetWeaponComponent()->Get_TP_Montage(TEXT("Reload")), GetCurrentTPReloadRate());
+		if (bIsCrouching)
+		{
+			//CreatePlayMontageAndWaitProxy : 어빌리티가 취소됐을 때 재생중인 몽타주를 중지시키기 위해 사용
+			Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, GetWeaponComponent()->Get_TP_Montage(TEXT("Crouch_Reload")), GetCurrentTPReloadRate());
+
+		}
+		else
+		{
+			Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, GetWeaponComponent()->Get_TP_Montage(TEXT("Reload")), GetCurrentTPReloadRate());
+		}
+		//Task->OnCompleted.AddDynamic(this, &UCPP_GA_Reload::OnCompleted);
+		Task->ReadyForActivation();
 	}
+
+	//재장전 완료에 대한 콜백 등록
+	UAbilityTask_WaitGameplayEvent* EventReceivedTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag(("Event.Montage.EndAbility")));
+	EventReceivedTask->EventReceived.AddDynamic(this, &UCPP_GA_Reload::OnCompleted);
+	EventReceivedTask->ReadyForActivation();
+
+	//1인칭 재장전
 	Player->GetHandsMeshComponent()->GetAnimInstance()->Montage_Play(GetCurrentHandsReloadMontage());
 	Player->GetFPWeaponMeshComponent()->GetAnimInstance()->Montage_Play(GetCurrentWeaponReloadMontage());
-	Task->OnCompleted.AddDynamic(this, &UCPP_GA_Reload::OnCompleted);
-	Task->ReadyForActivation();
-
-
 
 	// Task의 Tick https://dev.epicgames.com/community/learning/tutorials/qZYY/unreal-engine-on-tick-ability-task
 }

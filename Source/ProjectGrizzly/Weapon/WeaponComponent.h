@@ -31,9 +31,9 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	// ----------------------------------
-	// ------- Data Table Manage --------
-	// ----------------------------------
+	// ----------------------------------------------------------------------
+	//							Data Table Manage 
+	// ----------------------------------------------------------------------
 private:
 	UPROPERTY()
 	class UDataTable* WeaponDataTable;
@@ -46,6 +46,8 @@ private:
 	struct FWeaponAnim* WeaponAnim;
 
 	class UCurveVector* WeaponRecoilCurve;
+
+	EWeaponMode CurrentWeaponMode;
 
 public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category  = "DataTable")
@@ -94,6 +96,12 @@ public:
 	{
 		return WeaponData->Loudness;
 	}
+
+	UFUNCTION(BlueprintCallable)
+	EWeaponMode GetCurrentWeaponMode() const
+	{
+		return CurrentWeaponMode;
+	}
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// ----------------------------------
@@ -117,9 +125,9 @@ private:
 	UFUNCTION(BlueprintCallable)
 	class UDataTable*  GetWeaponAnimTable() const;
 
-	// ----------------------------------
-	// -------------Magazine-------------
-	// ----------------------------------
+	// --------------------------------------------------------------------
+	//								Magazine
+	// --------------------------------------------------------------------
 private:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category  = "Magazine", meta = (AllowPrivateAccess = "true") , Replicated)
 	int CurrentMagazineRounds;
@@ -169,42 +177,20 @@ public:
 
 		return false;
 	}
+
+	void Reload_Inner();
+	UFUNCTION(Reliable,Server)
+	void Reload_RPC();
 	UFUNCTION(BlueprintCallable)
 	void Reload()
 	{
-		//ToDo : 액션 방식 재장전 구조 만들기
 		if (GetOwner()->HasAuthority())
 		{
-			if (RemainRounds + CurrentMagazineRounds >= PerMagazineRounds)
-			{
-				if (CurrentMagazineRounds > 0)
-				{
-					RemainRounds += CurrentMagazineRounds;
-					if (RemainRounds == PerMagazineRounds)
-					{
-						CurrentMagazineRounds = PerMagazineRounds;
-					}
-					else
-					{
-						CurrentMagazineRounds = PerMagazineRounds + 1;
-					}
-					RemainRounds -= CurrentMagazineRounds;
-				}
-				else
-				{
-					RemainRounds += CurrentMagazineRounds;
-					CurrentMagazineRounds = PerMagazineRounds;
-					RemainRounds -= CurrentMagazineRounds;
-				}
-			}
-			else
-			{
-				RemainRounds += CurrentMagazineRounds;
-				CurrentMagazineRounds = RemainRounds;
-				RemainRounds = 0;
-			}
+			Reload_Inner();
 		}
-		
-
+		else
+		{
+			Reload_RPC();
+		}
 	}
 };

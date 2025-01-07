@@ -23,7 +23,7 @@ public:
 
 private:
 	UFUNCTION()
-	void OnCompleted();
+	void OnCompleted(FGameplayEventData Payload);
 
 	bool bIsBindDelegate = false;
 	UFUNCTION()

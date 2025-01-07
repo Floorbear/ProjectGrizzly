@@ -37,6 +37,9 @@ void UCPP_GA_Shoot::InputReleased(const FGameplayAbilitySpecHandle Handle, const
 {
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
 	bPressed = false;
+
+	//반자동
+	bCanShootMoreWhenSemiAuto = true;
 }
 
 void UCPP_GA_Shoot::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -149,7 +152,7 @@ void UCPP_GA_Shoot::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	auto StopShootListen = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag(("Event.Control.Gunplay.StopShoot")));
 	StopShootListen->EventReceived.AddDynamic(this, &UCPP_GA_Shoot::OnReceiveStopShoot);
 	StopShootListen->ReadyForActivation();
-
+	
 	if (!GetWeaponComponent()->IsMagazineEmpty())
 	{
 		UTickTask* TickTask = UTickTask::CreateTickTask(this, NAME_None);
@@ -190,6 +193,17 @@ bool UCPP_GA_Shoot::CanContinueShoot()
 
 	if (GetWeaponComponent()->IsMagazineEmpty())
 	{
+		return false;
+	}
+
+	//반자동 처리
+	if(GetWeaponComponent()->GetCurrentWeaponMode() == EWeaponMode::SemiAuto)
+	{
+		if(bCanShootMoreWhenSemiAuto)
+		{
+			bCanShootMoreWhenSemiAuto = false;
+			return true;
+		}
 		return false;
 	}
 	return true;
@@ -301,6 +315,7 @@ void UCPP_GA_Shoot::EndAbility(const FGameplayAbilitySpecHandle Handle, const FG
 	WaitTask = NULL;
 	bPressed = true;
 	RecoilTime = 0;
+	bCanShootMoreWhenSemiAuto = false;
 
 	ACPP_PlayableCharacter* Player = Cast<ACPP_PlayableCharacter>(CurrentActorInfo->AvatarActor);
 	Player->GetHandsMeshComponent()->GetAnimInstance()->Montage_StopWithBlendOut(0.1f, GetWeaponComponent()->Get_FP_Hands_Montage(TEXT("Shoot")));
@@ -312,9 +327,10 @@ void UCPP_GA_Shoot::EndAbility(const FGameplayAbilitySpecHandle Handle, const FG
 void UCPP_GA_Shoot::Tick(float _DeltaTime)
 {
 	//에임 회복 상태에서 사격하면 사격 어빌리티 비활성화 하는 명령을 중지하고 사격을 계속 진행
+	//반자동 예외처리
 	if (IsValid(WaitTask))
 	{
-		if (bPressed && !GetWeaponComponent()->IsMagazineEmpty())
+		if (CanContinueShoot())
 		{
 			WaitTask->EndTask();
 			WaitTask = NULL;
