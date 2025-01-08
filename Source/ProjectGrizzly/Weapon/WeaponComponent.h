@@ -104,9 +104,10 @@ public:
 	}
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	// ----------------------------------
-	// ---------- Animation -------------
-	// ----------------------------------
+	// ----------------------------------------------------------------------------------------------------
+	//										Animation
+	// ----------------------------------------------------------------------------------------------------
+
 private:
 	TMap<FName, UAnimMontage*> FP_Weapon_MontageMap;
 	TMap<FName, UAnimMontage*> FP_Hands_MontageMap;
@@ -125,6 +126,12 @@ private:
 	UFUNCTION(BlueprintCallable)
 	class UDataTable*  GetWeaponAnimTable() const;
 
+public:
+	UFUNCTION(BlueprintCallable,NetMulticast,Reliable)
+	void SetAnimEmptyIdle();
+
+	UFUNCTION(BlueprintCallable,NetMulticast,Reliable)
+	void SetAnimIdle();
 	// --------------------------------------------------------------------
 	//								Magazine
 	// --------------------------------------------------------------------

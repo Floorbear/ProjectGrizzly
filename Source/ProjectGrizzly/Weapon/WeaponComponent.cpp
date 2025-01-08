@@ -202,6 +202,24 @@ UAnimMontage* UWeaponComponent::Get_TP_Montage(FName _Name) const
 	return ReturnValue;
 }
 
+
+
+void UWeaponComponent::SetAnimIdle_Implementation()
+{
+	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(GetOwner());
+	UCPP_WeaponAnimInstance* AnimInstance = Cast<UCPP_WeaponAnimInstance>(Character->GetFPWeaponMeshComponent()->GetAnimInstance());
+	UAnimSequence* IdleAnimation = Cast<UAnimSequence>(WeaponAnim->Weapon_Idle.Get());
+	AnimInstance->SetIdle(IdleAnimation);
+}
+
+void UWeaponComponent::SetAnimEmptyIdle_Implementation()
+{
+	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(GetOwner());
+	UCPP_WeaponAnimInstance* AnimInstance = Cast<UCPP_WeaponAnimInstance>(Character->GetFPWeaponMeshComponent()->GetAnimInstance());
+	UAnimSequence* EmptyAnimation = Cast<UAnimSequence>(WeaponAnim->Weapon_EmptyIdle.Get());
+	AnimInstance->SetIdle(EmptyAnimation);
+}
+
 class UDataTable* UWeaponComponent::GetWeaponDataTable() const
 {
 	check(WeaponDataTable != NULL)
@@ -216,18 +234,12 @@ class UDataTable* UWeaponComponent::GetWeaponAnimTable() const
 
 void UWeaponComponent::SetCurrentMagazineRounds(int _NewValue)
 {
-	if (GetOwner()->HasAuthority())
-	{
-		CurrentMagazineRounds = FMath::Clamp(_NewValue, 0, PerMagazineRounds + 1);
+	CurrentMagazineRounds = FMath::Clamp(_NewValue, 0, PerMagazineRounds + 1);
 
-		//총알이 없을때 Empty 애니메이션이 있다면 변경
-		if(CurrentMagazineRounds == 0 && !WeaponAnim->Weapon_EmptyIdle.IsNull())
-		{
-			ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(GetOwner());
-			UCPP_WeaponAnimInstance* AnimInstance = Cast<UCPP_WeaponAnimInstance>(Character->GetFPWeaponMeshComponent()->GetAnimInstance());
-			UAnimSequence* EmptyAnimation = Cast<UAnimSequence>(WeaponAnim->Weapon_EmptyIdle.Get());
-			AnimInstance->SetIdle(EmptyAnimation);
-		}
+	//총알이 없을때 Empty 애니메이션이 있다면 변경
+	if(CurrentMagazineRounds == 0 && !WeaponAnim->Weapon_EmptyIdle.IsNull() && GetOwner()->HasAuthority())
+	{
+		SetAnimEmptyIdle();
 	}
 }
 
@@ -271,10 +283,8 @@ void UWeaponComponent::Reload_Inner()
 	}
 	
 	//Idle애니메이션으로 변경 : Empty Idle을 사용했을경우 재장전 하고 정상 Idle로 돌아가야함
-	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(GetOwner());
-	UCPP_WeaponAnimInstance* AnimInstance = Cast<UCPP_WeaponAnimInstance>(Character->GetFPWeaponMeshComponent()->GetAnimInstance());
-	UAnimSequence* IdleAnimation = Cast<UAnimSequence>(WeaponAnim->Weapon_Idle.Get());
-	AnimInstance->SetIdle(IdleAnimation);
+	SetAnimIdle();
+
 }
 
 void UWeaponComponent::Reload_RPC_Implementation()
