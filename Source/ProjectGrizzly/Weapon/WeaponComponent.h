@@ -41,7 +41,7 @@ private:
 	UPROPERTY()
 	class UDataTable* WeaponAnimTable;
 
-	struct FWeaponData* WeaponData;
+	struct FWeaponData* WeaponData = nullptr;
 
 	struct FWeaponAnim* WeaponAnim;
 
@@ -53,12 +53,17 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category  = "DataTable")
 	FName WeaponName;
 
+	
 	class UCurveVector* GetWeaponRecoilCurve() const
 	{
 		ensure(WeaponRecoilCurve != nullptr);
 		return WeaponRecoilCurve;
 	}
 
+	FWeaponData* GetWeaponData() const
+	{
+		return WeaponData;
+	}
 	UFUNCTION(BlueprintCallable)
 	float GetRecoilRecoveryTime() const
 	{
@@ -102,6 +107,12 @@ public:
 	{
 		return CurrentWeaponMode;
 	}
+
+	UFUNCTION(BlueprintCallable)
+	EWeaponType GetWeaponType() const
+	{
+		return WeaponData->WeaponType;
+	}
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// ----------------------------------------------------------------------------------------------------
@@ -113,10 +124,13 @@ private:
 	TMap<FName, UAnimMontage*> FP_Hands_MontageMap;
 	TMap<FName, UAnimMontage*> TP_MontageMap;
 
+	void InitTPAnim();
 	void LoadFPAnim(TSoftObjectPtr<UAnimMontage> _WeaponAnim, TSoftObjectPtr<UAnimMontage> _HandAnim, FName _Name);
 public:
 	UAnimMontage* Get_FP_Weapon_Montage(FName _Name) const;
 	UAnimMontage* Get_FP_Hands_Montage(FName _Name) const;
+	//bCombatAnim : _Name 뒤에 _WeaponType 접미사를 붙인다. 전투 몽타주에 사용
+	UFUNCTION(BlueprintCallable)
 	UAnimMontage* Get_TP_Montage(FName _Name) const;
 
 private:

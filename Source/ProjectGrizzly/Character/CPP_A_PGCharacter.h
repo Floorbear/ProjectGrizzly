@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "..\Weapon/\WeaponData.h"
 #include "CPP_A_PGCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnReloadStartDelegate);
@@ -16,6 +17,7 @@ class PROJECTGRIZZLY_API UCPP_A_PGCharacter : public UAnimInstance
 	GENERATED_BODY()
 
 public:
+	UCPP_A_PGCharacter();
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, EditDefaultsOnly, Category = "Reload")
 	FOnReloadStartDelegate OnReloadStartDelegate;
 
@@ -34,10 +36,35 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	bool bADS = false;
 
+	//----------------------------------------------------------------------------------------------------
+	//											AnimSequence
+	//----------------------------------------------------------------------------------------------------
+public:
+	UFUNCTION(BlueprintCallable)
+	void SetAnimMode(EWeaponType _WeaponType);
+
+	EWeaponType CurrentWeaponType = EWeaponType::No;
+	struct GrizzlyAnimSequence
+	{
+		UAnimSequenceBase* Hip_IdleSequence = nullptr;
+		UAnimSequenceBase* Hip_ForwardSequence = nullptr;
+		UAnimSequenceBase* Hip_RunSequence= nullptr;
+		UAnimSequenceBase* Hip_BackwardSequence= nullptr;
+		UAnimSequenceBase* ADS_IdleSequence= nullptr;
+		UAnimSequenceBase* ADS_ForwardSequence= nullptr;
+		UAnimSequenceBase* ADS_BackwardSequence= nullptr;
+		UAnimSequenceBase* Crouch_IdleSequence= nullptr;
+		UAnimSequenceBase* Crouch_ForwardSequence= nullptr;
+		UAnimSequenceBase* Crouch_BackwardSequence= nullptr;
+	};
+	TMap<EWeaponType,GrizzlyAnimSequence> AnimSequenceMap;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
 	UAnimSequenceBase* Hip_IdleSequence;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
 	UAnimSequenceBase* Hip_ForwardSequence;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
+	UAnimSequenceBase* Hip_RunSequence;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
 	UAnimSequenceBase* Hip_BackwardSequence;
 
@@ -47,6 +74,14 @@ public:
 	UAnimSequenceBase* ADS_ForwardSequence;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
 	UAnimSequenceBase* ADS_BackwardSequence;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
+	UAnimSequenceBase* Crouch_IdleSequence;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
+	UAnimSequenceBase* Crouch_ForwardSequence;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
+	UAnimSequenceBase* Crouch_BackwardSequence;
+
 
 	// ------ LeftHandIK ------
 public:

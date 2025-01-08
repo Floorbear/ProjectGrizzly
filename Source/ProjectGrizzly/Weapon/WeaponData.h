@@ -9,6 +9,14 @@
 
 
 UENUM(BlueprintType)
+enum class EWeaponType : uint8
+{
+	No,
+	AssaultRilfe			UMETA(DisplayName = "AssaultRilfe"),
+	Pistol			UMETA(DisplayName = "Pistol")
+};
+
+UENUM(BlueprintType)
 enum class EWeaponMode : uint8
 {
 	Auto			UMETA(DisplayName = "Auto"),
@@ -24,6 +32,8 @@ public:
 	int ItemClassID;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString WeaponName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EWeaponType WeaponType;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<EWeaponMode> WeaponModes;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

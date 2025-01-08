@@ -5,6 +5,65 @@
 #include "CPP_PlayableCharacter.h"
 #include "AbilitySystemComponent.h"
 #include "GameFrameWork\CharacterMovementComponent.h"
+#include "ProjectGrizzly/Weapon/WeaponComponent.h"
+
+UCPP_A_PGCharacter::UCPP_A_PGCharacter()
+{
+	//Pistol 
+	GrizzlyAnimSequence Pistol;
+	//HipIdle
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_1_aim_1.StalkerAnim_root_norm_torso_1_aim_1"));
+		Pistol.Hip_IdleSequence = Data.Object;
+	}
+	//HipForward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_1_aim_2.StalkerAnim_root_norm_torso_1_aim_2"));
+		Pistol.Hip_ForwardSequence = Data.Object;
+	}
+	//Run
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_1_run_0.StalkerAnim_root_norm_torso_1_run_0"));
+		Pistol.Hip_RunSequence = Data.Object;
+	}
+	//HipBackward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_1_aim_2_back.StalkerAnim_root_norm_torso_1_aim_2_back"));
+		Pistol.Hip_BackwardSequence = Data.Object;
+	}
+	//ADSIdle
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_2_aim_0.StalkerAnim_root_norm_torso_2_aim_0"));
+		Pistol.ADS_IdleSequence = Data.Object;
+	}
+	//ADSForward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_walk_fwd_0.StalkerAnim_root_norm_walk_fwd_0"));
+		Pistol.ADS_ForwardSequence = Data.Object;
+	}
+	//ADSBackward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_walk_back_0.StalkerAnim_root_norm_walk_back_0"));
+		Pistol.ADS_BackwardSequence = Data.Object;
+	}
+	//CrouchIdle
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_cr_torso_1_aim_0.StalkerAnim_root_cr_torso_1_aim_0"));
+		Pistol.Crouch_IdleSequence = Data.Object;
+	}
+	//CrouchForward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_cr_torso_1_aim_2.StalkerAnim_root_cr_torso_1_aim_2"));
+		Pistol.Crouch_ForwardSequence = Data.Object;
+	}
+	//CrouchBackward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_cr_torso_1_aim_2_back.StalkerAnim_root_cr_torso_1_aim_2_back"));
+		Pistol.Crouch_BackwardSequence = Data.Object;
+	}
+	AnimSequenceMap.Add(EWeaponType::Pistol,Pistol);
+}
+
 void UCPP_A_PGCharacter::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
@@ -13,6 +72,17 @@ void UCPP_A_PGCharacter::NativeUpdateAnimation(float DeltaSeconds)
 	if (!IsValid(Character))
 	{
 		return;
+	}
+	//현재 무기에 맞춘 3인칭 애니메이션 출력
+	if(!IsValid(Character->GetWeaponComponent()))
+		return;
+	if(Character->GetWeaponComponent()->GetWeaponData() == nullptr)
+		return;
+	EWeaponType WeaponType = Character->GetWeaponComponent()->GetWeaponType();
+	if(CurrentWeaponType != WeaponType)
+	{
+		CurrentWeaponType = WeaponType;
+		SetAnimMode(WeaponType);
 	}
 
 	//AI는 속도로 MoveForwardAxis를 업데이트
@@ -43,6 +113,22 @@ void UCPP_A_PGCharacter::NativeUpdateAnimation(float DeltaSeconds)
 	UpdateSprint(Character);
 	UpdateLeaning(DeltaSeconds);
 	bIsCrouching = Character->GetCharacterMovement()->IsCrouching();
+}
+
+void UCPP_A_PGCharacter::SetAnimMode(EWeaponType _WeaponType)
+{
+	GrizzlyAnimSequence AnimSequences = AnimSequenceMap[_WeaponType];
+
+	Hip_IdleSequence = AnimSequences.Hip_IdleSequence;
+	Hip_ForwardSequence = AnimSequences.Hip_ForwardSequence;
+	Hip_RunSequence = AnimSequences.Hip_RunSequence;
+	Hip_BackwardSequence = AnimSequences.Hip_BackwardSequence;
+	ADS_IdleSequence = AnimSequences.ADS_IdleSequence;
+	ADS_ForwardSequence = AnimSequences.ADS_ForwardSequence;
+	ADS_BackwardSequence = AnimSequences.ADS_BackwardSequence;
+	Crouch_IdleSequence = AnimSequences.Crouch_IdleSequence;
+	Crouch_ForwardSequence = AnimSequences.Crouch_ForwardSequence;
+	Crouch_BackwardSequence = AnimSequences.Crouch_BackwardSequence;
 }
 
 void UCPP_A_PGCharacter::UpdateSprint(ACPP_PlayableCharacter* Character)

@@ -8,6 +8,7 @@
 #include "..\Character\CPP_PGCharacter.h"
 #include "..\Character\CPP_A_Hands.h"
 #include "Net\UnrealNetwork.h"
+#include "ProjectGrizzly/Character/CPP_A_PGCharacter.h"
 
 
 // Sets default values for this component's properties
@@ -25,25 +26,8 @@ UWeaponComponent::UWeaponComponent()
 	WeaponAnimTable = AnimDataTable.Object;
 
 
-	//3인칭 애니메이션 ToDo : 3인칭 애니메이션은 모두 동기 로딩
-	static auto TPADSShootData = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso2_ADSShoot.AM_Torso2_ADSShoot"));
-	TP_MontageMap.Add(TEXT("ADSShoot"), TPADSShootData.Object);
+	InitTPAnim();
 
-	static auto TPHipShootData = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso2_HipShoot.AM_Torso2_HipShoot"));
-	TP_MontageMap.Add(TEXT("HipShoot"), TPHipShootData.Object);
-
-	static auto ReloadData = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso2_Reload.AM_Torso2_Reload"));
-	TP_MontageMap.Add(TEXT("Reload"), ReloadData.Object);
-
-	{
-		static auto Data = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso2_CrouchReload.AM_Torso2_CrouchReload"));
-		TP_MontageMap.Add(TEXT("Crouch_Reload"), Data.Object);
-	}
-
-	{
-		static auto Data = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso2_CrouchShoot.AM_Torso2_CrouchShoot"));
-		TP_MontageMap.Add(TEXT("Crouch_Shoot"), Data.Object);
-	}
 
 	//컴포넌트의 레플리케이션 설정은 액터에서 한다
 
@@ -91,18 +75,30 @@ void UWeaponComponent::InitWeaponData()
 	// 무기 반동 데이터
 	WeaponRecoilCurve = LoadObject<UCurveVector>(NULL, *WeaponData->WeaponRecoilCurve.ToSoftObjectPath().ToString());
 
+
+	
+
+	//--------------------------------------------------------------------------------------------------------------
+	//											Animation
+	//--------------------------------------------------------------------------------------------------------------
+	//3인칭 왼손 IK
+	UCPP_A_PGCharacter* AnimInstance = Cast<UCPP_A_PGCharacter>(Character->GetMesh()->GetAnimInstance());
+	if(WeaponData->WeaponType == EWeaponType::Pistol)
+		AnimInstance->LeftHandIKAlpha = 0.f;
+	else
+		AnimInstance->LeftHandIKAlpha = 1.f;
+		
+	UAnimMontage* WeaponShoot = LoadObject<UAnimMontage>(NULL, *WeaponAnim->Weapon_Shoot.ToSoftObjectPath().ToString());
+	FP_Weapon_MontageMap.Add(TEXT("Shoot"), WeaponShoot);
+	UAnimMontage* HandsShoot = LoadObject<UAnimMontage>(NULL, *WeaponAnim->Hands_Shoot.ToSoftObjectPath().ToString());
+	FP_Hands_MontageMap.Add(TEXT("Shoot"), HandsShoot);
+
 	//Empty 애니메이션이 존재하면 로딩
 	if(!WeaponAnim->Weapon_EmptyIdle.IsNull())
 	{
 		LoadObject<UAnimMontage>(NULL, *WeaponAnim->Weapon_EmptyIdle.ToSoftObjectPath().ToString());
 	}
 	
-	//애니메이션
-	UAnimMontage* WeaponShoot = LoadObject<UAnimMontage>(NULL, *WeaponAnim->Weapon_Shoot.ToSoftObjectPath().ToString());
-	FP_Weapon_MontageMap.Add(TEXT("Shoot"), WeaponShoot);
-	UAnimMontage* HandsShoot = LoadObject<UAnimMontage>(NULL, *WeaponAnim->Hands_Shoot.ToSoftObjectPath().ToString());
-	FP_Hands_MontageMap.Add(TEXT("Shoot"), HandsShoot);
-
 	//마지막 한발 애니메이션이 있으면 추가
 	if(!WeaponAnim->Weapon_LastShoot.IsNull())
 	{
@@ -155,6 +151,7 @@ void UWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UWeaponComponent, RemainRounds);
 }
 
+
 void UWeaponComponent::LoadFPAnim(TSoftObjectPtr<UAnimMontage> _WeaponAnim, TSoftObjectPtr<UAnimMontage> _HandAnim, FName _Name)
 {
 	UAnimMontage* Weapon = LoadObject<UAnimMontage>(NULL, *_WeaponAnim.ToSoftObjectPath().ToString());
@@ -195,8 +192,14 @@ UAnimMontage* UWeaponComponent::Get_FP_Hands_Montage(FName _Name) const
 	return ReturnValue;
 }
 
+
 UAnimMontage* UWeaponComponent::Get_TP_Montage(FName _Name) const
 {
+	FString Str = _Name.ToString();
+	FString WeaponTypeStr = StaticEnum<EWeaponType>()->GetNameStringByValue((int64)GetWeaponType());
+	Str.Append(TEXT("_"));
+	Str.Append(WeaponTypeStr);
+	_Name = FName(Str);
 	UAnimMontage* ReturnValue = *TP_MontageMap.Find(_Name);
 	ensure(ReturnValue != NULL); // _Name에 해당하는 애니메이션이 Map에 존재하지 않음
 	return ReturnValue;
@@ -290,5 +293,54 @@ void UWeaponComponent::Reload_Inner()
 void UWeaponComponent::Reload_RPC_Implementation()
 {
 	Reload_Inner();
+}
+
+void UWeaponComponent::InitTPAnim()
+{
+	//3인칭 애니메이션 ToDo : 3인칭 애니메이션은 모두 동기 로딩
+
+	//Pistol
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso1_ADSShoot.AM_Torso1_ADSShoot"));
+		TP_MontageMap.Add(TEXT("ADSShoot_Pistol"), Data.Object);
+	}
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso1_HipShoot.AM_Torso1_HipShoot"));
+		TP_MontageMap.Add(TEXT("HipShoot_Pistol"), Data.Object);
+	}
+
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso1_Reload.AM_Torso1_Reload"));
+		TP_MontageMap.Add(TEXT("Reload_Pistol"), Data.Object);
+	}
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso1_CrouchReload.AM_Torso1_CrouchReload"));
+		TP_MontageMap.Add(TEXT("Crouch_Reload_Pistol"), Data.Object);
+	}
+
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso1_CrouchShoot.AM_Torso1_CrouchShoot"));
+		TP_MontageMap.Add(TEXT("Crouch_Shoot_Pistol"), Data.Object);
+	}
+
+	//AssaultRifle
+	static auto TPADSShootData = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso2_ADSShoot.AM_Torso2_ADSShoot"));
+	TP_MontageMap.Add(TEXT("ADSShoot_AssaultRilfe"), TPADSShootData.Object);
+
+	static auto TPHipShootData = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso2_HipShoot.AM_Torso2_HipShoot"));
+	TP_MontageMap.Add(TEXT("HipShoot_AssaultRilfe"), TPHipShootData.Object);
+
+	static auto ReloadData = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso2_Reload.AM_Torso2_Reload"));
+	TP_MontageMap.Add(TEXT("Reload_AssaultRilfe"), ReloadData.Object);
+
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso2_CrouchReload.AM_Torso2_CrouchReload"));
+		TP_MontageMap.Add(TEXT("Crouch_Reload_AssaultRilfe"), Data.Object);
+	}
+
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimMontage>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/AM_Torso2_CrouchShoot.AM_Torso2_CrouchShoot"));
+		TP_MontageMap.Add(TEXT("Crouch_Shoot_AssaultRilfe"), Data.Object);
+	}
 }
 
