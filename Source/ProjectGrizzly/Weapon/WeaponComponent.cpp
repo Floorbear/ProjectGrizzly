@@ -8,6 +8,7 @@
 #include "..\Character\CPP_PGCharacter.h"
 #include "..\Character\CPP_A_Hands.h"
 #include "Net\UnrealNetwork.h"
+#include "..\Core/GrizzlyGameInstance.h"
 #include "ProjectGrizzly/Character/CPP_A_PGCharacter.h"
 
 
@@ -18,20 +19,8 @@ UWeaponComponent::UWeaponComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	//ToDo : DT to GameInstance
-	static auto DataTable =  ConstructorHelpers::FObjectFinder<UDataTable>(TEXT("/Game/ProjectGrizzly/Gun/WeaponDataTable.WeaponDataTable"));
-	WeaponDataTable = DataTable.Object;
-
-	static auto AnimDataTable = ConstructorHelpers::FObjectFinder<UDataTable>(TEXT("/Game/ProjectGrizzly/Gun/WeaponAnimTable.WeaponAnimTable"));
-	WeaponAnimTable = AnimDataTable.Object;
-
-
 	InitTPAnim();
-
-
-	//컴포넌트의 레플리케이션 설정은 액터에서 한다
-
-
+	
 }
 
 
@@ -41,39 +30,42 @@ void UWeaponComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	WeaponData = GetWeaponDataTable()->FindRow<FWeaponData>(WeaponName, FString(""));
-	ensure(WeaponData != NULL); // WeaponName 에 해당하는 데이터가 존재하지 않음
+	// WeaponData = GetWeaponDataTable()->FindRow<FWeaponData>(WeaponName, FString(""));
+	// ensure(WeaponData != NULL); // WeaponName 에 해당하는 데이터가 존재하지 않음
+	//
+	// WeaponAnim = GetWeaponAnimTable()->FindRow<FWeaponAnim>(WeaponName, FString(""));
+	// ensure(WeaponData != NULL); // WeaponName 에 해당하는 데이터가 존재하지 않음
 
-	WeaponAnim = GetWeaponAnimTable()->FindRow<FWeaponAnim>(WeaponName, FString(""));
-	ensure(WeaponData != NULL); // WeaponName 에 해당하는 데이터가 존재하지 않음
-
-	InitWeaponData();
+	SetWeapon(TEXT("AKM"));
 
 }
 
 
-void UWeaponComponent::InitWeaponData()
+void UWeaponComponent::SetWeapon(FName _WeaponName, bool bIsPrimary)
 {
+	WeaponName = _WeaponName;
+	FWeaponData* _WeaponData = Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance())->GetWeaponDataTable()->FindRow<FWeaponData>(_WeaponName, FString(""));
+	checkf(_WeaponData != nullptr,TEXT("Cant Find %s in WeaponDT"),_WeaponName);
 	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(GetOwner());
 	ensure(Character != NULL);
-	USkeletalMesh* WeaponMesh = LoadObject<USkeletalMesh>(NULL, *WeaponData->WeaponSkeletalMesh.ToSoftObjectPath().ToString());
+	USkeletalMesh* WeaponMesh = LoadObject<USkeletalMesh>(NULL, *_WeaponData->WeaponSkeletalMesh.ToSoftObjectPath().ToString());
 	Character->GetTPWeaponComponent()->SetSkeletalMesh(WeaponMesh);
-	//총 그림자
+	//총 그림자d
 	Character->GetShadowWeaponComponent()->SetSkeletalMesh(WeaponMesh);
 
 	//탄창
-	PerMagazineRounds = WeaponData->Rounds;
+	PerMagazineRounds = _WeaponData->Rounds;
 	RemainRounds = PerMagazineRounds * 5;
 	CurrentMagazineRounds = PerMagazineRounds;
 
 	Character->GetFPWeaponMeshComponent()->SetSkeletalMesh(WeaponMesh);
-	Character->GetFPWeaponMeshComponent()->SetAnimInstanceClass(WeaponData->WeaponAnimClass);
+	Character->GetFPWeaponMeshComponent()->SetAnimInstanceClass(_WeaponData->WeaponAnimClass);
 
 	//무기 발사 모드
-	CurrentWeaponMode = WeaponData->WeaponModes[0];
+	CurrentWeaponMode = _WeaponData->WeaponModes[0];
 
 	// 무기 반동 데이터
-	WeaponRecoilCurve = LoadObject<UCurveVector>(NULL, *WeaponData->WeaponRecoilCurve.ToSoftObjectPath().ToString());
+	WeaponRecoilCurve = LoadObject<UCurveVector>(NULL, *_WeaponData->WeaponRecoilCurve.ToSoftObjectPath().ToString());
 
 
 	
@@ -81,9 +73,26 @@ void UWeaponComponent::InitWeaponData()
 	//--------------------------------------------------------------------------------------------------------------
 	//											Animation
 	//--------------------------------------------------------------------------------------------------------------
+	FWeaponAnim* WeaponAnim = GetWeaponAnimTable()->FindRow<FWeaponAnim>(_WeaponName,FString(""));
+	check(WeaponAnim != nullptr);
+	//1인칭 오른손 소캣 모드
+	FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepRelative,EDetachmentRule::KeepRelative,EDetachmentRule::KeepWorld,true);
+	FAttachmentTransformRules AttachmentTransformRules(EAttachmentRule::KeepRelative,EAttachmentRule::KeepRelative,EAttachmentRule::KeepWorld,true);
+	if(_WeaponData->SocketMode)
+	{
+		Character->GetFPWeaponMeshComponent()->DetachFromComponent(DetachmentTransformRules);
+		Character->GetFPWeaponMeshComponent()->AttachToComponent(Character->GetHandsMeshComponent(),AttachmentTransformRules,TEXT("RightHand"));
+	}
+	else
+	{
+		
+		Character->GetFPWeaponMeshComponent()->DetachFromComponent(DetachmentTransformRules);
+		Character->GetFPWeaponMeshComponent()->AttachToComponent(Character->GetHandsMeshComponent(),AttachmentTransformRules);
+	}
+	
 	//3인칭 왼손 IK
 	UCPP_A_PGCharacter* AnimInstance = Cast<UCPP_A_PGCharacter>(Character->GetMesh()->GetAnimInstance());
-	if(WeaponData->WeaponType == EWeaponType::Pistol)
+	if(_WeaponData->WeaponType == EWeaponType::Pistol)
 		AnimInstance->LeftHandIKAlpha = 0.f;
 	else
 		AnimInstance->LeftHandIKAlpha = 1.f;
@@ -112,9 +121,9 @@ void UWeaponComponent::InitWeaponData()
 	LoadFPAnim(WeaponAnim->Weapon_TacReload, WeaponAnim->Hands_TacReload, TEXT("TacReload"));
 
 	//손 위치 & 회전
-	Character->SetIdleHandsLocation(WeaponData->IdleHandsLocation);
-	Character->SetADSHandsLocation(WeaponData->ADSHandsLocation);
-	Character->SetHandsRotation(WeaponData->HandsRotation);
+	Character->SetIdleHandsLocation(_WeaponData->IdleHandsLocation);
+	Character->SetADSHandsLocation(_WeaponData->ADSHandsLocation);
+	Character->SetHandsRotation(_WeaponData->HandsRotation);
 
 	//손 애니메이션 초기화
 	UCPP_A_Hands* HandsAnimInstance = Cast<UCPP_A_Hands>(Character->GetHandsMeshComponent()->GetAnimInstance());
@@ -142,6 +151,20 @@ void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+FWeaponData* UWeaponComponent::GetCurrentWeaponData() const
+{
+	FWeaponData* Data = GetWeaponDataTable()->FindRow<FWeaponData>(WeaponName,FString(""));
+	check(Data != nullptr);
+	return Data;
+}
+
+FWeaponAnim* UWeaponComponent::GetCurrentAnimData() const
+{
+	FWeaponAnim* Data = GetWeaponAnimTable()->FindRow<FWeaponAnim>(WeaponName,FString(""));
+	checkf(Data != nullptr,TEXT("%s is illegal"),WeaponName);
+	return Data;
 }
 
 void UWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -211,7 +234,7 @@ void UWeaponComponent::SetAnimIdle_Implementation()
 {
 	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(GetOwner());
 	UCPP_WeaponAnimInstance* AnimInstance = Cast<UCPP_WeaponAnimInstance>(Character->GetFPWeaponMeshComponent()->GetAnimInstance());
-	UAnimSequence* IdleAnimation = Cast<UAnimSequence>(WeaponAnim->Weapon_Idle.Get());
+	UAnimSequence* IdleAnimation = Cast<UAnimSequence>(GetCurrentAnimData()->Weapon_Idle.Get());
 	AnimInstance->SetIdle(IdleAnimation);
 }
 
@@ -219,20 +242,22 @@ void UWeaponComponent::SetAnimEmptyIdle_Implementation()
 {
 	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(GetOwner());
 	UCPP_WeaponAnimInstance* AnimInstance = Cast<UCPP_WeaponAnimInstance>(Character->GetFPWeaponMeshComponent()->GetAnimInstance());
-	UAnimSequence* EmptyAnimation = Cast<UAnimSequence>(WeaponAnim->Weapon_EmptyIdle.Get());
+	UAnimSequence* EmptyAnimation = Cast<UAnimSequence>(GetCurrentAnimData()->Weapon_EmptyIdle.Get());
 	AnimInstance->SetIdle(EmptyAnimation);
 }
 
 class UDataTable* UWeaponComponent::GetWeaponDataTable() const
 {
-	check(WeaponDataTable != NULL)
-	return WeaponDataTable;
+	static UDataTable* DT =  Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance())->GetWeaponDataTable();
+	check(DT != NULL)
+	return DT;
 }
 
 class UDataTable* UWeaponComponent::GetWeaponAnimTable() const
 {
-	check(WeaponAnimTable != NULL)
-	return WeaponAnimTable;
+	static UDataTable* DT =  Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance())->GetWeaponAnimTable();
+	check(DT != NULL)
+	return DT;
 }
 
 void UWeaponComponent::SetCurrentMagazineRounds(int _NewValue)
@@ -240,7 +265,7 @@ void UWeaponComponent::SetCurrentMagazineRounds(int _NewValue)
 	CurrentMagazineRounds = FMath::Clamp(_NewValue, 0, PerMagazineRounds + 1);
 
 	//총알이 없을때 Empty 애니메이션이 있다면 변경
-	if(CurrentMagazineRounds == 0 && !WeaponAnim->Weapon_EmptyIdle.IsNull() && GetOwner()->HasAuthority())
+	if(CurrentMagazineRounds == 0 && !GetCurrentAnimData()->Weapon_EmptyIdle.IsNull() && GetOwner()->HasAuthority())
 	{
 		SetAnimEmptyIdle();
 	}

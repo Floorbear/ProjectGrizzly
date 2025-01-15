@@ -25,7 +25,9 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	void InitWeaponData();
+
+	UFUNCTION(BlueprintCallable)
+	void SetWeapon(FName _WeaponName, bool bIsPrimary = true);
 
 public:	
 	// Called every frame
@@ -35,15 +37,8 @@ public:
 	//							Data Table Manage 
 	// ----------------------------------------------------------------------
 private:
-	UPROPERTY()
-	class UDataTable* WeaponDataTable;
-
-	UPROPERTY()
-	class UDataTable* WeaponAnimTable;
-
-	struct FWeaponData* WeaponData = nullptr;
-
-	struct FWeaponAnim* WeaponAnim;
+	
+	
 
 	class UCurveVector* WeaponRecoilCurve;
 
@@ -60,46 +55,44 @@ public:
 		return WeaponRecoilCurve;
 	}
 
-	FWeaponData* GetWeaponData() const
-	{
-		return WeaponData;
-	}
+	FWeaponData* GetCurrentWeaponData() const;
+	FWeaponAnim* GetCurrentAnimData() const;
 	UFUNCTION(BlueprintCallable)
 	float GetRecoilRecoveryTime() const
 	{
-		return WeaponData->RecoilRecoveryTime;
+		return GetCurrentWeaponData()->RecoilRecoveryTime;
 	}
 
 	UFUNCTION(BlueprintCallable)
 	float GetRPM() const
 	{
-		return WeaponData->RPM;
+		return GetCurrentWeaponData()->RPM;
 	}
 	UFUNCTION(BlueprintCallable)
 	float GetWeaponThreat() const
 	{
-		return WeaponData->Threat;
+		return GetCurrentWeaponData()->Threat;
 	}
 	UFUNCTION(BlueprintCallable)
 	float GetWeaponThreatRadius() const
 	{
-		return WeaponData->ThreatRadius;
+		return GetCurrentWeaponData()->ThreatRadius;
 	}
 	UFUNCTION(BlueprintCallable)
 	float GetRandomSpread() const
 	{
-		return WeaponData->RandomSpread;
+		return GetCurrentWeaponData()->RandomSpread;
 	}
 	UFUNCTION(BlueprintCallable)
 	TSubclassOf<class UGameplayEffect> GetMuzzleFlashEffect()
 	{
-		return WeaponData->MuzzleFlashEffect;
+		return GetCurrentWeaponData()->MuzzleFlashEffect;
 	}
 
 	UFUNCTION(BlueprintCallable)
 	float GetLoudness() const
 	{
-		return WeaponData->Loudness;
+		return GetCurrentWeaponData()->Loudness;
 	}
 
 	UFUNCTION(BlueprintCallable)
@@ -111,7 +104,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	EWeaponType GetWeaponType() const
 	{
-		return WeaponData->WeaponType;
+		return GetCurrentWeaponData()->WeaponType;
 	}
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

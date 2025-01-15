@@ -62,6 +62,60 @@ UCPP_A_PGCharacter::UCPP_A_PGCharacter()
 		Pistol.Crouch_BackwardSequence = Data.Object;
 	}
 	AnimSequenceMap.Add(EWeaponType::Pistol,Pistol);
+
+	//AssaultRifle
+		GrizzlyAnimSequence AssaultRifle;
+	//HipIdle
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("AnimSequence'/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_2_aim_1.StalkerAnim_root_norm_torso_2_aim_1'"));
+		AssaultRifle.Hip_IdleSequence = Data.Object;
+	}
+	//HipForward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_2_aim_5.StalkerAnim_root_norm_torso_2_aim_5"));
+		AssaultRifle.Hip_ForwardSequence = Data.Object;
+	}
+	//Run
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_2_run_0.StalkerAnim_root_norm_torso_2_run_0"));
+		AssaultRifle.Hip_RunSequence = Data.Object;
+	}
+	//HipBackward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_2_aim_backward.StalkerAnim_root_norm_torso_2_aim_backward"));
+		AssaultRifle.Hip_BackwardSequence = Data.Object;
+	}
+	//ADSIdle
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_2_aim_0.StalkerAnim_root_norm_torso_2_aim_0"));
+		AssaultRifle.ADS_IdleSequence = Data.Object;
+	}
+	//ADSForward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_walk_fwd_0.StalkerAnim_root_norm_walk_fwd_0"));
+		AssaultRifle.ADS_ForwardSequence = Data.Object;
+	}
+	//ADSBackward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_walk_back_0.StalkerAnim_root_norm_walk_back_0"));
+		AssaultRifle.ADS_BackwardSequence = Data.Object;
+	}
+	//CrouchIdle
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_cr_idle_0.StalkerAnim_root_cr_idle_0"));
+		AssaultRifle.Crouch_IdleSequence = Data.Object;
+	}
+	//CrouchForward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_cr_torso_2_aim_2.StalkerAnim_root_cr_torso_2_aim_2"));
+		AssaultRifle.Crouch_ForwardSequence = Data.Object;
+	}
+	//CrouchBackward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_cr_walk_back_0_.StalkerAnim_root_cr_walk_back_0_"));
+		AssaultRifle.Crouch_BackwardSequence = Data.Object;
+	}
+	AnimSequenceMap.Add(EWeaponType::AssaultRilfe,AssaultRifle);
 }
 
 void UCPP_A_PGCharacter::NativeUpdateAnimation(float DeltaSeconds)
@@ -76,7 +130,7 @@ void UCPP_A_PGCharacter::NativeUpdateAnimation(float DeltaSeconds)
 	//현재 무기에 맞춘 3인칭 애니메이션 출력
 	if(!IsValid(Character->GetWeaponComponent()))
 		return;
-	if(Character->GetWeaponComponent()->GetWeaponData() == nullptr)
+	if(Character->GetWeaponComponent()->GetCurrentWeaponData() == nullptr)
 		return;
 	EWeaponType WeaponType = Character->GetWeaponComponent()->GetWeaponType();
 	if(CurrentWeaponType != WeaponType)

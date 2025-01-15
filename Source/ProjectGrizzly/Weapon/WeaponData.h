@@ -51,6 +51,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ThreatRadius;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool SocketMode; //총 애니메이션에 로케이션 정보가 있으면 false
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector IdleHandsLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector ADSHandsLocation;
