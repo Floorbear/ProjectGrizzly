@@ -7,16 +7,20 @@
 
 UCPP_WeaponInstance::UCPP_WeaponInstance()
 {
+	{
+		static auto DataTable = ConstructorHelpers::FObjectFinder<UDataTable>(TEXT("/Game/ProjectGrizzly/Gun/WeaponDataTable.WeaponDataTable"));
+		check(IsValid(DataTable.Object));
+		WeaponDataDT = DataTable.Object;
+	}
 }
 
-UCPP_WeaponInstance* UCPP_WeaponInstance::CreateWeaponInstance(FName _WeaponName, UWorld* _World)
+void UCPP_WeaponInstance::Init(FName _RowName)
 {
-	UCPP_WeaponInstance* NewWeapon = NewObject<UCPP_WeaponInstance>();
-	UGrizzlyGameInstance* GameInstance = Cast<UGrizzlyGameInstance>(_World->GetGameInstance());
-	NewWeapon->WeaponData = GameInstance->GetWeaponDataTable()->FindRow<FWeaponData>(_WeaponName, FString(""));
-	
-	ensure(NewWeapon->WeaponData != NULL); // WeaponName 에 해당하는 데이터가 존재하지 않음
-	return NewWeapon;
+	Super::Init(_RowName);
+	FName WeaponName = GetItemData().NameWithOutPrefix;
+	WeaponData = WeaponDataDT->FindRow<FWeaponData>(WeaponName, FString(""));
+	checkf(WeaponData != nullptr, TEXT("%s is not included in DT"),WeaponName);
+	Rounds = WeaponData->Rounds;
 }
 
 

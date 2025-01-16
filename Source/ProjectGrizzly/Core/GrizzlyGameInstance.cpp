@@ -15,12 +15,18 @@ UGrizzlyGameInstance::UGrizzlyGameInstance()
 	{
 		static auto DataTable = ConstructorHelpers::FObjectFinder<UDataTable>(TEXT("/Game/ProjectGrizzly/Gun/WeaponDataTable.WeaponDataTable"));
 		check(IsValid(DataTable.Object));
-		WeaponDataTable = DataTable.Object;
+		WeaponDT = DataTable.Object;
 	}
 	{
 		static auto DataTable = ConstructorHelpers::FObjectFinder<UDataTable>(TEXT("/Game/ProjectGrizzly/Gun/WeaponAnimTable.WeaponAnimTable"));
 		check(IsValid(DataTable.Object));
-		WeaponAnimTable = DataTable.Object;
+		WeaponAnimDT = DataTable.Object;
+	}
+
+	//Item DT ·Îµù
+	{
+		static auto DT = ConstructorHelpers::FObjectFinder<UDataTable>(TEXT("/Game/ProjectGrizzly/Item/DT_Item.DT_Item"));
+		ItemDT = DT.Object;
 	}
 
 }

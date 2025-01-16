@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "InventoryComponent.h"
+#include "PlayerInventoryComponent.h"
 #include "GrizzlyPC.generated.h"
 
 /**
@@ -35,11 +35,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsMyComputer();
 
-	UInventoryComponent* GetInventoryComponent() const
+	UPlayerInventoryComponent* GetInventoryComponent() const
 	{
 		return InventoryComponent;
 	}
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = true))
-	UInventoryComponent* InventoryComponent;
+	UPlayerInventoryComponent* InventoryComponent;
 };

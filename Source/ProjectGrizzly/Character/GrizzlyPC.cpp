@@ -6,7 +6,7 @@
 
 AGrizzlyPC::AGrizzlyPC()
 {
-	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
+	InventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("Inventory"));
 }
 
 void AGrizzlyPC::BeginPlay()

@@ -23,7 +23,8 @@ struct FItemData : public FTableRowBase
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName Name;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName NameWithOutPrefix;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int HSize = 1;
 
@@ -62,6 +63,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	static UCPP_Item* CreateItem(FName _ItemRowName, int _Amount = 0);
 
+	template <typename T>
+	static T* CreateItem_Inner(FName _ItemRowName, int _Amount = 0)
+	{
+		T* NewItem = NewObject<T>();
+		NewItem->Init(_ItemRowName);
+		NewItem->Amount = _Amount;
+		return NewItem;
+	}
 
 	UFUNCTION(BlueprintCallable)
 	const FItemData GetItemData()
@@ -90,12 +99,15 @@ public:
 	}
 
 
-private:
+	virtual void Init(FName _RowName);
+protected:
 	FItemData ItemData;
 
-	void Init(FName _RowName);
 
-	const UDataTable* Table;
+	UDataTable* GetItemDT() const;
 
 	int Amount = 0;
+
+private:
+	UDataTable* ItemDT = nullptr;
 };

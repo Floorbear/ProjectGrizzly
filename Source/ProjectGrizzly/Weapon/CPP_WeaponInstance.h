@@ -4,21 +4,28 @@
 
 #include "CoreMinimal.h"
 #include "WeaponData.h"
+#include "..\Item/CPP_Item.h"
 #include "CPP_WeaponInstance.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROJECTGRIZZLY_API UCPP_WeaponInstance : public UObject
+class PROJECTGRIZZLY_API UCPP_WeaponInstance : public UCPP_Item
 {
 	GENERATED_BODY()
 public:
 	UCPP_WeaponInstance();
+	
 
-public:
-	static UCPP_WeaponInstance* CreateWeaponInstance(FName _WeaponName, UWorld* _World);
+	//--------------------------------------------------------------------------------------------------
+	//										Item
+	//--------------------------------------------------------------------------------------------------
+	void Init(FName _RowName) override;
+protected:
 
+private:
+	UDataTable* WeaponDataDT = nullptr;
 public:
 	FWeaponData* GetWeaponData() const
 	{
@@ -39,5 +46,5 @@ public:
 	}
 private:
 	FWeaponData* WeaponData = nullptr;
-	int Rounds;
+	int Rounds = 0;
 };

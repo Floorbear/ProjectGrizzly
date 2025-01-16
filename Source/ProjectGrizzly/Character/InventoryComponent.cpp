@@ -93,7 +93,7 @@ TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) c
 	//타일 탐색을 위한 구조체
 	InventoryTileCoordinate Pos;
 	Pos.MaxX = _HoriSize;
-	Grizzly_LOG(TEXT("HoriSize : %d"), _HoriSize);
+	//Grizzly_LOG(TEXT("HoriSize : %d"), _HoriSize);
 	// 타일 첫번째 행 추가
 	FInventoryTileRow FisrtRow;
 	FisrtRow.Column.SetNum(_HoriSize);
@@ -117,7 +117,7 @@ TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) c
 				TempInventory.Remove(CurItemName);
 
 				//1*1 보다 큰 아이템의 타일 크기만큼 bIsEmpty를 변경 
-				if (ItemData.HSize != 1 && ItemData.VSize != 1)
+				if (ItemData.HSize != 1 || ItemData.VSize != 1)
 				{
 					for (int i = 0; i < ItemData.VSize; i++)
 					{
@@ -138,8 +138,8 @@ TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) c
 				}
 
 				Pos.MoveNext();
-				Grizzly_LOG(TEXT("Pos X : %d"), Pos.X);
-				Grizzly_LOG(TEXT("Pos Y : %d"), Pos.Y);
+				// Grizzly_LOG(TEXT("Pos X : %d"), Pos.X);
+				// Grizzly_LOG(TEXT("Pos Y : %d"), Pos.Y);
 				//현재 좌표가 컨테이너 사이즈보다 크면 좌표만큼 컨테이너 사이즈를 키운다
 				while (Pos.Y >= Tile.Num())
 				{

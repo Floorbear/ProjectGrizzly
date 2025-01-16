@@ -24,8 +24,11 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+//--------------------------------------------------------------------------------------------------
+//										Interface
+//--------------------------------------------------------------------------------------------------
 
-
+public:
 	UFUNCTION(BlueprintCallable)
 	void SetWeapon(FName _WeaponName, bool bIsPrimary = true);
 
@@ -37,7 +40,8 @@ public:
 	//							Data Table Manage 
 	// ----------------------------------------------------------------------
 private:
-	
+	UDataTable* WeaponDataDT = nullptr;
+	UDataTable* WeaponAnimDT = nullptr;
 	
 
 	class UCurveVector* WeaponRecoilCurve;
@@ -129,9 +133,9 @@ public:
 private:
 	// ToDo : Instance에 데이터 테이블 두기
 	UFUNCTION(BlueprintCallable)
-	class UDataTable*  GetWeaponDataTable() const;
+	class UDataTable*  GetWeaponDataDT() const;
 	UFUNCTION(BlueprintCallable)
-	class UDataTable*  GetWeaponAnimTable() const;
+	class UDataTable*  GetWeaponAnimDT() const;
 
 public:
 	UFUNCTION(BlueprintCallable,NetMulticast,Reliable)

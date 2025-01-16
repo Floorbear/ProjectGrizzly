@@ -27,22 +27,29 @@ public:
 //--------------------------------------------------------------------------------------------------
 public:
 	UFUNCTION()
-	UDataTable* GetWeaponDataTable() const
+	UDataTable* GetWeaponDT() const
 	{
-		return WeaponDataTable;
+		return WeaponDT;
 	}
 
 	UFUNCTION()
-	UDataTable* GetWeaponAnimTable() const
+	UDataTable* GetWeaponAnimDT() const
 	{
-		return WeaponAnimTable;
+		return WeaponAnimDT;
 	}
 
+	UFUNCTION()
+	UDataTable* GetItemDT() const
+	{
+		return ItemDT;
+	}
 private:
 	UPROPERTY()
-	UDataTable* WeaponDataTable = nullptr;
+	UDataTable* WeaponDT = nullptr;
 	UPROPERTY()
-	UDataTable* WeaponAnimTable = nullptr;
+	UDataTable* WeaponAnimDT = nullptr;
+	UPROPERTY()
+	UDataTable* ItemDT = nullptr;
 	
 	
 };

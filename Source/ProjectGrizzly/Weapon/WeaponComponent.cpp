@@ -19,6 +19,17 @@ UWeaponComponent::UWeaponComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
+	{
+		static auto DataTable = ConstructorHelpers::FObjectFinder<UDataTable>(TEXT("/Game/ProjectGrizzly/Gun/WeaponDataTable.WeaponDataTable"));
+		check(IsValid(DataTable.Object));
+		WeaponDataDT = DataTable.Object;
+	}
+	{
+		static auto DataTable = ConstructorHelpers::FObjectFinder<UDataTable>(TEXT("/Game/ProjectGrizzly/Gun/WeaponAnimTable.WeaponAnimTable"));
+		check(IsValid(DataTable.Object));
+		WeaponAnimDT = DataTable.Object;
+	}
+
 	InitTPAnim();
 	
 }
@@ -44,7 +55,7 @@ void UWeaponComponent::BeginPlay()
 void UWeaponComponent::SetWeapon(FName _WeaponName, bool bIsPrimary)
 {
 	WeaponName = _WeaponName;
-	FWeaponData* _WeaponData = Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance())->GetWeaponDataTable()->FindRow<FWeaponData>(_WeaponName, FString(""));
+	FWeaponData* _WeaponData = Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance())->GetWeaponDT()->FindRow<FWeaponData>(_WeaponName, FString(""));
 	checkf(_WeaponData != nullptr,TEXT("Cant Find %s in WeaponDT"),_WeaponName);
 	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(GetOwner());
 	ensure(Character != NULL);
@@ -73,7 +84,7 @@ void UWeaponComponent::SetWeapon(FName _WeaponName, bool bIsPrimary)
 	//--------------------------------------------------------------------------------------------------------------
 	//											Animation
 	//--------------------------------------------------------------------------------------------------------------
-	FWeaponAnim* WeaponAnim = GetWeaponAnimTable()->FindRow<FWeaponAnim>(_WeaponName,FString(""));
+	FWeaponAnim* WeaponAnim = GetWeaponAnimDT()->FindRow<FWeaponAnim>(_WeaponName,FString(""));
 	check(WeaponAnim != nullptr);
 	//1ÀÎÄª ¿À¸¥¼Õ ¼ÒÄ¹ ¸ðµå
 	FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepRelative,EDetachmentRule::KeepRelative,EDetachmentRule::KeepWorld,true);
@@ -155,14 +166,18 @@ void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 FWeaponData* UWeaponComponent::GetCurrentWeaponData() const
 {
-	FWeaponData* Data = GetWeaponDataTable()->FindRow<FWeaponData>(WeaponName,FString(""));
+	if(GetWeaponDataDT() == nullptr)
+		return nullptr;
+	FWeaponData* Data = GetWeaponDataDT()->FindRow<FWeaponData>(WeaponName,FString(""));
 	check(Data != nullptr);
 	return Data;
 }
 
 FWeaponAnim* UWeaponComponent::GetCurrentAnimData() const
 {
-	FWeaponAnim* Data = GetWeaponAnimTable()->FindRow<FWeaponAnim>(WeaponName,FString(""));
+	if(GetWeaponAnimDT() == nullptr)
+		return nullptr;
+	FWeaponAnim* Data = GetWeaponAnimDT()->FindRow<FWeaponAnim>(WeaponName,FString(""));
 	checkf(Data != nullptr,TEXT("%s is illegal"),WeaponName);
 	return Data;
 }
@@ -246,18 +261,14 @@ void UWeaponComponent::SetAnimEmptyIdle_Implementation()
 	AnimInstance->SetIdle(EmptyAnimation);
 }
 
-class UDataTable* UWeaponComponent::GetWeaponDataTable() const
+class UDataTable* UWeaponComponent::GetWeaponDataDT() const
 {
-	static UDataTable* DT =  Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance())->GetWeaponDataTable();
-	check(DT != NULL)
-	return DT;
+	return WeaponDataDT;
 }
 
-class UDataTable* UWeaponComponent::GetWeaponAnimTable() const
+class UDataTable* UWeaponComponent::GetWeaponAnimDT() const
 {
-	static UDataTable* DT =  Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance())->GetWeaponAnimTable();
-	check(DT != NULL)
-	return DT;
+	return WeaponAnimDT;
 }
 
 void UWeaponComponent::SetCurrentMagazineRounds(int _NewValue)
