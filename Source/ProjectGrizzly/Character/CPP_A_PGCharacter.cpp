@@ -2,6 +2,9 @@
 
 
 #include "CPP_A_PGCharacter.h"
+
+#include <Catch2/catch.hpp>
+
 #include "CPP_PlayableCharacter.h"
 #include "AbilitySystemComponent.h"
 #include "GameFrameWork\CharacterMovementComponent.h"
@@ -9,6 +12,62 @@
 
 UCPP_A_PGCharacter::UCPP_A_PGCharacter()
 {
+	//--------------------------------------------------------------------------------------------------
+	//										Unarmed
+	//--------------------------------------------------------------------------------------------------
+	GrizzlyAnimSequence No;
+	//HipIdle
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_0_aim_0.StalkerAnim_root_norm_torso_0_aim_0"));
+		No.Hip_IdleSequence = Data.Object;
+	}
+	//HipForward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_0_aim_2.StalkerAnim_root_norm_torso_0_aim_2"));
+		No.Hip_ForwardSequence = Data.Object;
+	}
+	//Run
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_0_aim_3.StalkerAnim_root_norm_torso_0_aim_3"));
+		No.Hip_RunSequence = Data.Object;
+	}
+	//HipBackward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_0_aim_2_back.StalkerAnim_root_norm_torso_0_aim_2_back"));
+		No.Hip_BackwardSequence = Data.Object;
+	}
+	//ADSIdle
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_0_aim_0.StalkerAnim_root_norm_torso_0_aim_0"));
+		No.ADS_IdleSequence = Data.Object;
+	}
+	//ADSForward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_0_aim_2.StalkerAnim_root_norm_torso_0_aim_2"));
+		No.ADS_ForwardSequence = Data.Object;
+	}
+	//ADSBackward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_0_aim_2_back.StalkerAnim_root_norm_torso_0_aim_2_back"));
+		No.ADS_BackwardSequence = Data.Object;
+	}
+	//CrouchIdle
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_cr_torso_0_aim_0.StalkerAnim_root_cr_torso_0_aim_0"));
+		No.Crouch_IdleSequence = Data.Object;
+	}
+	//CrouchForward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_cr_torso_0_aim_2.StalkerAnim_root_cr_torso_0_aim_2"));
+		No.Crouch_ForwardSequence = Data.Object;
+	}
+	//CrouchBackward
+	{
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_cr_torso_0_aim_2_back.StalkerAnim_root_cr_torso_0_aim_2_back"));
+		No.Crouch_BackwardSequence = Data.Object;
+	}
+	AnimSequenceMap.Add(EWeaponType::No,No);
+	
 	//Pistol 
 	GrizzlyAnimSequence Pistol;
 	//HipIdle

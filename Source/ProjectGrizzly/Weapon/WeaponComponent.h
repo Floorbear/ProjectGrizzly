@@ -9,6 +9,7 @@
 
 #include <Curves\CurveVector.h>
 
+#include "CPP_WeaponInstance.h"
 #include "WeaponComponent.generated.h"
 
 
@@ -24,17 +25,24 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+public:	
+	// Called every frame
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 //--------------------------------------------------------------------------------------------------
 //										Interface
 //--------------------------------------------------------------------------------------------------
 
 public:
 	UFUNCTION(BlueprintCallable)
-	void SetWeapon(FName _WeaponName, bool bIsPrimary = true);
+	void SetWeapon(UCPP_WeaponInstance* _WeaponInstance);
+	UFUNCTION(BlueprintCallable)
+	void SetUnarmed();
 
-public:	
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+private:
+	UCPP_WeaponInstance* CurrentWeaponInstance = nullptr;
+	UCPP_WeaponInstance* UnarmedWeaponInstance = nullptr;
+
+
 
 	// ----------------------------------------------------------------------
 	//							Data Table Manage 
@@ -50,7 +58,8 @@ private:
 
 public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category  = "DataTable")
-	FName WeaponName;
+	FName CurrentWeaponName;
+
 
 	
 	class UCurveVector* GetWeaponRecoilCurve() const

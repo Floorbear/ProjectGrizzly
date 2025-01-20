@@ -40,6 +40,7 @@ void UWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	UnarmedWeaponInstance = Cast<UCPP_WeaponInstance>(UCPP_Item::CreateItem(TEXT("Weapon_Unarmed"),1));
 	// ...
 	// WeaponData = GetWeaponDataTable()->FindRow<FWeaponData>(WeaponName, FString(""));
 	// ensure(WeaponData != NULL); // WeaponName 에 해당하는 데이터가 존재하지 않음
@@ -47,30 +48,49 @@ void UWeaponComponent::BeginPlay()
 	// WeaponAnim = GetWeaponAnimTable()->FindRow<FWeaponAnim>(WeaponName, FString(""));
 	// ensure(WeaponData != NULL); // WeaponName 에 해당하는 데이터가 존재하지 않음
 
-	SetWeapon(TEXT("AKM"));
+	//SetWeapon(TEXT("AKM"));
 
 }
 
 
-void UWeaponComponent::SetWeapon(FName _WeaponName, bool bIsPrimary)
+void UWeaponComponent::SetWeapon(UCPP_WeaponInstance* _WeaponInstance)
 {
-	WeaponName = _WeaponName;
-	FWeaponData* _WeaponData = Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance())->GetWeaponDT()->FindRow<FWeaponData>(_WeaponName, FString(""));
-	checkf(_WeaponData != nullptr,TEXT("Cant Find %s in WeaponDT"),_WeaponName);
+	CurrentWeaponName = FName(*_WeaponInstance->GetWeaponData()->WeaponName);
+	// FWeaponData* _WeaponData = Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance())->GetWeaponDT()->FindRow<FWeaponData>(_WeaponName, FString(""));
+	FWeaponData* _WeaponData = _WeaponInstance->GetWeaponData();
+	checkf(_WeaponData != nullptr,TEXT("Cant Find %s in WeaponDT"),*_WeaponInstance->GetWeaponData()->WeaponName);
+	CurrentWeaponInstance = _WeaponInstance;
 	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(GetOwner());
 	ensure(Character != NULL);
 	USkeletalMesh* WeaponMesh = LoadObject<USkeletalMesh>(NULL, *_WeaponData->WeaponSkeletalMesh.ToSoftObjectPath().ToString());
 	Character->GetTPWeaponComponent()->SetSkeletalMesh(WeaponMesh);
-	//총 그림자d
+	//총 그림자
 	Character->GetShadowWeaponComponent()->SetSkeletalMesh(WeaponMesh);
+	//1인칭 매쉬
+	Character->GetFPWeaponMeshComponent()->SetSkeletalMesh(WeaponMesh);
+	Character->GetFPWeaponMeshComponent()->SetAnimInstanceClass(_WeaponData->WeaponAnimClass);
+	//비무장 상태 예외처리
+	if(_WeaponInstance->GetWeaponData()->WeaponName.Compare(TEXT("Unarmed"))==0)
+	{
+		Character->GetTPWeaponComponent()->SetVisibility(false);
+		Character->GetShadowWeaponComponent()->SetVisibility(false);
+		Character->GetFPWeaponMeshComponent()->SetVisibility(false);
+		Character->GetHandsMeshComponent()->SetVisibility(false);
+	}
+	else
+	{
+		Character->GetTPWeaponComponent()->SetVisibility(true);
+		Character->GetShadowWeaponComponent()->SetVisibility(true);
+		Character->GetFPWeaponMeshComponent()->SetVisibility(true);
+		Character->GetHandsMeshComponent()->SetVisibility(true);
+	}
 
 	//탄창
 	PerMagazineRounds = _WeaponData->Rounds;
+	//ToDo : 인벤토리에서 탄약 참조
 	RemainRounds = PerMagazineRounds * 5;
-	CurrentMagazineRounds = PerMagazineRounds;
+	CurrentMagazineRounds = _WeaponInstance->GetRounds();
 
-	Character->GetFPWeaponMeshComponent()->SetSkeletalMesh(WeaponMesh);
-	Character->GetFPWeaponMeshComponent()->SetAnimInstanceClass(_WeaponData->WeaponAnimClass);
 
 	//무기 발사 모드
 	CurrentWeaponMode = _WeaponData->WeaponModes[0];
@@ -84,7 +104,7 @@ void UWeaponComponent::SetWeapon(FName _WeaponName, bool bIsPrimary)
 	//--------------------------------------------------------------------------------------------------------------
 	//											Animation
 	//--------------------------------------------------------------------------------------------------------------
-	FWeaponAnim* WeaponAnim = GetWeaponAnimDT()->FindRow<FWeaponAnim>(_WeaponName,FString(""));
+	FWeaponAnim* WeaponAnim = GetWeaponAnimDT()->FindRow<FWeaponAnim>(CurrentWeaponName,FString(""));
 	check(WeaponAnim != nullptr);
 	//1인칭 오른손 소캣 모드
 	FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepRelative,EDetachmentRule::KeepRelative,EDetachmentRule::KeepWorld,true);
@@ -103,10 +123,10 @@ void UWeaponComponent::SetWeapon(FName _WeaponName, bool bIsPrimary)
 	
 	//3인칭 왼손 IK
 	UCPP_A_PGCharacter* AnimInstance = Cast<UCPP_A_PGCharacter>(Character->GetMesh()->GetAnimInstance());
-	if(_WeaponData->WeaponType == EWeaponType::Pistol)
-		AnimInstance->LeftHandIKAlpha = 0.f;
-	else
+	if(_WeaponData->WeaponType == EWeaponType::AssaultRilfe)
 		AnimInstance->LeftHandIKAlpha = 1.f;
+	else
+		AnimInstance->LeftHandIKAlpha = 0.f;
 		
 	UAnimMontage* WeaponShoot = LoadObject<UAnimMontage>(NULL, *WeaponAnim->Weapon_Shoot.ToSoftObjectPath().ToString());
 	FP_Weapon_MontageMap.Add(TEXT("Shoot"), WeaponShoot);
@@ -116,7 +136,7 @@ void UWeaponComponent::SetWeapon(FName _WeaponName, bool bIsPrimary)
 	//Empty 애니메이션이 존재하면 로딩
 	if(!WeaponAnim->Weapon_EmptyIdle.IsNull())
 	{
-		LoadObject<UAnimMontage>(NULL, *WeaponAnim->Weapon_EmptyIdle.ToSoftObjectPath().ToString());
+		LoadObject<UAnimSequenceBase>(NULL, *WeaponAnim->Weapon_EmptyIdle.ToSoftObjectPath().ToString());
 	}
 	
 	//마지막 한발 애니메이션이 있으면 추가
@@ -156,6 +176,11 @@ void UWeaponComponent::SetWeapon(FName _WeaponName, bool bIsPrimary)
 	}
 }
 
+void UWeaponComponent::SetUnarmed()
+{
+	SetWeapon(UnarmedWeaponInstance);
+}
+
 // Called every frame
 void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -168,7 +193,7 @@ FWeaponData* UWeaponComponent::GetCurrentWeaponData() const
 {
 	if(GetWeaponDataDT() == nullptr)
 		return nullptr;
-	FWeaponData* Data = GetWeaponDataDT()->FindRow<FWeaponData>(WeaponName,FString(""));
+	FWeaponData* Data = GetWeaponDataDT()->FindRow<FWeaponData>(CurrentWeaponName,FString(""));
 	check(Data != nullptr);
 	return Data;
 }
@@ -177,8 +202,8 @@ FWeaponAnim* UWeaponComponent::GetCurrentAnimData() const
 {
 	if(GetWeaponAnimDT() == nullptr)
 		return nullptr;
-	FWeaponAnim* Data = GetWeaponAnimDT()->FindRow<FWeaponAnim>(WeaponName,FString(""));
-	checkf(Data != nullptr,TEXT("%s is illegal"),WeaponName);
+	FWeaponAnim* Data = GetWeaponAnimDT()->FindRow<FWeaponAnim>(CurrentWeaponName,FString(""));
+	checkf(Data != nullptr,TEXT("%s is illegal"),CurrentWeaponName);
 	return Data;
 }
 
@@ -275,6 +300,7 @@ void UWeaponComponent::SetCurrentMagazineRounds(int _NewValue)
 {
 	CurrentMagazineRounds = FMath::Clamp(_NewValue, 0, PerMagazineRounds + 1);
 
+	CurrentWeaponInstance->SetRounds(CurrentMagazineRounds);
 	//총알이 없을때 Empty 애니메이션이 있다면 변경
 	if(CurrentMagazineRounds == 0 && !GetCurrentAnimData()->Weapon_EmptyIdle.IsNull() && GetOwner()->HasAuthority())
 	{
@@ -320,7 +346,9 @@ void UWeaponComponent::Reload_Inner()
 		CurrentMagazineRounds = RemainRounds;
 		RemainRounds = 0;
 	}
-	
+
+	//무기 인스턴스에 총알 설정
+	CurrentWeaponInstance->SetRounds(CurrentMagazineRounds);
 	//Idle애니메이션으로 변경 : Empty Idle을 사용했을경우 재장전 하고 정상 Idle로 돌아가야함
 	SetAnimIdle();
 

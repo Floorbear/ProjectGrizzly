@@ -47,4 +47,6 @@ public:
 private:
 	FWeaponData* WeaponData = nullptr;
 	int Rounds = 0;
+
+	EWeaponMode WeaponMode;
 };

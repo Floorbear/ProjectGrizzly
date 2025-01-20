@@ -73,6 +73,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddItemToInventory(FName _ItemName, int _Amount = 1);
 
+	void AddItemToInventory(UCPP_Item* _ItemInstance);
+
 	UFUNCTION(BlueprintCallable)
 	UCPP_Item* RemoveItemFromInventory(FName _ItemName, int _Amount = 1);
 

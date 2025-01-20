@@ -60,6 +60,13 @@ void UInventoryComponent::AddItemToInventory(FName _ItemName, int _Amount)
 	OnInventoryChanged.Broadcast();
 }
 
+
+void UInventoryComponent::AddItemToInventory(UCPP_Item* _ItemInstance)
+{
+	Inventory.Add(_ItemInstance->GetItemData().Name,_ItemInstance);
+	OnInventoryChanged.Broadcast();
+}
+
 UCPP_Item* UInventoryComponent::RemoveItemFromInventory(FName _ItemName, int _Amount)
 {
 	// 아이템이 존재하지 않으면 함수 종료
