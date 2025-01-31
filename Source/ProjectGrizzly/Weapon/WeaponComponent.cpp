@@ -15,6 +15,7 @@
 // Sets default values for this component's properties
 UWeaponComponent::UWeaponComponent()
 {
+	bWantsInitializeComponent = true;
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
@@ -40,7 +41,8 @@ void UWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UnarmedWeaponInstance = Cast<UCPP_WeaponInstance>(UCPP_Item::CreateItem(TEXT("Weapon_Unarmed"),1));
+	
+
 	// ...
 	// WeaponData = GetWeaponDataTable()->FindRow<FWeaponData>(WeaponName, FString(""));
 	// ensure(WeaponData != NULL); // WeaponName 에 해당하는 데이터가 존재하지 않음
@@ -134,9 +136,13 @@ void UWeaponComponent::SetWeapon(UCPP_WeaponInstance* _WeaponInstance)
 	FP_Hands_MontageMap.Add(TEXT("Shoot"), HandsShoot);
 
 	//Empty 애니메이션이 존재하면 로딩
-	if(!WeaponAnim->Weapon_EmptyIdle.IsNull())
+	if(HasEmptyIdleAnim())
 	{
 		LoadObject<UAnimSequenceBase>(NULL, *WeaponAnim->Weapon_EmptyIdle.ToSoftObjectPath().ToString());
+		if(IsMagazineEmpty())
+		{
+			SetEmptyIdleAnim();
+		}
 	}
 	
 	//마지막 한발 애니메이션이 있으면 추가
@@ -268,6 +274,14 @@ UAnimMontage* UWeaponComponent::Get_TP_Montage(FName _Name) const
 	return ReturnValue;
 }
 
+bool UWeaponComponent::HasEmptyIdleAnim() const
+{
+	if(!GetCurrentAnimData()->Weapon_EmptyIdle.IsNull())
+	{
+		return true;
+	}
+	return  false;
+}
 
 
 void UWeaponComponent::SetAnimIdle_Implementation()
@@ -278,7 +292,7 @@ void UWeaponComponent::SetAnimIdle_Implementation()
 	AnimInstance->SetIdle(IdleAnimation);
 }
 
-void UWeaponComponent::SetAnimEmptyIdle_Implementation()
+void UWeaponComponent::SetEmptyIdleAnim_Implementation()
 {
 	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(GetOwner());
 	UCPP_WeaponAnimInstance* AnimInstance = Cast<UCPP_WeaponAnimInstance>(Character->GetFPWeaponMeshComponent()->GetAnimInstance());
@@ -302,9 +316,9 @@ void UWeaponComponent::SetCurrentMagazineRounds(int _NewValue)
 
 	CurrentWeaponInstance->SetRounds(CurrentMagazineRounds);
 	//총알이 없을때 Empty 애니메이션이 있다면 변경
-	if(CurrentMagazineRounds == 0 && !GetCurrentAnimData()->Weapon_EmptyIdle.IsNull() && GetOwner()->HasAuthority())
+	if(CurrentMagazineRounds == 0 && HasEmptyIdleAnim() && GetOwner()->HasAuthority())
 	{
-		SetAnimEmptyIdle();
+		SetEmptyIdleAnim();
 	}
 }
 
@@ -352,6 +366,12 @@ void UWeaponComponent::Reload_Inner()
 	//Idle애니메이션으로 변경 : Empty Idle을 사용했을경우 재장전 하고 정상 Idle로 돌아가야함
 	SetAnimIdle();
 
+}
+
+void UWeaponComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+	UnarmedWeaponInstance = Cast<UCPP_WeaponInstance>(UCPP_Item::CreateItem(TEXT("Weapon_Unarmed"),1));
 }
 
 void UWeaponComponent::Reload_RPC_Implementation()

@@ -29,6 +29,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void UnEquipWeapon(bool bIsPrimary);
+
+	void InitUnarmedInstance();
 	
 private:
 	UPROPERTY()
@@ -37,5 +39,14 @@ private:
 	UCPP_WeaponInstance* SecondaryWeaponInstance = nullptr;
 	UPROPERTY()
 	UCPP_WeaponInstance* UnarmedWeaponInstance = nullptr;
+
+	//--------------------------------------------------------------------------------------------------
+	//										Interface
+	//--------------------------------------------------------------------------------------------------
+private:
+	static bool IsUnarmedInstance(const UCPP_WeaponInstance* _WeaponInstance);
+	UCPP_WeaponInstance* GetUnarmedInstance() const;
+
+	
 	
 };

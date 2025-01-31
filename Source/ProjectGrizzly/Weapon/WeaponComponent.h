@@ -37,9 +37,16 @@ public:
 	void SetWeapon(UCPP_WeaponInstance* _WeaponInstance);
 	UFUNCTION(BlueprintCallable)
 	void SetUnarmed();
+	UCPP_WeaponInstance* GetUnarmedInstance() const
+	{
+		return UnarmedWeaponInstance;
+	}
 
 private:
+	//CurrentWeaponInstance의 소유권은 PlayerInventory에 있음
 	UCPP_WeaponInstance* CurrentWeaponInstance = nullptr;
+	//UnarmedWeaponInstance는 WeaponComponent에서 생성하니 여기에 있음
+	UPROPERTY()
 	UCPP_WeaponInstance* UnarmedWeaponInstance = nullptr;
 
 
@@ -147,8 +154,9 @@ private:
 	class UDataTable*  GetWeaponAnimDT() const;
 
 public:
+	bool HasEmptyIdleAnim() const;
 	UFUNCTION(BlueprintCallable,NetMulticast,Reliable)
-	void SetAnimEmptyIdle();
+	void SetEmptyIdleAnim();
 
 	UFUNCTION(BlueprintCallable,NetMulticast,Reliable)
 	void SetAnimIdle();
@@ -220,4 +228,6 @@ public:
 			Reload_RPC();
 		}
 	}
+
+	virtual void InitializeComponent() override;
 };
