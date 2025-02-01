@@ -73,11 +73,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddItemToInventory(FName _ItemName, int _Amount = 1);
 
+	//인스턴스
 	void AddItemToInventory(UCPP_Item* _ItemInstance);
 
 	UFUNCTION(BlueprintCallable)
 	UCPP_Item* RemoveItemFromInventory(FName _ItemName, int _Amount = 1);
 
+	//인스턴스
+	UFUNCTION(BlueprintCallable)
+	UCPP_Item* RemoveItemInstanceFromInventory(UCPP_Item* _ItemInstance);
 	
 
 	//_HoriSize : 인벤토리의 가로 사이즈
@@ -90,6 +94,6 @@ public:
 
 
 private:
-	TMap<FName,UCPP_Item*> Inventory;
+	TMultiMap<FName,UCPP_Item*> Inventory;
 
 };

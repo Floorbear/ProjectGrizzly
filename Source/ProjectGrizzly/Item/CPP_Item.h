@@ -61,10 +61,10 @@ public:
 
 	//Item 생성 팩토리 함수
 	UFUNCTION(BlueprintCallable)
-	static UCPP_Item* CreateItem(FName _ItemRowName, int _Amount = 0);
+	static UCPP_Item* CreateItem(FName _ItemRowName, int _Amount = 1);
 
 	template <typename T>
-	static T* CreateItem_Inner(FName _ItemRowName, int _Amount = 0)
+	static T* CreateItem_Inner(FName _ItemRowName, int _Amount = 1)
 	{
 		T* NewItem = NewObject<T>();
 		NewItem->Init(_ItemRowName);
@@ -106,7 +106,20 @@ protected:
 
 	UDataTable* GetItemDT() const;
 
+	//--------------------------------------------------------------------------------------------------
+	//										Amount
+	//--------------------------------------------------------------------------------------------------
+public:
+	UFUNCTION(BlueprintCallable)
+	bool IsInstanceMode() const
+	{
+		return InstanceMode;
+	}
+protected:
 	int Amount = 0;
+
+	// Amount를 사용하지 않는 모드
+	bool InstanceMode = false;
 
 private:
 	UDataTable* ItemDT = nullptr;

@@ -22,6 +22,7 @@ void UCPP_WeaponInstance::Init(FName _RowName)
 	checkf(WeaponData != nullptr, TEXT("%s is not included in DT"),WeaponName);
 	Rounds = WeaponData->Rounds;
 	WeaponMode = WeaponData->WeaponModes[0];
+	InstanceMode = true;
 }
 
 

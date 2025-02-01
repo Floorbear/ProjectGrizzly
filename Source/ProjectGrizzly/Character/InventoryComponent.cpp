@@ -45,13 +45,19 @@ void UInventoryComponent::AddItemToInventory(FName _ItemName, int _Amount)
 		UCPP_Item* Item = *Inventory.Find(_ItemName);
 		if (Item)
 		{
-			Item->AddAmount(_Amount);
-			OnInventoryChanged.Broadcast();
-			return;
+			//아이템이 인스턴스 모드가 아닐경우에만 Amount 추가
+			if(!Item->IsInstanceMode())
+			{
+				Item->AddAmount(_Amount);
+				OnInventoryChanged.Broadcast();
+				return;
+			}
 		}
 	}
-	//존재하지 않으면 새로 생성하고 인벤토리에 추가
+	//존재하지 않거나 인스턴스 모드일 경우 새로 생성하고 인벤토리에 추가
+	//인스턴스 모드일경우 한번에 여러개 추가하면 안됨
 	UCPP_Item* NewItem = UCPP_Item::CreateItem(_ItemName,_Amount);
+	checkf(!(NewItem->IsInstanceMode() && _Amount > 1),TEXT("InstanceMode not support 1 more item creation"));
 	if (!NewItem)
 	{
 		Grizzly_LOG(TEXT("%s is not included in Table"), *_ItemName.ToString());
@@ -87,6 +93,18 @@ UCPP_Item* UInventoryComponent::RemoveItemFromInventory(FName _ItemName, int _Am
 	return Item;
 }
 
+UCPP_Item* UInventoryComponent::RemoveItemInstanceFromInventory(UCPP_Item* _ItemInstance)
+{
+	// 아이템이 존재하지 않으면 함수 종료
+	if(!Inventory.Contains(_ItemInstance->GetItemData().Name))
+	{
+		return nullptr;
+	}
+	Inventory.RemoveSingle(_ItemInstance->GetItemData().Name,_ItemInstance);
+	OnInventoryChanged.Broadcast();
+	return _ItemInstance;
+}
+
 // _HoriSize : UI의 가로 칸의 수
 TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) const
 {
@@ -94,7 +112,7 @@ TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) c
 	{
 		Grizzly_LOG(TEXT("%d is not over 1"), _HoriSize);
 	}
-	TMap<FName, UCPP_Item*> TempInventory = Inventory;
+	TMultiMap<FName, UCPP_Item*> TempInventory = Inventory;
 	TArray<FInventoryTileRow> Tile;
 
 	//타일 탐색을 위한 구조체
@@ -121,7 +139,7 @@ TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) c
 			{
 				Tile[Pos.Y].Column[Pos.X].bIsEmpty = false;
 				Tile[Pos.Y].Column[Pos.X].Item = CurItem;
-				TempInventory.Remove(CurItemName);
+				TempInventory.RemoveSingle(CurItemName,CurItem);
 
 				//1*1 보다 큰 아이템의 타일 크기만큼 bIsEmpty를 변경 
 				if (ItemData.HSize != 1 || ItemData.VSize != 1)
@@ -155,7 +173,17 @@ TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) c
 					Tile.Add(Row);
 				}
 			}
-
+			//가로사이즈가 초과해서 인벤토리에 추가할 수 없으면 컨테이너 최대 사이즈만큼 이동한다
+			else
+			{
+				FInventoryTileRow Row;
+				Row.Column.SetNum(_HoriSize);
+				Tile.Add(Row);
+				
+				Pos.Y = Tile.Num()-1;
+				Pos.X = 0;
+			}
+			
 		}
 		//빈 위치가 나올때까지 좌표를 이동한다
 		else

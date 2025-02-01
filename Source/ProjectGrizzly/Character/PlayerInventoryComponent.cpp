@@ -49,9 +49,8 @@ void UPlayerInventoryComponent::EquipWeapon(UCPP_WeaponInstance* _WeaponInstance
 	}
 	else
 	{
-		
-	}
 		SecondaryWeaponInstance = _WeaponInstance;
+	}
 	
 	//비무장 상태로 전환이 아니면 인벤토리에 있는 무기를 제거하고 장비차응로 옮긴다
 	if(IsUnarmedInstance(_WeaponInstance) == false)
@@ -59,7 +58,7 @@ void UPlayerInventoryComponent::EquipWeapon(UCPP_WeaponInstance* _WeaponInstance
 		//인벤토리에 있는 무기 제거
 		FString WeaponName(TEXT("Weapon_"));
 		WeaponName.Append(_WeaponInstance->GetWeaponData()->WeaponName);
-		RemoveItemFromInventory(*WeaponName,1);
+		RemoveItemInstanceFromInventory(_WeaponInstance);
 	}
 	
 	//플레이어에 무기 장착
@@ -97,7 +96,7 @@ void UPlayerInventoryComponent::UnEquipWeapon(bool bIsPrimary)
 
 	if(CurrentWeaponInstance != nullptr)
 	{
-		CurrentWeaponInstance->AddAmount(1);
+		//CurrentWeaponInstance->AddAmount(1);
 		AddItemToInventory(CurrentWeaponInstance);
 	}
 }
