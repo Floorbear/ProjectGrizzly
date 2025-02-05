@@ -27,11 +27,10 @@ protected:
 private:
 	UDataTable* WeaponDataDT = nullptr;
 public:
-	FWeaponData* GetWeaponData() const
-	{
-		ensure(WeaponData != nullptr);
-		return WeaponData;
-	}
+	FWeaponData* GetWeaponData() const;
+
+	UFUNCTION(BlueprintCallable)
+	FWeaponData K2_GetWeaponData() const;
 
 	UFUNCTION(BlueprintCallable)
 	void SetRounds(int _NewRounds)
@@ -49,4 +48,23 @@ private:
 	int Rounds = 0;
 
 	EWeaponMode WeaponMode;
+
+	//--------------------------------------------------------------------------------------------------
+	//										Equip
+	//--------------------------------------------------------------------------------------------------
+	// Equip doesnt mean Current drawing Weapon. It means Equipped Primary Weapon & Secondary Weapon
+public:
+	UFUNCTION(BlueprintCallable)
+	bool IsEquipped() const
+	{
+		return bIsEquipped;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	void SetEquipped(const bool IsEquipped)
+	{
+		bIsEquipped = IsEquipped;
+	}
+private:
+	bool bIsEquipped;
 };

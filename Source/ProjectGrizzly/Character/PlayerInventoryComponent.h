@@ -28,25 +28,33 @@ public:
 	void EquipWeapon(UCPP_WeaponInstance* _WeaponInstance, bool bIsPrimary = true);
 
 	UFUNCTION(BlueprintCallable)
+	void UnEquipWeapon(UCPP_WeaponInstance* WeaponInstance);
+	
 	void UnEquipWeapon(bool bIsPrimary);
 
-	void InitUnarmedInstance();
+	void InitWeaponInstanceToUnarmedInstance();
 	
 private:
+	//비무장 상태면 Unarmed Instance로 할당됨
 	UPROPERTY()
 	UCPP_WeaponInstance* PrimaryWeaponInstance = nullptr;
 	UPROPERTY()
 	UCPP_WeaponInstance* SecondaryWeaponInstance = nullptr;
-	UPROPERTY()
-	UCPP_WeaponInstance* UnarmedWeaponInstance = nullptr;
-
 	//--------------------------------------------------------------------------------------------------
 	//										Interface
 	//--------------------------------------------------------------------------------------------------
-private:
+public:
+	UFUNCTION(BlueprintCallable)
 	static bool IsUnarmedInstance(const UCPP_WeaponInstance* _WeaponInstance);
+
+	UFUNCTION(BlueprintCallable)
 	UCPP_WeaponInstance* GetUnarmedInstance() const;
 
-	
+	// 0 : Primary , 1 : Secondary
+	UFUNCTION(BlueprintCallable)
+	TArray<UCPP_WeaponInstance*> GetWeaponInstances() const
+	{
+		return {PrimaryWeaponInstance,SecondaryWeaponInstance};
+	}
 	
 };

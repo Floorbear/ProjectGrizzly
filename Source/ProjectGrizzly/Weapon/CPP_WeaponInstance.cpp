@@ -25,4 +25,16 @@ void UCPP_WeaponInstance::Init(FName _RowName)
 	InstanceMode = true;
 }
 
+FWeaponData* UCPP_WeaponInstance::GetWeaponData() const
+{
+	ensure(WeaponData != nullptr);
+	return WeaponData;
+}
+
+FWeaponData UCPP_WeaponInstance::K2_GetWeaponData() const
+{
+	ensure(WeaponData != nullptr);
+	return *WeaponData;
+}
+
 

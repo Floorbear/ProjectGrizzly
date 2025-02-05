@@ -73,11 +73,17 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable)
-	const FItemData GetItemData()
+	FItemData GetItemData() const
 	{
 		return ItemData;
 	}
 
+	UFUNCTION(BlueprintCallable)
+	FName GetItemName() const
+	{
+		return ItemData.Name;
+	}
+	
 	UFUNCTION(BlueprintCallable)
 	void AddAmount(int _Amount)
 	{

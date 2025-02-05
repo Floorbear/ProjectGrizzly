@@ -10,7 +10,7 @@
 void UPlayerInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	InitUnarmedInstance();
+	InitWeaponInstanceToUnarmedInstance();
 
 }
 
@@ -56,8 +56,6 @@ void UPlayerInventoryComponent::EquipWeapon(UCPP_WeaponInstance* _WeaponInstance
 	if(IsUnarmedInstance(_WeaponInstance) == false)
 	{
 		//인벤토리에 있는 무기 제거
-		FString WeaponName(TEXT("Weapon_"));
-		WeaponName.Append(_WeaponInstance->GetWeaponData()->WeaponName);
 		RemoveItemInstanceFromInventory(_WeaponInstance);
 	}
 	
@@ -65,7 +63,22 @@ void UPlayerInventoryComponent::EquipWeapon(UCPP_WeaponInstance* _WeaponInstance
 	AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetOwner());
 	ACPP_Player* Player = Cast<ACPP_Player>(PC->GetPawn());
 	Player->GetWeaponComponent()->SetWeapon(_WeaponInstance);
+	_WeaponInstance->SetEquipped(true);
+}
 
+void UPlayerInventoryComponent::UnEquipWeapon(UCPP_WeaponInstance* WeaponInstance)
+{
+	if(PrimaryWeaponInstance == WeaponInstance)
+	{
+		UnEquipWeapon(true);
+		return;
+	}
+	else if(SecondaryWeaponInstance == WeaponInstance)
+	{
+		UnEquipWeapon(false);
+		return;
+	}
+	Grizzly_LOG(TEXT("%s is not Equipped"),*WeaponInstance->GetWeaponData()->WeaponName);
 	
 }
 
@@ -96,12 +109,12 @@ void UPlayerInventoryComponent::UnEquipWeapon(bool bIsPrimary)
 
 	if(CurrentWeaponInstance != nullptr)
 	{
-		//CurrentWeaponInstance->AddAmount(1);
+		CurrentWeaponInstance->SetEquipped(false);
 		AddItemToInventory(CurrentWeaponInstance);
 	}
 }
 
-void UPlayerInventoryComponent::InitUnarmedInstance()
+void UPlayerInventoryComponent::InitWeaponInstanceToUnarmedInstance()
 {
 	const AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetOwner());
 	const ACPP_Player* Player = Cast<ACPP_Player>(PC->GetPawn());
@@ -124,5 +137,6 @@ UCPP_WeaponInstance* UPlayerInventoryComponent::GetUnarmedInstance() const
 	checkf(UnarmedInstance ,TEXT("UnarmedInstance is NULL"));
 	return UnarmedInstance;
 }
+
 
 
