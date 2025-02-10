@@ -37,4 +37,26 @@ FWeaponData UCPP_WeaponInstance::K2_GetWeaponData() const
 	return *WeaponData;
 }
 
+FName UCPP_WeaponInstance::GetAmmoName() const
+{
+	UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE,TEXT("ECaliber"),true);
+	FText TAmmoName = EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(GetWeaponData()->Caliber));
+	FString AmmoName = TAmmoName.ToString();
+
+	//이상한 이름이 있는지 체크
+	for(int i =0; i < EnumPtr->NumEnums(); i++)
+	{
+		bool Equal = AmmoName.Equals(EnumPtr->GetDisplayNameTextByIndex(i).ToString());
+		if(Equal)
+		{
+			//접두사 추가
+			AmmoName = TEXT("Ammo_") + AmmoName;
+			return FName(AmmoName);
+		}
+	}
+	checkf(false,TEXT("%s is not included in CaliberDisplayName"),*AmmoName);
+	return FName(TEXT("Error"));
+
+}
+
 

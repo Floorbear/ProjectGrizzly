@@ -89,10 +89,6 @@ void UWeaponComponent::SetWeapon(UCPP_WeaponInstance* _WeaponInstance)
 
 	//탄창
 	PerMagazineRounds = _WeaponData->Rounds;
-	//ToDo : 인벤토리에서 탄약 참조
-	RemainRounds = PerMagazineRounds * 5;
-	CurrentMagazineRounds = _WeaponInstance->GetRounds();
-
 
 	//무기 발사 모드
 	CurrentWeaponMode = _WeaponData->WeaponModes[0];
@@ -182,9 +178,15 @@ void UWeaponComponent::SetWeapon(UCPP_WeaponInstance* _WeaponInstance)
 	}
 }
 
+void UWeaponComponent::SetWeaponWithAmmo(UCPP_WeaponInstance* _WeaponInstance, UCPP_Ammo* _Ammo)
+{
+	AmmoInstance = _Ammo;
+	SetWeapon(_WeaponInstance);
+}
+
 void UWeaponComponent::SetUnarmed()
 {
-	SetWeapon(UnarmedWeaponInstance);
+	SetWeaponWithAmmo(UnarmedWeaponInstance,nullptr);
 }
 
 // Called every frame
@@ -216,8 +218,8 @@ FWeaponAnim* UWeaponComponent::GetCurrentAnimData() const
 void UWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(UWeaponComponent, CurrentMagazineRounds);
-	DOREPLIFETIME(UWeaponComponent, RemainRounds);
+	// DOREPLIFETIME(UWeaponComponent, CurrentMagazineRounds);
+	// DOREPLIFETIME(UWeaponComponent, RemainRounds);
 }
 
 
@@ -233,8 +235,8 @@ UAnimMontage* UWeaponComponent::Get_FP_Weapon_Montage(FName _Name) const
 {
 	UAnimMontage* ReturnValue = nullptr;
 	
-	//_Name == Shoot 일경우 LastShoot 모션이 존재하고 1발 남은 상황이면 그 모션을 재생한다
-	if(CurrentMagazineRounds == 0)
+	//총기의 재생 애니메이션이 Shoot 일경우 만약 LastShoot 모션이 존재하고 마지막 한발을 발사하는 상황이면
+	if(IsMagazineEmpty())
 	{
 		if(_Name.Compare(TEXT("Shoot")) == 0)
 		{
@@ -312,29 +314,30 @@ class UDataTable* UWeaponComponent::GetWeaponAnimDT() const
 
 void UWeaponComponent::SetCurrentMagazineRounds(int _NewValue)
 {
-	CurrentMagazineRounds = FMath::Clamp(_NewValue, 0, PerMagazineRounds + 1);
+	int CurrentMagazineRounds = FMath::Clamp(_NewValue, 0, PerMagazineRounds + 1);
 
 	CurrentWeaponInstance->SetRounds(CurrentMagazineRounds);
 	//총알이 없을때 Empty 애니메이션이 있다면 변경
-	if(CurrentMagazineRounds == 0 && HasEmptyIdleAnim() && GetOwner()->HasAuthority())
+	if(IsMagazineEmpty() && HasEmptyIdleAnim() && GetOwner()->HasAuthority())
 	{
 		SetEmptyIdleAnim();
 	}
 }
 
-void UWeaponComponent::SetRemainRounds(int _NewValue)
-{
-	if (GetOwner()->HasAuthority())
-	{
-		RemainRounds = FMath::Clamp(_NewValue, 0, 999);
-	}
-}
-
 void UWeaponComponent::Reload_Inner()
 {
+	//총알이 없으면 재장전 No
+	if(AmmoInstance == nullptr)
+	{
+		return;
+	}
+	int RemainRounds = GetRemainRounds();
+	int CurrentMagazineRounds = GetCurrentMagazineRounds();
+
+	//택티컬 리로딩
 	if (RemainRounds + CurrentMagazineRounds >= PerMagazineRounds)
 	{
-		if (CurrentMagazineRounds > 0)
+		if (!IsMagazineEmpty())
 		{
 			RemainRounds += CurrentMagazineRounds;
 			if (RemainRounds == PerMagazineRounds)
@@ -363,6 +366,7 @@ void UWeaponComponent::Reload_Inner()
 
 	//무기 인스턴스에 총알 설정
 	CurrentWeaponInstance->SetRounds(CurrentMagazineRounds);
+	AmmoInstance->SetAmount(RemainRounds);
 	//Idle애니메이션으로 변경 : Empty Idle을 사용했을경우 재장전 하고 정상 Idle로 돌아가야함
 	SetAnimIdle();
 

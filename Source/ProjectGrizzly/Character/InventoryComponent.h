@@ -93,7 +93,7 @@ public:
 	FOnInventoryChanged OnInventoryChanged;
 
 
-private:
+protected:
 	TMultiMap<FName,UCPP_Item*> Inventory;
 
 };

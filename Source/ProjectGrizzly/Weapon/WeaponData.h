@@ -23,6 +23,14 @@ enum class EWeaponMode : uint8
 	SemiAuto			UMETA(DisplayName = "SemiAuto")
 };
 
+UENUM(BlueprintType)
+enum class ECaliber: uint8
+{
+	No ,
+	C76239			UMETA(DisplayName = "7.62x39mm"),
+	C45ACP			UMETA(DisplayName = "45ACP")
+};
+
 USTRUCT(BlueprintType)
 struct FWeaponData : public FTableRowBase
 {
@@ -42,6 +50,8 @@ public:
 	float RandomSpread;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int Rounds;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	ECaliber Caliber;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float RecoilRecoveryTime;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "InventoryComponent.h"
 #include "..\Weapon/CPP_WeaponInstance.h"
+#include "..\Weapon/CPP_Ammo.h"
 #include "PlayerInventoryComponent.generated.h"
 
 /**
@@ -35,6 +36,8 @@ public:
 	void InitWeaponInstanceToUnarmedInstance();
 	
 private:
+	//
+	UCPP_Ammo* FindMatchingAmmo(const UCPP_WeaponInstance* _WeaponInstance);
 	//비무장 상태면 Unarmed Instance로 할당됨
 	UPROPERTY()
 	UCPP_WeaponInstance* PrimaryWeaponInstance = nullptr;

@@ -32,6 +32,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FWeaponData K2_GetWeaponData() const;
 
+	//--------------------------------------------------------------------------------------------------
+	//										Ammo
+	//--------------------------------------------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
 	void SetRounds(int _NewRounds)
 	{
@@ -43,6 +46,8 @@ public:
 	{
 		return Rounds;
 	}
+
+	FName GetAmmoName() const;
 private:
 	FWeaponData* WeaponData = nullptr;
 	int Rounds = 0;

@@ -29,13 +29,13 @@ void UPlayerInventoryComponent::DrawWeapon(bool _IsPrimary)
 		CurrentWeaponInstance = SecondaryWeaponInstance;
 	}
 	
-	if(CurrentWeaponInstance == nullptr)
+	if(CurrentWeaponInstance == nullptr || IsUnarmedInstance(CurrentWeaponInstance))
 	{
 		Player->GetWeaponComponent()->SetUnarmed();
 	}
 	else
 	{
-		Player->GetWeaponComponent()->SetWeapon(CurrentWeaponInstance);
+		Player->GetWeaponComponent()->SetWeaponWithAmmo(CurrentWeaponInstance,FindMatchingAmmo(CurrentWeaponInstance));
 	}
 }
 
@@ -62,7 +62,7 @@ void UPlayerInventoryComponent::EquipWeapon(UCPP_WeaponInstance* _WeaponInstance
 	//플레이어에 무기 장착
 	AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetOwner());
 	ACPP_Player* Player = Cast<ACPP_Player>(PC->GetPawn());
-	Player->GetWeaponComponent()->SetWeapon(_WeaponInstance);
+	Player->GetWeaponComponent()->SetWeaponWithAmmo(_WeaponInstance,FindMatchingAmmo(_WeaponInstance)); //WeaponDT에 Caliber 수정을 안하면 오류남
 	_WeaponInstance->SetEquipped(true);
 }
 
@@ -120,6 +120,17 @@ void UPlayerInventoryComponent::InitWeaponInstanceToUnarmedInstance()
 	const ACPP_Player* Player = Cast<ACPP_Player>(PC->GetPawn());
 	PrimaryWeaponInstance = 	Player->GetWeaponComponent()->GetUnarmedInstance();
 	SecondaryWeaponInstance = 	Player->GetWeaponComponent()->GetUnarmedInstance();
+}
+
+UCPP_Ammo* UPlayerInventoryComponent::FindMatchingAmmo(const UCPP_WeaponInstance* _WeaponInstance)
+{
+	if(IsUnarmedInstance(_WeaponInstance))
+	{
+		return nullptr;
+	}
+
+	UCPP_Ammo* Ammo =  Cast<UCPP_Ammo>(*Inventory.Find(_WeaponInstance->GetAmmoName()));
+	return Ammo;
 }
 
 bool UPlayerInventoryComponent::IsUnarmedInstance(const UCPP_WeaponInstance* _WeaponInstance)

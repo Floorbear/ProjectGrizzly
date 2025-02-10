@@ -89,7 +89,11 @@ public:
 	{
 		Amount = FMath::Clamp(Amount + _Amount,0,9999);
 	}
-
+	UFUNCTION(BlueprintCallable)
+	void SetAmount(int _Amount)
+	{
+		Amount = FMath::Clamp(_Amount,0,9999);
+	}
 	UFUNCTION(BlueprintCallable)
 	int GetAmount() const
 	{
@@ -129,4 +133,7 @@ protected:
 
 private:
 	UDataTable* ItemDT = nullptr;
+	//--------------------------------------------------------------------------------------------------
+	//										Inventory
+	//--------------------------------------------------------------------------------------------------
 };

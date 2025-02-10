@@ -10,6 +10,7 @@
 #include <Curves\CurveVector.h>
 
 #include "CPP_WeaponInstance.h"
+#include "CPP_Ammo.h"
 #include "WeaponComponent.generated.h"
 
 
@@ -35,6 +36,8 @@ public:
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetWeapon(UCPP_WeaponInstance* _WeaponInstance);
+	UFUNCTION(BlueprintCallable)
+	void SetWeaponWithAmmo(UCPP_WeaponInstance* _WeaponInstance , UCPP_Ammo* _Ammo);
 	UFUNCTION(BlueprintCallable)
 	void SetUnarmed();
 	UCPP_WeaponInstance* GetUnarmedInstance() const
@@ -164,10 +167,17 @@ public:
 	//								Magazine
 	// --------------------------------------------------------------------
 private:
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category  = "Magazine", meta = (AllowPrivateAccess = "true") , Replicated)
-	int CurrentMagazineRounds;
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category  = "Magazine", meta = (AllowPrivateAccess = "true"), Replicated)
-	int RemainRounds;
+	TWeakObjectPtr<UCPP_Ammo> AmmoInstance = nullptr;
+	
+	UCPP_Ammo* GetAmmoInstance()
+	{
+		if(!AmmoInstance.IsValid())
+		{
+			AmmoInstance = nullptr;
+		}
+		return AmmoInstance.Get();
+	}
+	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category  = "Magazine", meta = (AllowPrivateAccess = "true"))
 	int PerMagazineRounds;
 
@@ -175,17 +185,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int GetCurrentMagazineRounds() const
 	{
-		return CurrentMagazineRounds;
+		return CurrentWeaponInstance->GetRounds();
 	}
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentMagazineRounds(int _NewValue);
 	UFUNCTION(BlueprintCallable)
 	int GetRemainRounds() const
 	{
-		return RemainRounds;
+		if(AmmoInstance == nullptr)
+		{
+			return 0;
+		}
+		return AmmoInstance->GetAmount();
 	}
-	UFUNCTION(BlueprintCallable)
-	void SetRemainRounds(int _NewValue);
 	UFUNCTION(BlueprintCallable)
 	int GetPerMagazineRounds() const
 	{
@@ -194,7 +206,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsMagazineEmpty() const
 	{
-		if (CurrentMagazineRounds <= 0)
+		if (GetCurrentMagazineRounds() <= 0)
 		{
 			return true;
 		}
@@ -205,7 +217,7 @@ public:
 	bool IsMagazineFull() const
 	{
 		//현재 구조에서 모든 총에 약실이 있다고 가정함 소드오프 샷건, 리볼버 같은 구조의 총은 추가 X
-		if (CurrentMagazineRounds == PerMagazineRounds + 1)
+		if (GetCurrentMagazineRounds() == PerMagazineRounds + 1)
 		{
 			return true;
 		}

@@ -324,5 +324,9 @@ EFaction ACPP_Player::GetFaction() const
 UFactionComponent* ACPP_Player::GetFactionComponent() const
 {
 	ACPP_GrizzlyPS* PS = Cast<ACPP_GrizzlyPS>(GetPlayerState());
+	if(PS == nullptr)
+	{
+		return nullptr;
+	}
 	return PS->GetFactionComponent();
 }

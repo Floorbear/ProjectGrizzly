@@ -3,6 +3,7 @@
 
 #include "CPP_Item.h"
 #include "..\Core/GrizzlyGameInstance.h"
+#include "ProjectGrizzly/Weapon/CPP_Ammo.h"
 #include "ProjectGrizzly/Weapon/CPP_WeaponInstance.h"
 
 
@@ -33,6 +34,13 @@ UCPP_Item* UCPP_Item::CreateItem(FName _ItemRowName, int _Amount)
 	{
 		UCPP_WeaponInstance* NewWeapon = CreateItem_Inner<UCPP_WeaponInstance>(_ItemRowName,_Amount);
 		return NewWeapon;
+	}
+
+	//Åº¾à
+	if(Prefix.Compare(TEXT("Ammo")) == 0)
+	{
+		UCPP_Ammo* NewAmmo = CreateItem_Inner<UCPP_Ammo>(_ItemRowName,_Amount);
+		return NewAmmo;
 	}
 	return CreateItem_Inner<UCPP_Item>(_ItemRowName,_Amount);
 }
