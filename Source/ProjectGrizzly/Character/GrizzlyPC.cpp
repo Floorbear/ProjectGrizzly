@@ -7,6 +7,7 @@
 AGrizzlyPC::AGrizzlyPC()
 {
 	InventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("Inventory"));
+	InventoryComponent->SetIsReplicated(true);
 }
 
 void AGrizzlyPC::BeginPlay()
@@ -45,9 +46,9 @@ void AGrizzlyPC::PostNetInit()
 
 void AGrizzlyPC::OnPossess(APawn* aPawn)
 {
-	Grizzly_LOG(TEXT("Begin"));
 	Super::OnPossess(aPawn);
-	Grizzly_LOG(TEXT("End"));
+	
+	InventoryComponent->InitWeaponInstanceToUnarmedInstance();
 }
 
 bool AGrizzlyPC::IsMyComputer()

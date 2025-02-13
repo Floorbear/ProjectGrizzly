@@ -4,23 +4,29 @@
 #include "CPP_Item.h"
 #include "..\Core/GrizzlyGameInstance.h"
 #include "ProjectGrizzly/Weapon/CPP_Ammo.h"
+#include "..\Character/InventoryComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "ProjectGrizzly/Weapon/CPP_WeaponInstance.h"
 
 
-UCPP_Item::UCPP_Item()
+ACPP_Item::ACPP_Item()
 {
 	static auto DT = ConstructorHelpers::FObjectFinder<UDataTable>(TEXT("/Game/ProjectGrizzly/Item/DT_Item.DT_Item"));
 	ItemDT = DT.Object;
+	bReplicates = true;
+	bAlwaysRelevant = true;
 }
 
-UCPP_Item* UCPP_Item::CreateItem(FName _ItemRowName, int _Amount)
+ACPP_Item* ACPP_Item::CreateItem(FName _ItemRowName,UObject* _WorldContext, int _Amount, UInventoryComponent* _Parent)
 {
+	checkf(_WorldContext != nullptr, TEXT("_WorldContext is null"));
 	//빈 아이템에 대한 예외처리
 	if(_ItemRowName.Compare(TEXT("Empty")) == 0)
 	{
-		return CreateItem_Inner<UCPP_Item>(_ItemRowName,_Amount);
+		ACPP_Item* EmptyItem = CreateItem_Inner<ACPP_Item>(_ItemRowName,_WorldContext,_Amount);
+		EmptyItem->bReplicates = false;
+		return EmptyItem;
 	}
-	
 	//접두사 _  파싱
 	FString ItemRowName = _ItemRowName.ToString();
 	FString Prefix;
@@ -32,29 +38,56 @@ UCPP_Item* UCPP_Item::CreateItem(FName _ItemRowName, int _Amount)
 	//무기
 	if(Prefix.Compare(TEXT("Weapon")) == 0)
 	{
-		UCPP_WeaponInstance* NewWeapon = CreateItem_Inner<UCPP_WeaponInstance>(_ItemRowName,_Amount);
+		ACPP_WeaponInstance* NewWeapon = CreateItem_Inner<ACPP_WeaponInstance>(_ItemRowName,_WorldContext,_Amount,_Parent);
 		return NewWeapon;
 	}
 
 	//탄약
 	if(Prefix.Compare(TEXT("Ammo")) == 0)
 	{
-		UCPP_Ammo* NewAmmo = CreateItem_Inner<UCPP_Ammo>(_ItemRowName,_Amount);
+		ACPP_Ammo* NewAmmo = CreateItem_Inner<ACPP_Ammo>(_ItemRowName,_WorldContext,_Amount,_Parent);
 		return NewAmmo;
 	}
-	return CreateItem_Inner<UCPP_Item>(_ItemRowName,_Amount);
+	auto* NewItem = CreateItem_Inner<ACPP_Item>(_ItemRowName,_WorldContext,_Amount,_Parent);
+	return NewItem;
 }
 
-void UCPP_Item::Init(FName _RowName)
+void ACPP_Item::Init(FName _RowName)
 {
 	FItemData* Data = GetItemDT()->FindRow<FItemData>(_RowName, FString(""));
 	ensure(Data != NULL); // _ItemRowName 이 DT_Item의 이름에 등록돼있지 않음
 	ItemData = *Data;
 }
 
-UDataTable* UCPP_Item::GetItemDT() const
+UDataTable* ACPP_Item::GetItemDT() const
 {
 	check(ItemDT != nullptr);
 	return ItemDT;
 }
+
+
+void ACPP_Item::SetParent_Implementation(class UInventoryComponent* _Parent)
+{
+	Parent = _Parent;
+}
+
+void ACPP_Item::CheckConditionAndRemove_Implementation()
+{
+	if(!IsEmpty() || Parent == nullptr)
+	{
+		return;
+	}
+	Parent->RemoveItemInstanceFromInventory(this);
+}
+
+void ACPP_Item::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ACPP_Item, Amount);
+	DOREPLIFETIME(ACPP_Item, ItemData);
+	DOREPLIFETIME(ACPP_Item, Parent);
+}
+
+
+
 

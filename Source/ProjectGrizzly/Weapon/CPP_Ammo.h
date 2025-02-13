@@ -11,7 +11,7 @@
  * 
  */
 UCLASS()
-class PROJECTGRIZZLY_API UCPP_Ammo : public UCPP_Item
+class PROJECTGRIZZLY_API ACPP_Ammo : public ACPP_Item
 {
 	GENERATED_BODY()
 public:

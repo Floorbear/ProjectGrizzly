@@ -11,18 +11,21 @@
  * 
  */
 UCLASS()
-class PROJECTGRIZZLY_API UCPP_WeaponInstance : public UCPP_Item
+class PROJECTGRIZZLY_API ACPP_WeaponInstance : public ACPP_Item
 {
 	GENERATED_BODY()
 public:
-	UCPP_WeaponInstance();
-	
+	ACPP_WeaponInstance();
+	void InitWeapon();
+
 
 	//--------------------------------------------------------------------------------------------------
 	//										Item
 	//--------------------------------------------------------------------------------------------------
 	void Init(FName _RowName) override;
+	
 protected:
+	bool CanRender() const override;
 
 private:
 	UDataTable* WeaponDataDT = nullptr;
@@ -49,7 +52,9 @@ public:
 
 	FName GetAmmoName() const;
 private:
+	
 	FWeaponData* WeaponData = nullptr;
+	UPROPERTY(Replicated)
 	int Rounds = 0;
 
 	EWeaponMode WeaponMode;
@@ -71,5 +76,15 @@ public:
 		bIsEquipped = IsEquipped;
 	}
 private:
+	UPROPERTY(ReplicatedUsing = OnRep_IsEquipped)
 	bool bIsEquipped;
+
+	//--------------------------------------------------------------------------------------------------
+	//										Network
+	//--------------------------------------------------------------------------------------------------
+	virtual void OnRep_ItemData() override;
+	UFUNCTION()
+	void OnRep_IsEquipped() const;
+
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 };

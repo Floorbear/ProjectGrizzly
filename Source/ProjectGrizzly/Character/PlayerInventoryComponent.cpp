@@ -5,18 +5,18 @@
 #include "CPP_Player.h"
 #include "ProjectGrizzly/ProjectGrizzly.h"
 #include "GrizzlyPC.h"
+#include "Net/UnrealNetwork.h"
 #include "ProjectGrizzly/Weapon/WeaponComponent.h"
 
 void UPlayerInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	InitWeaponInstanceToUnarmedInstance();
-
+	bWantsInitializeComponent = true;
 }
-
-void UPlayerInventoryComponent::DrawWeapon(bool _IsPrimary)
+	
+void UPlayerInventoryComponent::DrawWeapon_Implementation(bool _IsPrimary)
 {
-	UCPP_WeaponInstance* CurrentWeaponInstance = nullptr;
+	ACPP_WeaponInstance* CurrentWeaponInstance = nullptr;
 	AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetOwner());
 	ACPP_Player* Player = Cast<ACPP_Player>(PC->GetPawn());
 	
@@ -39,7 +39,7 @@ void UPlayerInventoryComponent::DrawWeapon(bool _IsPrimary)
 	}
 }
 
-void UPlayerInventoryComponent::EquipWeapon(UCPP_WeaponInstance* _WeaponInstance, bool bIsPrimary)
+void UPlayerInventoryComponent::EquipWeapon_Implementation(ACPP_WeaponInstance* _WeaponInstance, bool bIsPrimary)
 {
 	//기존에 무기를 착용하고 있는 무기를 인벤토리에 돌려둔다
 	UnEquipWeapon(bIsPrimary);
@@ -52,21 +52,16 @@ void UPlayerInventoryComponent::EquipWeapon(UCPP_WeaponInstance* _WeaponInstance
 		SecondaryWeaponInstance = _WeaponInstance;
 	}
 	
-	//비무장 상태로 전환이 아니면 인벤토리에 있는 무기를 제거하고 장비차응로 옮긴다
-	if(IsUnarmedInstance(_WeaponInstance) == false)
-	{
-		//인벤토리에 있는 무기 제거
-		RemoveItemInstanceFromInventory(_WeaponInstance);
-	}
 	
 	//플레이어에 무기 장착
 	AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetOwner());
 	ACPP_Player* Player = Cast<ACPP_Player>(PC->GetPawn());
 	Player->GetWeaponComponent()->SetWeaponWithAmmo(_WeaponInstance,FindMatchingAmmo(_WeaponInstance)); //WeaponDT에 Caliber 수정을 안하면 오류남
 	_WeaponInstance->SetEquipped(true);
+	OnInventoryChanged.Broadcast();
 }
 
-void UPlayerInventoryComponent::UnEquipWeapon(UCPP_WeaponInstance* WeaponInstance)
+void UPlayerInventoryComponent::UnEquipWeapon_Implementation(ACPP_WeaponInstance* WeaponInstance)
 {
 	if(PrimaryWeaponInstance == WeaponInstance)
 	{
@@ -84,7 +79,7 @@ void UPlayerInventoryComponent::UnEquipWeapon(UCPP_WeaponInstance* WeaponInstanc
 
 void UPlayerInventoryComponent::UnEquipWeapon(bool bIsPrimary)
 {
-	UCPP_WeaponInstance* CurrentWeaponInstance = nullptr;
+	ACPP_WeaponInstance* CurrentWeaponInstance = nullptr;
 	if(bIsPrimary)
 	{
 		CurrentWeaponInstance = PrimaryWeaponInstance;
@@ -110,43 +105,79 @@ void UPlayerInventoryComponent::UnEquipWeapon(bool bIsPrimary)
 	if(CurrentWeaponInstance != nullptr)
 	{
 		CurrentWeaponInstance->SetEquipped(false);
-		AddItemToInventory(CurrentWeaponInstance);
+		//AddItemToInventory(CurrentWeaponInstance);
 	}
+	OnInventoryChanged.Broadcast();
 }
 
-void UPlayerInventoryComponent::InitWeaponInstanceToUnarmedInstance()
+void UPlayerInventoryComponent::InitWeaponInstanceToUnarmedInstance_Implementation()
 {
 	const AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetOwner());
 	const ACPP_Player* Player = Cast<ACPP_Player>(PC->GetPawn());
-	PrimaryWeaponInstance = 	Player->GetWeaponComponent()->GetUnarmedInstance();
-	SecondaryWeaponInstance = 	Player->GetWeaponComponent()->GetUnarmedInstance();
+	PrimaryWeaponInstance = Player->GetWeaponComponent()->GetUnarmedInstance();
+	SecondaryWeaponInstance = Player->GetWeaponComponent()->GetUnarmedInstance();
+	UnarmedInstance = Player->GetWeaponComponent()->GetUnarmedInstance();
 }
 
-UCPP_Ammo* UPlayerInventoryComponent::FindMatchingAmmo(const UCPP_WeaponInstance* _WeaponInstance)
+ACPP_Ammo* UPlayerInventoryComponent::FindMatchingAmmo(const ACPP_WeaponInstance* _WeaponInstance)
 {
 	if(IsUnarmedInstance(_WeaponInstance))
 	{
 		return nullptr;
 	}
 
-	UCPP_Ammo* Ammo =  Cast<UCPP_Ammo>(*Inventory.Find(_WeaponInstance->GetAmmoName()));
+	if(!Inventory.Contains(_WeaponInstance->GetAmmoName()))
+	{
+		return nullptr;
+	}
+
+	ACPP_Ammo* Ammo =  Cast<ACPP_Ammo>(*Inventory.Find(_WeaponInstance->GetAmmoName()));
 	return Ammo;
 }
 
-bool UPlayerInventoryComponent::IsUnarmedInstance(const UCPP_WeaponInstance* _WeaponInstance)
+bool UPlayerInventoryComponent::IsUnarmedInstance(const ACPP_WeaponInstance* _WeaponInstance) const
 {
-	if(_WeaponInstance->GetWeaponData()->WeaponName.Compare(TEXT("Unarmed")) != 0)
+	// if(_WeaponInstance->GetWeaponData()->WeaponName.Compare(TEXT("Unarmed")) != 0)
+	// 	return false;
+	if(_WeaponInstance != UnarmedInstance)
 		return false;
 	return true;
 }
 
-UCPP_WeaponInstance* UPlayerInventoryComponent::GetUnarmedInstance() const
+ACPP_WeaponInstance* UPlayerInventoryComponent::GetUnarmedInstance() const
+{
+	return UnarmedInstance;
+}
+
+void UPlayerInventoryComponent::OnRep_WeaponInstance() const
+{
+	OnInventoryChanged.Broadcast();
+}
+
+//서버에서 호출됨
+void UPlayerInventoryComponent::OnRep_OnInventoryChanged()
 {
 	const AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetOwner());
 	const ACPP_Player* Player = Cast<ACPP_Player>(PC->GetPawn());
-	UCPP_WeaponInstance* UnarmedInstance = Player->GetWeaponComponent()->GetUnarmedInstance();
-	checkf(UnarmedInstance ,TEXT("UnarmedInstance is NULL"));
-	return UnarmedInstance;
+
+	//현재 장비한 총의 탄약을 다시 확인
+	ACPP_WeaponInstance* CurrentWeaponInstance = Player->GetWeaponComponent()->GetCurrentWeaponInstance();
+	checkf(CurrentWeaponInstance != nullptr,TEXT("CurrentWeaponInstance is NULL"));
+	Player->GetWeaponComponent()->SetAmmoInstance(FindMatchingAmmo(CurrentWeaponInstance));
+}
+
+void UPlayerInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UPlayerInventoryComponent,PrimaryWeaponInstance);
+	DOREPLIFETIME(UPlayerInventoryComponent,SecondaryWeaponInstance);
+	DOREPLIFETIME(UPlayerInventoryComponent,UnarmedInstance);
+}
+
+void UPlayerInventoryComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+	OnInventoryChanged.AddDynamic(this,&UPlayerInventoryComponent::OnRep_OnInventoryChanged);
 }
 
 

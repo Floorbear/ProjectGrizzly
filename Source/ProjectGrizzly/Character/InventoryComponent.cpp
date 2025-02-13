@@ -3,12 +3,15 @@
 
 #include "InventoryComponent.h"
 #include "..\ProjectGrizzly.h"
+#include "Net/UnrealNetwork.h"
+#include "ProjectGrizzly/Weapon/CPP_WeaponInstance.h"
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
+	bWantsInitializeComponent = true;
 }
 
 
@@ -16,9 +19,7 @@ UInventoryComponent::UInventoryComponent()
 void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
 	// ...
-
 }
 
 
@@ -30,19 +31,18 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	// ...
 }
 
-void UInventoryComponent::AddItemToInventory(FName _ItemName, int _Amount)
+void UInventoryComponent::AddItemToInventory_Implementation(FName _ItemName, int _Amount)
 {
 	if (_Amount <= 0)
 	{
 		Grizzly_LOG(TEXT("%d is not over 1"), _Amount);
 	}
-
-
+	
 	//아이템이 존재하면 Amount 만큼 수량증가
 	// CPP_Item은 팩토리 함수로 생성되야 하니 FindOrAdd 사용 X
 	if (Inventory.Contains(_ItemName))
 	{
-		UCPP_Item* Item = *Inventory.Find(_ItemName);
+		ACPP_Item* Item = *Inventory.Find(_ItemName);
 		if (Item)
 		{
 			//아이템이 인스턴스 모드가 아닐경우에만 Amount 추가
@@ -56,7 +56,7 @@ void UInventoryComponent::AddItemToInventory(FName _ItemName, int _Amount)
 	}
 	//존재하지 않거나 인스턴스 모드일 경우 새로 생성하고 인벤토리에 추가
 	//인스턴스 모드일경우 한번에 여러개 추가하면 안됨
-	UCPP_Item* NewItem = UCPP_Item::CreateItem(_ItemName,_Amount);
+	ACPP_Item* NewItem = ACPP_Item::CreateItem(_ItemName,GetWorld(),_Amount,this);
 	checkf(!(NewItem->IsInstanceMode() && _Amount > 1),TEXT("InstanceMode not support 1 more item creation"));
 	if (!NewItem)
 	{
@@ -67,42 +67,37 @@ void UInventoryComponent::AddItemToInventory(FName _ItemName, int _Amount)
 }
 
 
-void UInventoryComponent::AddItemToInventory(UCPP_Item* _ItemInstance)
+void UInventoryComponent::AddItemInstanceToInventory_Implementation(ACPP_Item* _ItemInstance)
 {
 	Inventory.Add(_ItemInstance->GetItemData().Name,_ItemInstance);
+	_ItemInstance->SetParent(this);
 	OnInventoryChanged.Broadcast();
 }
 
-UCPP_Item* UInventoryComponent::RemoveItemFromInventory(FName _ItemName, int _Amount)
+void UInventoryComponent::RemoveItemFromInventory_Implementation(FName _ItemName, int _Amount)
 {
 	// 아이템이 존재하지 않으면 함수 종료
 	if(!Inventory.Contains(_ItemName))
 	{
-		return nullptr;
+		return;
 	}
-	UCPP_Item* Item = *Inventory.Find(_ItemName);
-
-	
+	ACPP_Item* Item = *Inventory.Find(_ItemName);
 	Item->AddAmount(-_Amount);
-	if(Item->IsEmpty())
-	{
-		//Map에서 아이템 제거
-		Inventory.Remove(_ItemName);
-	}
 	OnInventoryChanged.Broadcast();
-	return Item;
+	return;
 }
 
-UCPP_Item* UInventoryComponent::RemoveItemInstanceFromInventory(UCPP_Item* _ItemInstance)
+void UInventoryComponent::RemoveItemInstanceFromInventory_Implementation(ACPP_Item* _ItemInstance)
 {
 	// 아이템이 존재하지 않으면 함수 종료
 	if(!Inventory.Contains(_ItemInstance->GetItemData().Name))
 	{
-		return nullptr;
+		return;
 	}
 	Inventory.RemoveSingle(_ItemInstance->GetItemData().Name,_ItemInstance);
+	_ItemInstance->MarkAsGarbage();
 	OnInventoryChanged.Broadcast();
-	return _ItemInstance;
+	return;
 }
 
 // _HoriSize : UI의 가로 칸의 수
@@ -112,7 +107,7 @@ TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) c
 	{
 		Grizzly_LOG(TEXT("%d is not over 1"), _HoriSize);
 	}
-	TMultiMap<FName, UCPP_Item*> TempInventory = Inventory;
+	TMultiMap<FName, ACPP_Item*> TempInventory = Inventory;
 	TArray<FInventoryTileRow> Tile;
 
 	//타일 탐색을 위한 구조체
@@ -125,12 +120,19 @@ TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) c
 	Tile.Add(FisrtRow);
 
 	//복사받은 인벤토리의 아이템이 전부 타일에 들어갈 때 까지 반복
-	while (!TempInventory.IsEmpty())
+	int Num = TempInventory.Num();
+	while (TempInventory.Num() != 0)
 	{
-		UCPP_Item* CurItem = TempInventory.begin().Value();
+		ACPP_Item* CurItem = TempInventory.begin().Value();
 		FName CurItemName = TempInventory.begin().Key();
 
 		FItemData ItemData = CurItem->GetItemData();
+		//현재 아이템이 렌더링할수 있는 상태가 아니면 다음으로 넘어간다
+		if(!CurItem->CanRender())
+		{
+			TempInventory.RemoveSingle(CurItemName,CurItem);
+			continue;
+		}
 		//현재 위치가 비어있으면 아이템을 넣을 수 있는지 확인
 		if (Tile[Pos.Y].Column[Pos.X].bIsEmpty)
 		{
@@ -202,5 +204,44 @@ TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) c
 		}
 	}
 	return Tile;
+}
+
+
+void UInventoryComponent::On_InventoryChanged_Implementation()
+{
+	//서버
+	//Inventory To NetInventory
+	NetInventory.Empty();
+	for(auto& i : Inventory)
+	{
+		NetInventory.Add({i.Key,i.Value});
+	}
+}
+
+void UInventoryComponent::OnRep_NetInventory()
+{
+	//클라이언트
+	//NetInventory To Inventory
+	Inventory.Empty();
+	for(auto& i : NetInventory)
+	{
+		Inventory.Add(i.Key,i.Value);
+	}
+	OnInventoryChanged.Broadcast();
+}
+
+
+void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UInventoryComponent,NetInventory);
+}
+
+void UInventoryComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+	//서버에서 OnInventoryChanged가 호출될 때
+	//클라이언트에서 OnRep_Inventory가 호출
+	OnInventoryChanged.AddDynamic(this,&UInventoryComponent::On_InventoryChanged);
 }
 

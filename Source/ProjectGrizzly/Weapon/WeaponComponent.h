@@ -30,28 +30,43 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 //--------------------------------------------------------------------------------------------------
-//										Interface
+//										Set Weapon
 //--------------------------------------------------------------------------------------------------
 
 public:
-	UFUNCTION(BlueprintCallable)
-	void SetWeapon(UCPP_WeaponInstance* _WeaponInstance);
-	UFUNCTION(BlueprintCallable)
-	void SetWeaponWithAmmo(UCPP_WeaponInstance* _WeaponInstance , UCPP_Ammo* _Ammo);
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable,Server,Reliable)
+	void SetWeapon(ACPP_WeaponInstance* _WeaponInstance);
+	UFUNCTION(BlueprintCallable,Server,Reliable)
+	void SetWeaponWithAmmo(ACPP_WeaponInstance* _WeaponInstance , ACPP_Ammo* _Ammo);
+	UFUNCTION(BlueprintCallable,Server,Reliable)
 	void SetUnarmed();
-	UCPP_WeaponInstance* GetUnarmedInstance() const
+	ACPP_WeaponInstance* GetUnarmedInstance() const
 	{
 		return UnarmedWeaponInstance;
 	}
 
+	//--------------------------------------------------------------------------------------------------
+	//										Weapon Instance
+	//--------------------------------------------------------------------------------------------------
 private:
+	void SetWeapon_Inner(ACPP_WeaponInstance* _WeaponInstance);
+	
+	UFUNCTION()
+	void OnRep_CurrentWeaponInstance();
 	//CurrentWeaponInstance의 소유권은 PlayerInventory에 있음
-	UCPP_WeaponInstance* CurrentWeaponInstance = nullptr;
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentWeaponInstance)
+	ACPP_WeaponInstance* CurrentWeaponInstance = nullptr;
 	//UnarmedWeaponInstance는 WeaponComponent에서 생성하니 여기에 있음
-	UPROPERTY()
-	UCPP_WeaponInstance* UnarmedWeaponInstance = nullptr;
+	UPROPERTY(Replicated)
+	ACPP_WeaponInstance* UnarmedWeaponInstance = nullptr;
 
+public:
+	UFUNCTION(BlueprintCallable)
+	ACPP_WeaponInstance* GetCurrentWeaponInstance() const
+	{
+		checkf(CurrentWeaponInstance != nullptr,TEXT("CurrentWeaponInstance is Null"));
+		return CurrentWeaponInstance;
+	}
 
 
 	// ----------------------------------------------------------------------
@@ -167,24 +182,32 @@ public:
 	//								Magazine
 	// --------------------------------------------------------------------
 private:
-	TWeakObjectPtr<UCPP_Ammo> AmmoInstance = nullptr;
+	UPROPERTY(Replicated)
+	ACPP_Ammo* AmmoInstance = nullptr;
+
+public:
+	UFUNCTION(Server,Reliable,Category = "Network")
+	void SetAmmoInstance(ACPP_Ammo* _AmmoInstance);
 	
-	UCPP_Ammo* GetAmmoInstance()
+	
+	ACPP_Ammo* GetAmmoInstance() const
 	{
-		if(!AmmoInstance.IsValid())
+		if(!IsValid(AmmoInstance))
 		{
-			AmmoInstance = nullptr;
+			return nullptr;
 		}
-		return AmmoInstance.Get();
+		return AmmoInstance;
 	}
 	
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category  = "Magazine", meta = (AllowPrivateAccess = "true"))
-	int PerMagazineRounds;
+	// UPROPERTY(EditAnywhere,BlueprintReadWrite,Category  = "Magazine", meta = (AllowPrivateAccess = "true"))
+	// int PerMagazineRounds;
 
 public:
 	UFUNCTION(BlueprintCallable)
 	int GetCurrentMagazineRounds() const
 	{
+		if(CurrentWeaponInstance == nullptr)
+			return 0;
 		return CurrentWeaponInstance->GetRounds();
 	}
 	UFUNCTION(BlueprintCallable)
@@ -201,7 +224,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int GetPerMagazineRounds() const
 	{
-		return PerMagazineRounds;
+		return CurrentWeaponInstance->GetWeaponData()->Rounds;
 	}
 	UFUNCTION(BlueprintCallable)
 	bool IsMagazineEmpty() const
@@ -217,7 +240,7 @@ public:
 	bool IsMagazineFull() const
 	{
 		//현재 구조에서 모든 총에 약실이 있다고 가정함 소드오프 샷건, 리볼버 같은 구조의 총은 추가 X
-		if (GetCurrentMagazineRounds() == PerMagazineRounds + 1)
+		if (GetCurrentMagazineRounds() == GetPerMagazineRounds() + 1)
 		{
 			return true;
 		}
@@ -240,6 +263,10 @@ public:
 			Reload_RPC();
 		}
 	}
+
+	//--------------------------------------------------------------------------------------------------
+	//										Network
+	//--------------------------------------------------------------------------------------------------
 
 	virtual void InitializeComponent() override;
 };

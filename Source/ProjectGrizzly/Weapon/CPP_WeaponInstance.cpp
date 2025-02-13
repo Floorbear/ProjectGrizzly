@@ -3,20 +3,22 @@
 
 #include "CPP_WeaponInstance.h"
 #include "..\Core/GrizzlyGameInstance.h"
+#include "Net/UnrealNetwork.h"
+#include "ProjectGrizzly/Character/InventoryComponent.h"
 
 
-UCPP_WeaponInstance::UCPP_WeaponInstance()
+ACPP_WeaponInstance::ACPP_WeaponInstance()
 {
 	{
 		static auto DataTable = ConstructorHelpers::FObjectFinder<UDataTable>(TEXT("/Game/ProjectGrizzly/Gun/WeaponDataTable.WeaponDataTable"));
 		check(IsValid(DataTable.Object));
 		WeaponDataDT = DataTable.Object;
 	}
+	bReplicates = true;
 }
 
-void UCPP_WeaponInstance::Init(FName _RowName)
+void ACPP_WeaponInstance::InitWeapon()
 {
-	Super::Init(_RowName);
 	FName WeaponName = GetItemData().NameWithOutPrefix;
 	WeaponData = WeaponDataDT->FindRow<FWeaponData>(WeaponName, FString(""));
 	checkf(WeaponData != nullptr, TEXT("%s is not included in DT"),WeaponName);
@@ -25,19 +27,30 @@ void UCPP_WeaponInstance::Init(FName _RowName)
 	InstanceMode = true;
 }
 
-FWeaponData* UCPP_WeaponInstance::GetWeaponData() const
+void ACPP_WeaponInstance::Init(FName _RowName)
+{
+	Super::Init(_RowName);
+	InitWeapon();
+}
+
+bool ACPP_WeaponInstance::CanRender() const
+{
+	return !IsEquipped();
+}
+
+FWeaponData* ACPP_WeaponInstance::GetWeaponData() const
 {
 	ensure(WeaponData != nullptr);
 	return WeaponData;
 }
 
-FWeaponData UCPP_WeaponInstance::K2_GetWeaponData() const
+FWeaponData ACPP_WeaponInstance::K2_GetWeaponData() const
 {
 	ensure(WeaponData != nullptr);
 	return *WeaponData;
 }
 
-FName UCPP_WeaponInstance::GetAmmoName() const
+FName ACPP_WeaponInstance::GetAmmoName() const
 {
 	UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE,TEXT("ECaliber"),true);
 	FText TAmmoName = EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(GetWeaponData()->Caliber));
@@ -57,6 +70,26 @@ FName UCPP_WeaponInstance::GetAmmoName() const
 	checkf(false,TEXT("%s is not included in CaliberDisplayName"),*AmmoName);
 	return FName(TEXT("Error"));
 
+}
+
+void ACPP_WeaponInstance::OnRep_ItemData()
+{
+	Super::OnRep_ItemData();
+	InitWeapon();
+}
+
+void ACPP_WeaponInstance::OnRep_IsEquipped() const
+{
+	if(Parent == nullptr)
+		return;
+	Parent->OnInventoryChanged.Broadcast();
+}
+
+void ACPP_WeaponInstance::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ACPP_WeaponInstance,bIsEquipped);
+	DOREPLIFETIME(ACPP_WeaponInstance,Rounds);
 }
 
 

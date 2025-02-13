@@ -6,7 +6,7 @@
 #include "IDetailTreeNode.h"
 
 
-void UCPP_Ammo::Init(FName _RowName)
+void ACPP_Ammo::Init(FName _RowName)
 {
 	Super::Init(_RowName);
 	UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("ECaliber"), true);

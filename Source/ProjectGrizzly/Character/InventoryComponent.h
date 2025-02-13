@@ -12,6 +12,31 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryChanged);
 
 USTRUCT(BlueprintType)
+struct FItemMapData
+{
+	GENERATED_BODY()
+public:
+	FItemMapData()
+	{
+		
+	}
+	FItemMapData(FName _Key, class ACPP_Item* _Value) : Key(_Key), Value(_Value) {}
+public:
+	UPROPERTY()
+	FName Key = "";
+
+	UPROPERTY()
+	class ACPP_Item* Value = nullptr;
+
+
+	// 연산자 오버로딩 
+	bool operator==(const FItemMapData& Other) const
+	{
+		return Key == Other.Key && Value == Other.Value;
+	}
+};
+
+USTRUCT(BlueprintType)
 struct FInventoryTileNode : public FTableRowBase
 {
 	GENERATED_BODY()
@@ -20,7 +45,7 @@ public:
 	bool bIsEmpty = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UCPP_Item* Item = NULL;
+	ACPP_Item* Item = NULL;
 };
 
 //이중 컨테이너
@@ -70,18 +95,19 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	//태그포함이름
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable,Server,Reliable)
 	void AddItemToInventory(FName _ItemName, int _Amount = 1);
 
 	//인스턴스
-	void AddItemToInventory(UCPP_Item* _ItemInstance);
+	UFUNCTION(Server,Reliable)
+	void AddItemInstanceToInventory(ACPP_Item* _ItemInstance);
 
-	UFUNCTION(BlueprintCallable)
-	UCPP_Item* RemoveItemFromInventory(FName _ItemName, int _Amount = 1);
+	UFUNCTION(BlueprintCallable,Server,Reliable)
+	void RemoveItemFromInventory(FName _ItemName, int _Amount = 1);
 
 	//인스턴스
-	UFUNCTION(BlueprintCallable)
-	UCPP_Item* RemoveItemInstanceFromInventory(UCPP_Item* _ItemInstance);
+	UFUNCTION(BlueprintCallable,Server,Reliable)
+	void RemoveItemInstanceFromInventory(ACPP_Item* _ItemInstance);
 	
 
 	//_HoriSize : 인벤토리의 가로 사이즈
@@ -92,8 +118,25 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnInventoryChanged OnInventoryChanged;
 
+	//--------------------------------------------------------------------------------------------------
+	//										Network
+	//--------------------------------------------------------------------------------------------------
+private:
+	UFUNCTION(Server,Reliable)
+	void On_InventoryChanged();
+
+	UFUNCTION()
+	void OnRep_NetInventory();
+public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	//서버에서만 실행
+	virtual void InitializeComponent() override;
 
 protected:
-	TMultiMap<FName,UCPP_Item*> Inventory;
+	TMultiMap<FName,ACPP_Item*> Inventory;
+
+	UPROPERTY(ReplicatedUsing = OnRep_NetInventory)
+	TArray<FItemMapData> NetInventory;
+	
 
 };

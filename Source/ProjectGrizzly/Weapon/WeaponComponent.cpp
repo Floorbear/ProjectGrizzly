@@ -40,7 +40,10 @@ UWeaponComponent::UWeaponComponent()
 void UWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	if(GetOwner()->HasAuthority())
+	{
+		SetUnarmed();
+	}
 	
 
 	// ...
@@ -55,13 +58,40 @@ void UWeaponComponent::BeginPlay()
 }
 
 
-void UWeaponComponent::SetWeapon(UCPP_WeaponInstance* _WeaponInstance)
+void UWeaponComponent::SetWeapon_Implementation(ACPP_WeaponInstance* _WeaponInstance)
+{
+	CurrentWeaponInstance = _WeaponInstance;
+	FWeaponData* _WeaponData = _WeaponInstance->GetWeaponData();
+	checkf(_WeaponData != nullptr,TEXT("Cant Find %s in WeaponDT"),*_WeaponInstance->GetWeaponData()->WeaponName);
+	// 무기 반동 데이터
+	SetWeapon_Inner(_WeaponInstance);
+}
+
+void UWeaponComponent::SetWeaponWithAmmo_Implementation(ACPP_WeaponInstance* _WeaponInstance, ACPP_Ammo* _Ammo)
+{
+	AmmoInstance = _Ammo;
+	SetWeapon(_WeaponInstance);
+}
+
+void UWeaponComponent::SetUnarmed_Implementation()
+{
+	SetWeaponWithAmmo(UnarmedWeaponInstance,nullptr);
+}
+
+// Called every frame
+void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	// ...
+}
+
+void UWeaponComponent::SetWeapon_Inner(ACPP_WeaponInstance* _WeaponInstance)
 {
 	CurrentWeaponName = FName(*_WeaponInstance->GetWeaponData()->WeaponName);
 	// FWeaponData* _WeaponData = Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance())->GetWeaponDT()->FindRow<FWeaponData>(_WeaponName, FString(""));
 	FWeaponData* _WeaponData = _WeaponInstance->GetWeaponData();
 	checkf(_WeaponData != nullptr,TEXT("Cant Find %s in WeaponDT"),*_WeaponInstance->GetWeaponData()->WeaponName);
-	CurrentWeaponInstance = _WeaponInstance;
 	ACPP_PlayableCharacter* Character = Cast<ACPP_PlayableCharacter>(GetOwner());
 	ensure(Character != NULL);
 	USkeletalMesh* WeaponMesh = LoadObject<USkeletalMesh>(NULL, *_WeaponData->WeaponSkeletalMesh.ToSoftObjectPath().ToString());
@@ -86,17 +116,10 @@ void UWeaponComponent::SetWeapon(UCPP_WeaponInstance* _WeaponInstance)
 		Character->GetFPWeaponMeshComponent()->SetVisibility(true);
 		Character->GetHandsMeshComponent()->SetVisibility(true);
 	}
-
-	//탄창
-	PerMagazineRounds = _WeaponData->Rounds;
-
-	//무기 발사 모드
-	CurrentWeaponMode = _WeaponData->WeaponModes[0];
-
-	// 무기 반동 데이터
+	//반동
 	WeaponRecoilCurve = LoadObject<UCurveVector>(NULL, *_WeaponData->WeaponRecoilCurve.ToSoftObjectPath().ToString());
 
-
+	//무기 발사모드는 무기 인스턴스에 옮김
 	
 
 	//--------------------------------------------------------------------------------------------------------------
@@ -178,23 +201,9 @@ void UWeaponComponent::SetWeapon(UCPP_WeaponInstance* _WeaponInstance)
 	}
 }
 
-void UWeaponComponent::SetWeaponWithAmmo(UCPP_WeaponInstance* _WeaponInstance, UCPP_Ammo* _Ammo)
+void UWeaponComponent::OnRep_CurrentWeaponInstance()
 {
-	AmmoInstance = _Ammo;
-	SetWeapon(_WeaponInstance);
-}
-
-void UWeaponComponent::SetUnarmed()
-{
-	SetWeaponWithAmmo(UnarmedWeaponInstance,nullptr);
-}
-
-// Called every frame
-void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
+	SetWeapon_Inner(CurrentWeaponInstance);
 }
 
 FWeaponData* UWeaponComponent::GetCurrentWeaponData() const
@@ -218,8 +227,9 @@ FWeaponAnim* UWeaponComponent::GetCurrentAnimData() const
 void UWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	// DOREPLIFETIME(UWeaponComponent, CurrentMagazineRounds);
-	// DOREPLIFETIME(UWeaponComponent, RemainRounds);
+	DOREPLIFETIME(UWeaponComponent, UnarmedWeaponInstance);
+	DOREPLIFETIME(UWeaponComponent, CurrentWeaponInstance);
+	DOREPLIFETIME(UWeaponComponent, AmmoInstance);
 }
 
 
@@ -312,10 +322,14 @@ class UDataTable* UWeaponComponent::GetWeaponAnimDT() const
 	return WeaponAnimDT;
 }
 
+void UWeaponComponent::SetAmmoInstance_Implementation(ACPP_Ammo* _AmmoInstance)
+{
+	AmmoInstance = _AmmoInstance;
+}
+
 void UWeaponComponent::SetCurrentMagazineRounds(int _NewValue)
 {
-	int CurrentMagazineRounds = FMath::Clamp(_NewValue, 0, PerMagazineRounds + 1);
-
+	int CurrentMagazineRounds = FMath::Clamp(_NewValue, 0, GetPerMagazineRounds() + 1);
 	CurrentWeaponInstance->SetRounds(CurrentMagazineRounds);
 	//총알이 없을때 Empty 애니메이션이 있다면 변경
 	if(IsMagazineEmpty() && HasEmptyIdleAnim() && GetOwner()->HasAuthority())
@@ -335,25 +349,25 @@ void UWeaponComponent::Reload_Inner()
 	int CurrentMagazineRounds = GetCurrentMagazineRounds();
 
 	//택티컬 리로딩
-	if (RemainRounds + CurrentMagazineRounds >= PerMagazineRounds)
+	if (RemainRounds + CurrentMagazineRounds >= GetPerMagazineRounds())
 	{
 		if (!IsMagazineEmpty())
 		{
 			RemainRounds += CurrentMagazineRounds;
-			if (RemainRounds == PerMagazineRounds)
+			if (RemainRounds == GetPerMagazineRounds())
 			{
-				CurrentMagazineRounds = PerMagazineRounds;
+				CurrentMagazineRounds = GetPerMagazineRounds();
 			}
 			else
 			{
-				CurrentMagazineRounds = PerMagazineRounds + 1;
+				CurrentMagazineRounds = GetPerMagazineRounds() + 1;
 			}
 			RemainRounds -= CurrentMagazineRounds;
 		}
 		else
 		{
 			RemainRounds += CurrentMagazineRounds;
-			CurrentMagazineRounds = PerMagazineRounds;
+			CurrentMagazineRounds = GetPerMagazineRounds();
 			RemainRounds -= CurrentMagazineRounds;
 		}
 	}
@@ -375,7 +389,7 @@ void UWeaponComponent::Reload_Inner()
 void UWeaponComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-	UnarmedWeaponInstance = Cast<UCPP_WeaponInstance>(UCPP_Item::CreateItem(TEXT("Weapon_Unarmed"),1));
+	UnarmedWeaponInstance = Cast<ACPP_WeaponInstance>(ACPP_Item::CreateItem(TEXT("Weapon_Unarmed"),GetWorld(),1));
 }
 
 void UWeaponComponent::Reload_RPC_Implementation()
