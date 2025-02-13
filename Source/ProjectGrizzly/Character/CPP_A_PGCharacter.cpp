@@ -92,17 +92,17 @@ UCPP_A_PGCharacter::UCPP_A_PGCharacter()
 	}
 	//ADSIdle
 	{
-		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_2_aim_0.StalkerAnim_root_norm_torso_2_aim_0"));
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_1_aim_0.StalkerAnim_root_norm_torso_1_aim_0"));
 		Pistol.ADS_IdleSequence = Data.Object;
 	}
 	//ADSForward
 	{
-		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_walk_fwd_0.StalkerAnim_root_norm_walk_fwd_0"));
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_1_aim_2.StalkerAnim_root_norm_torso_1_aim_2"));
 		Pistol.ADS_ForwardSequence = Data.Object;
 	}
 	//ADSBackward
 	{
-		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_walk_back_0.StalkerAnim_root_norm_walk_back_0"));
+		static auto Data = ConstructorHelpers::FObjectFinder<UAnimSequenceBase>(TEXT("/Game/ProjectGrizzly/Character/Model/Animations/StalkerAnim_root_norm_torso_1_aim_2_back.StalkerAnim_root_norm_torso_1_aim_2_back"));
 		Pistol.ADS_BackwardSequence = Data.Object;
 	}
 	//CrouchIdle

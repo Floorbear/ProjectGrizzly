@@ -23,7 +23,7 @@ void ACPP_WeaponInstance::InitWeapon()
 	WeaponData = WeaponDataDT->FindRow<FWeaponData>(WeaponName, FString(""));
 	checkf(WeaponData != nullptr, TEXT("%s is not included in DT"),WeaponName);
 	Rounds = WeaponData->Rounds;
-	WeaponMode = WeaponData->WeaponModes[0];
+	WeaponModeSet = WeaponData->WeaponModes;
 	InstanceMode = true;
 }
 

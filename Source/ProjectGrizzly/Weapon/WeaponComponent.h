@@ -79,8 +79,6 @@ private:
 
 	class UCurveVector* WeaponRecoilCurve;
 
-	EWeaponMode CurrentWeaponMode;
-
 public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category  = "DataTable")
 	FName CurrentWeaponName;
@@ -136,7 +134,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	EWeaponMode GetCurrentWeaponMode() const
 	{
-		return CurrentWeaponMode;
+		if(CurrentWeaponInstance == nullptr)
+			return EWeaponMode::SemiAuto;
+		return CurrentWeaponInstance->GetCurrentWeaponMode();
 	}
 
 	UFUNCTION(BlueprintCallable)

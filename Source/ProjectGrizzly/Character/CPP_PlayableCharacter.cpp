@@ -115,7 +115,6 @@ void ACPP_PlayableCharacter::SetRawLeaningAxis(float _LeaningAxis)
 	{
 		SetRawLeaningAxis_Server(_LeaningAxis);
 	}
-	
 	RawLeaningAxis = _LeaningAxis;
 }
 void ACPP_PlayableCharacter::UpdateBendDownDegree()

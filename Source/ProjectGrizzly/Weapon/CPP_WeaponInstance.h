@@ -57,7 +57,7 @@ private:
 	UPROPERTY(Replicated)
 	int Rounds = 0;
 
-	EWeaponMode WeaponMode;
+
 
 	//--------------------------------------------------------------------------------------------------
 	//										Equip
@@ -79,6 +79,17 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_IsEquipped)
 	bool bIsEquipped;
 
+	//--------------------------------------------------------------------------------------------------
+	//										FireMode
+	//--------------------------------------------------------------------------------------------------
+private:
+	TArray<EWeaponMode> WeaponModeSet;
+	int CurrentWeaponModeIndex = 0;
+public:
+	EWeaponMode GetCurrentWeaponMode() const
+	{
+		return WeaponModeSet[CurrentWeaponModeIndex];
+	}
 	//--------------------------------------------------------------------------------------------------
 	//										Network
 	//--------------------------------------------------------------------------------------------------
