@@ -19,6 +19,7 @@ class PROJECTGRIZZLY_API UWeaponComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+	friend class UCPP_GA_SwapWeapon;
 public:	
 	// Sets default values for this component's properties
 	UWeaponComponent();

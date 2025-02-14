@@ -137,6 +137,8 @@ void ACPP_PlayableCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	DOREPLIFETIME(ACPP_PlayableCharacter, bIsAI);
 	DOREPLIFETIME(ACPP_PlayableCharacter, CharacterModel);
 	DOREPLIFETIME(ACPP_PlayableCharacter, LeaningAxis);
+	DOREPLIFETIME(ACPP_PlayableCharacter, CurrentWeaponSlot);
+
 }
 void ACPP_PlayableCharacter::SetBendDownDegree_Server_Implementation(float _Degree)
 {
@@ -152,6 +154,19 @@ USkeletalMeshComponent* ACPP_PlayableCharacter::GetTPWeaponComponent() const
 {
 	return TPWeaponComponent;
 }
+
+
+
+bool ACPP_PlayableCharacter::IsUnarmed(ACPP_WeaponInstance* _WeaponInstance) const
+{
+	return GetWeaponComponent()->GetUnarmedInstance() == _WeaponInstance;
+}
+
+void ACPP_PlayableCharacter::SetCurrentWeaponSlot_Implementation(int _CurrentWeaponSlot)
+{
+	CurrentWeaponSlot = _CurrentWeaponSlot;
+}
+
 
 void ACPP_PlayableCharacter::Tick(float DeltaTime)
 {

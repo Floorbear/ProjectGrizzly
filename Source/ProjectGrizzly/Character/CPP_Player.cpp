@@ -13,6 +13,8 @@
 #include <Components/CapsuleComponent.h>
 #include "..\Weapon\WeaponComponent.h"
 #include <GameFramework/CharacterMovementComponent.h>
+
+#include "GameFramework/InputSettings.h"
 #include "Net\UnrealNetwork.h"
 
 #include "ProjectGrizzly/ProjectGrizzly.h"
@@ -134,6 +136,7 @@ void ACPP_Player::SetupPlayerInputComponent(class UInputComponent* PlayerInputCo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	PlayerInputComponent->BindAxis(TEXT("Leaning"),this, &ACPP_Player::SetRawLeaningAxis);
+	PlayerInputComponent->BindAction(TEXT("SwapWeapon"),IE_Pressed,this,&ACPP_Player::OnCurrentWeaponSlot);
 	BindASCInput();
 }
 
@@ -330,3 +333,55 @@ UFactionComponent* ACPP_Player::GetFactionComponent() const
 	}
 	return PS->GetFactionComponent();
 }
+
+
+void ACPP_Player::OnCurrentWeaponSlot()
+{
+	//클라이언트
+	UInputSettings* InputSettings = UInputSettings::GetInputSettings();
+	if(!InputSettings)
+		return;
+
+	//프로젝트 입력의 인풋 액션 배열을 가져욤
+	TArray<FInputActionKeyMapping> Mappings;
+	InputSettings->GetActionMappingByName(TEXT("SwapWeapon"),Mappings);
+	Algo::Reverse(Mappings);
+
+	//배열의 키값과 방금 누른 키를 비교
+	for(int i = 0; i < Mappings.Num() ; i++)
+	{
+		if(GetWorld()->GetFirstPlayerController()->PlayerInput->IsPressed(Mappings[i].Key))
+		{
+			CurrentWeaponSlot = i;
+			SetCurrentWeaponSlot(i);
+		}
+	}
+}
+
+ACPP_WeaponInstance* ACPP_Player::GetCurrentWeaponInstance()
+{
+	return 	GetWeaponComponent()->GetCurrentWeaponInstance();
+}
+
+ACPP_WeaponInstance* ACPP_Player::GetWeaponInstanceFromSlot(EWeaponSlot _Slot)
+{
+	AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetController());
+	checkf(PC,TEXT("PC is invalid"));
+	
+	UPlayerInventoryComponent* Inventory = PC->GetInventoryComponent();
+	ACPP_WeaponInstance* WeaponInstance = Inventory->GetWeaponInstanceFromSlot(_Slot);
+	check(WeaponInstance);
+	
+	return WeaponInstance;
+}
+
+void ACPP_Player::DrawWeapon(EWeaponSlot _Slot)
+{
+	Super::DrawWeapon(_Slot);
+	AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetController());
+	checkf(PC,TEXT("PC is invalid"));
+	UPlayerInventoryComponent* Inventory = PC->GetInventoryComponent();
+	
+	Inventory->DrawWeaponBySlot(_Slot);
+}
+

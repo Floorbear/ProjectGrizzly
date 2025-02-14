@@ -25,6 +25,8 @@ public:
 	//It means After Function EquipWeapon is called, Draw the equipped Weapon
 	UFUNCTION(BlueprintCallable,Server,Reliable)
 	void DrawWeapon(bool _IsPrimary);
+
+	void DrawWeaponBySlot(EWeaponSlot _Slot);
 	
 	// bIsPrimary : Main Weapon 
 	UFUNCTION(BlueprintCallable,Server,Reliable)
@@ -51,9 +53,21 @@ private:
 	
 	UPROPERTY(Replicated)
 	ACPP_WeaponInstance* UnarmedInstance = nullptr;
+
 	//--------------------------------------------------------------------------------------------------
-	//										Interface
+	//										Weapon - Interface
 	//--------------------------------------------------------------------------------------------------
+public:
+	ACPP_WeaponInstance* GetWeaponInstanceFromSlot(EWeaponSlot _Slot) const
+	{
+		if(_Slot == EWeaponSlot::Primary)
+			return PrimaryWeaponInstance;
+		else if(_Slot == EWeaponSlot::Secondary)
+			return SecondaryWeaponInstance;
+
+		checkf(false,TEXT("_Slot is invaild"));
+		return  nullptr;
+	}
 public:
 	UFUNCTION(BlueprintCallable)
 	bool IsUnarmedInstance(const ACPP_WeaponInstance* _WeaponInstance) const;
@@ -67,6 +81,10 @@ public:
 	{
 		return {PrimaryWeaponInstance,SecondaryWeaponInstance};
 	}
+	//--------------------------------------------------------------------------------------------------
+	//										Interface
+	//--------------------------------------------------------------------------------------------------
+
 
 	//--------------------------------------------------------------------------------------------------
 	//										Network

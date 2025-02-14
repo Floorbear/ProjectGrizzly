@@ -127,6 +127,7 @@ void UWeaponComponent::SetWeapon_Inner(ACPP_WeaponInstance* _WeaponInstance)
 	//--------------------------------------------------------------------------------------------------------------
 	FWeaponAnim* WeaponAnim = GetWeaponAnimDT()->FindRow<FWeaponAnim>(CurrentWeaponName,FString(""));
 	check(WeaponAnim != nullptr);
+	
 	//1인칭 오른손 소캣 모드
 	FDetachmentTransformRules DetachmentTransformRules(EDetachmentRule::KeepRelative,EDetachmentRule::KeepRelative,EDetachmentRule::KeepWorld,true);
 	FAttachmentTransformRules AttachmentTransformRules(EAttachmentRule::KeepRelative,EAttachmentRule::KeepRelative,EAttachmentRule::KeepWorld,true);
@@ -148,13 +149,14 @@ void UWeaponComponent::SetWeapon_Inner(ACPP_WeaponInstance* _WeaponInstance)
 		AnimInstance->LeftHandIKAlpha = 1.f;
 	else
 		AnimInstance->LeftHandIKAlpha = 0.f;
-		
+
+	
 	UAnimMontage* WeaponShoot = LoadObject<UAnimMontage>(NULL, *WeaponAnim->Weapon_Shoot.ToSoftObjectPath().ToString());
 	FP_Weapon_MontageMap.Add(TEXT("Shoot"), WeaponShoot);
 	UAnimMontage* HandsShoot = LoadObject<UAnimMontage>(NULL, *WeaponAnim->Hands_Shoot.ToSoftObjectPath().ToString());
 	FP_Hands_MontageMap.Add(TEXT("Shoot"), HandsShoot);
 
-	//Empty 애니메이션이 존재하면 로딩
+	//총의 Idle이 Empty면 변하는 애니메이션이 존재하면 로딩
 	if(HasEmptyIdleAnim())
 	{
 		LoadObject<UAnimSequenceBase>(NULL, *WeaponAnim->Weapon_EmptyIdle.ToSoftObjectPath().ToString());
@@ -173,8 +175,15 @@ void UWeaponComponent::SetWeapon_Inner(ACPP_WeaponInstance* _WeaponInstance)
 	UAnimMontage* WeaponLastShoot = LoadObject<UAnimMontage>(NULL, *WeaponAnim->Weapon_Shoot.ToSoftObjectPath().ToString());
 	FP_Weapon_MontageMap.Add(TEXT("Shoot"), WeaponShoot);
 
+
+
 	LoadFPAnim(WeaponAnim->Weapon_Reload, WeaponAnim->Hands_Reload, TEXT("Reload"));
 	LoadFPAnim(WeaponAnim->Weapon_TacReload, WeaponAnim->Hands_TacReload, TEXT("TacReload"));
+	//드로우 & 언드로우 애니메이션
+	UAnimMontage* Draw = LoadObject<UAnimMontage>(NULL, *WeaponAnim->AM_Hands_Draw.ToSoftObjectPath().ToString());
+	FP_Hands_MontageMap.Add(TEXT("Draw"), Draw);
+	UAnimMontage* Undraw = LoadObject<UAnimMontage>(NULL, *WeaponAnim->AM_Hands_Undraw.ToSoftObjectPath().ToString());
+	FP_Hands_MontageMap.Add(TEXT("Undraw"), Undraw);
 
 	//손 위치 & 회전
 	Character->SetIdleHandsLocation(_WeaponData->IdleHandsLocation);

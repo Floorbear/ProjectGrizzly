@@ -13,7 +13,23 @@ void UPlayerInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 	bWantsInitializeComponent = true;
 }
-	
+
+void UPlayerInventoryComponent::DrawWeaponBySlot(EWeaponSlot _Slot)
+{
+	if(_Slot == EWeaponSlot::Primary)
+	{
+		DrawWeapon(true);
+		return;
+	}
+	else if(_Slot == EWeaponSlot::Secondary)
+	{
+		DrawWeapon(false);
+		return;
+	}
+
+	check(false);
+}
+
 void UPlayerInventoryComponent::DrawWeapon_Implementation(bool _IsPrimary)
 {
 	ACPP_WeaponInstance* CurrentWeaponInstance = nullptr;

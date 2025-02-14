@@ -41,5 +41,7 @@ enum class EPGAbilityInputID : uint8
 	//Leaning
 	Leaning			UMETA(DisplayName = "Leaning"),
 
-	Jump			UMETA(DisplayName = "Jump")
+	Jump			UMETA(DisplayName = "Jump"),
+
+	SwapWeapon			UMETA(DisplayName = "SwapWeapon")
 };

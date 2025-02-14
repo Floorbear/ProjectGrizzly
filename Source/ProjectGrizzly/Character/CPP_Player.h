@@ -83,6 +83,14 @@ public:
 	EFaction GetFaction() const override;
 	UFactionComponent* GetFactionComponent() const override;
 
+	//--------------------------------------------------------------------------------------------------
+	//										SwapWeapon
+	//--------------------------------------------------------------------------------------------------
+public:
+	void OnCurrentWeaponSlot();
+	virtual ACPP_WeaponInstance* GetCurrentWeaponInstance() override;
+	virtual ACPP_WeaponInstance* GetWeaponInstanceFromSlot(EWeaponSlot _Slot) override;
+	virtual void DrawWeapon(EWeaponSlot _Slot) override;
 
 
 

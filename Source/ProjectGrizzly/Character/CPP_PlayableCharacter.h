@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "CPP_PGCharacter.h"
 #include <Engine/DataTable.h>
+
+#include "ProjectGrizzly/Weapon/CPP_WeaponInstance.h"
 #include "CPP_PlayableCharacter.generated.h"
 
 /**
@@ -38,7 +40,7 @@ class PROJECTGRIZZLY_API ACPP_PlayableCharacter : public ACPP_PGCharacter
 public:
 	ACPP_PlayableCharacter();
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual  void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 
 	void Tick(float DeltaTime) override;
@@ -262,9 +264,9 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Unreliable)
 	virtual void SetBendDownDegree_Server(float _Degree);
 
-	// --------------------
-	// ----- Weapon -----
-	// --------------------
+	//--------------------------------------------------------------------------------------------------
+	//										Weapon
+	//--------------------------------------------------------------------------------------------------
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
 	class UWeaponComponent* WeaponComponent;
@@ -284,6 +286,24 @@ public:
 	UFUNCTION(BlueprintCallable)
 	class USkeletalMeshComponent* GetFPWeaponMeshComponent();
 
+	//--------------------------------------------------------------------------------------------------
+	//										WeaponSlot 
+	//--------------------------------------------------------------------------------------------------
+public:
+	int GetCurrentWeaponSlot() const
+	{
+		return CurrentWeaponSlot;
+	}
+	UFUNCTION(Server,Reliable)
+	void SetCurrentWeaponSlot(int _CurrentWeaponSlot);
+
+	virtual ACPP_WeaponInstance* GetCurrentWeaponInstance(){return nullptr;}
+	virtual ACPP_WeaponInstance* GetWeaponInstanceFromSlot(EWeaponSlot _Slot){return nullptr;}
+	virtual bool IsUnarmed(ACPP_WeaponInstance* _WeaponInstance) const;
+	virtual void DrawWeapon(EWeaponSlot _Slot){};
+protected:
+	UPROPERTY(Replicated)
+	int CurrentWeaponSlot = 0;
 	// ------------------------------
 	//				AI
 	// ------------------------------

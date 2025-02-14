@@ -7,6 +7,12 @@
 #include <Curves\CurveVector.h>
 #include "WeaponData.generated.h"
 
+UENUM(BlueprintType)
+enum class EWeaponSlot : uint8
+{
+	Primary	UMETA(DisplayName = "Primary"),
+	Secondary	UMETA(DisplayName = "Secondary")	
+};
 
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
@@ -103,6 +109,10 @@ public:
 	TSoftObjectPtr<UAnimMontage> Weapon_TacReload;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	TSoftObjectPtr<UAnimMontage> Hands_TacReload;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TSoftObjectPtr<UAnimMontage> AM_Hands_Draw;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TSoftObjectPtr<UAnimMontage> AM_Hands_Undraw;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	TSoftObjectPtr<UAnimSequenceBase> Hands_WalkForward;
