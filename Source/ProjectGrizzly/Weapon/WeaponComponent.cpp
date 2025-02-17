@@ -88,6 +88,7 @@ void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 void UWeaponComponent::SetWeapon_Inner(ACPP_WeaponInstance* _WeaponInstance)
 {
+	CurrentWeaponInstance = _WeaponInstance;
 	CurrentWeaponName = FName(*_WeaponInstance->GetWeaponData()->WeaponName);
 	// FWeaponData* _WeaponData = Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance())->GetWeaponDT()->FindRow<FWeaponData>(_WeaponName, FString(""));
 	FWeaponData* _WeaponData = _WeaponInstance->GetWeaponData();

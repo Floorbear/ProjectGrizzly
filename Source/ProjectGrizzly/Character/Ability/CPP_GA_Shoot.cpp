@@ -167,6 +167,21 @@ void UCPP_GA_Shoot::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
 }
 
+bool UCPP_GA_Shoot::CommitCheck(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, FGameplayTagContainer* OptionalRelevantTags)
+{
+	if(!Super::CommitCheck(Handle, ActorInfo, ActivationInfo, OptionalRelevantTags))
+	{
+		return false;
+	}
+	if(GetCharacter()->IsUnarmed(GetCharacter()->GetCurrentWeaponInstance()))
+	{
+		return false;
+	}
+
+	return true;
+}
+
 void UCPP_GA_Shoot::OnEndAbility(FGameplayEventData Payload)
 {
 	if (CanContinueShoot())

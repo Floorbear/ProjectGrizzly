@@ -14,6 +14,7 @@
 #include "..\Weapon\WeaponComponent.h"
 #include <GameFramework/CharacterMovementComponent.h>
 
+#include "Ability/CPP_GA_SwapWeapon.h"
 #include "GameFramework/InputSettings.h"
 #include "Net\UnrealNetwork.h"
 
@@ -375,13 +376,20 @@ ACPP_WeaponInstance* ACPP_Player::GetWeaponInstanceFromSlot(EWeaponSlot _Slot)
 	return WeaponInstance;
 }
 
-void ACPP_Player::DrawWeapon(EWeaponSlot _Slot)
+void ACPP_Player::TryActivateSwapWeapon(EWeaponSlot _Slot)
 {
-	Super::DrawWeapon(_Slot);
+	Super::TryActivateSwapWeapon(_Slot);
+	CurrentWeaponSlot = static_cast<int>(_Slot);
+	SetCurrentWeaponSlot(CurrentWeaponSlot);
+	GetAbilitySystemComponent()->TryActivateAbilityByClass(UCPP_GA_SwapWeapon::StaticClass());
+}
+
+void ACPP_Player::SwapWeapon(EWeaponSlot _Slot)
+{
+	Super::SwapWeapon(_Slot);
 	AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetController());
 	checkf(PC,TEXT("PC is invalid"));
 	UPlayerInventoryComponent* Inventory = PC->GetInventoryComponent();
-	
-	Inventory->DrawWeaponBySlot(_Slot);
+	Inventory->SwapWeaponBySlot(_Slot);
 }
 

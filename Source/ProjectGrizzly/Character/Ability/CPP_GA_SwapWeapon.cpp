@@ -12,11 +12,29 @@ UCPP_GA_SwapWeapon::UCPP_GA_SwapWeapon()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	InputID = EPGAbilityInputID::SwapWeapon;
+
+	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.SwapWeapon")));
+	
+	CancelAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.ADS")));
+	CancelAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.Reload")));
+	
+	BlockAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.ADS")));
+	BlockAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.Shoot")));
+	BlockAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.Reload")));
+}
+
+void UCPP_GA_SwapWeapon::DoUndraw()
+{
+	GetCharacter()->GetHandsMeshComponent()->GetAnimInstance()->Montage_Play(GetCurrentWeaponUndrawAM());
+	auto* Task = UAbilityTask_WaitGameplayEvent::
+		WaitGameplayEvent(this,FGameplayTag::RequestGameplayTag(TEXT("Event.Montage.SwapWeapon.OnUndrawCompleted")));
+	Task->EventReceived.AddDynamic(this,&UCPP_GA_SwapWeapon::OnUndrawCompleted);
+	Task->ReadyForActivation();
 }
 
 void UCPP_GA_SwapWeapon::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+                                         const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+                                         const FGameplayEventData* TriggerEventData)
 {
 	if(!K2_CommitAbility())
 	{
@@ -28,17 +46,12 @@ void UCPP_GA_SwapWeapon::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	if(IsUnarmed(SourceWeaponInstance))
 	{
 		// Do Draw
-		
+		DoDraw();
 		return;
 	}
 	
-	//UnDraw
-	GetCharacter()->GetHandsMeshComponent()->GetAnimInstance()->Montage_Play(GetCurrentWeaponUndrawAM());
-	auto* Task = UAbilityTask_WaitGameplayEvent::
-	WaitGameplayEvent(this,FGameplayTag::RequestGameplayTag(TEXT("Event.Montage.SwapWeapon.OnUndrawCompleted")));
-	Task->EventReceived.AddDynamic(this,&UCPP_GA_SwapWeapon::OnUndrawCompleted);
-	Task->ReadyForActivation();
-	
+	// Do UnDraw
+	DoUndraw();
 }
 
 bool UCPP_GA_SwapWeapon::CommitCheck(const FGameplayAbilitySpecHandle Handle,
@@ -48,12 +61,17 @@ bool UCPP_GA_SwapWeapon::CommitCheck(const FGameplayAbilitySpecHandle Handle,
 	if(!Super::CommitCheck(Handle, ActorInfo, ActivationInfo, OptionalRelevantTags))
 		return false;
 	
-	TargetSlot= static_cast<EWeaponSlot>(GetCharacter()->GetCurrentWeaponSlot());
+	TargetSlot= GetCharacter()->GetCurrentWeaponSlot();
 	
 	TargetWeaponInstance = GetCharacter()->GetWeaponInstanceFromSlot(TargetSlot);
 	SourceWeaponInstance = GetCharacter()->GetCurrentWeaponInstance();
-	
-	return TargetWeaponInstance != SourceWeaponInstance;
+
+	if(TargetWeaponInstance == SourceWeaponInstance)
+	{
+		return false;
+	}
+
+	return  true;
 }
 
 void UCPP_GA_SwapWeapon::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -83,9 +101,9 @@ UAnimMontage* UCPP_GA_SwapWeapon::GetCurrentWeaponDrawAM() const
 	return  AM;
 }
 
-void UCPP_GA_SwapWeapon::OnUndrawCompleted(FGameplayEventData _Data)
+void UCPP_GA_SwapWeapon::DoDraw()
 {
-	GetCharacter()->DrawWeapon(TargetSlot);
+	GetCharacter()->SwapWeapon(TargetSlot);
 	GetCharacter()->GetWeaponComponent()->SetWeapon_Inner(TargetWeaponInstance);
 	if(IsUnarmed((TargetWeaponInstance)))
 	{
@@ -101,18 +119,23 @@ void UCPP_GA_SwapWeapon::OnUndrawCompleted(FGameplayEventData _Data)
 	BlendArgs.BlendTime = 0;
 	GetCharacter()->GetHandsMeshComponent()->GetAnimInstance()->Montage_PlayWithBlendIn(GetCurrentWeaponDrawAM(),BlendArgs);
 	auto* EndTask = UAbilityTask_WaitGameplayEvent::
-	WaitGameplayEvent(this,FGameplayTag::RequestGameplayTag(TEXT("Event.Montage.SwapWeapon.OnDrawCompleted")));
+		WaitGameplayEvent(this,FGameplayTag::RequestGameplayTag(TEXT("Event.Montage.SwapWeapon.OnDrawCompleted")));
 	EndTask->EventReceived.AddDynamic(this,&UCPP_GA_SwapWeapon::OnDrawCompleted);
 	EndTask->ReadyForActivation();
 
 	auto* StartTask = UAbilityTask_WaitGameplayEvent::
-WaitGameplayEvent(this,FGameplayTag::RequestGameplayTag(TEXT("Event.Montage.SwapWeapon.OnDrawStarted")));
+		WaitGameplayEvent(this,FGameplayTag::RequestGameplayTag(TEXT("Event.Montage.SwapWeapon.OnDrawStarted")));
 	StartTask->EventReceived.AddDynamic(this,&UCPP_GA_SwapWeapon::OnDrawStarted);
 	StartTask->ReadyForActivation();
 
 	//·»´õ¸µ off
 	GetCharacter()->GetFPWeaponMeshComponent()->SetVisibility(false);
 	GetCharacter()->GetHandsMeshComponent()->SetVisibility(false);
+}
+
+void UCPP_GA_SwapWeapon::OnUndrawCompleted(FGameplayEventData _Data)
+{
+	DoDraw();
 }
 
 void UCPP_GA_SwapWeapon::OnDrawCompleted(FGameplayEventData _Data)

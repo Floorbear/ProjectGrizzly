@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CPP_PlayableCharacter.h"
 #include "InventoryComponent.h"
 #include "..\Weapon/CPP_WeaponInstance.h"
 #include "..\Weapon/CPP_Ammo.h"
@@ -17,25 +18,31 @@ class PROJECTGRIZZLY_API UPlayerInventoryComponent : public UInventoryComponent
 	GENERATED_BODY()
 
 	void BeginPlay() override;
-
+	//--------------------------------------------------------------------------------------------------
+	//										Inner Interface
+	//--------------------------------------------------------------------------------------------------
+private:
+	ACPP_PlayableCharacter* GetPlayableCharacter() const; 
 	//--------------------------------------------------------------------------------------------------
 	//										Weapon
 	//--------------------------------------------------------------------------------------------------
 public:
+	UFUNCTION(BlueprintCallable)
+	void TryActivateSwapWeapon(EWeaponSlot _Slot);
 	//It means After Function EquipWeapon is called, Draw the equipped Weapon
 	UFUNCTION(BlueprintCallable,Server,Reliable)
-	void DrawWeapon(bool _IsPrimary);
+	void SwapWeapon(bool _IsPrimary);
 
-	void DrawWeaponBySlot(EWeaponSlot _Slot);
+	void SwapWeaponBySlot(EWeaponSlot _Slot);
 	
 	// bIsPrimary : Main Weapon 
 	UFUNCTION(BlueprintCallable,Server,Reliable)
-	void EquipWeapon(ACPP_WeaponInstance* _WeaponInstance, bool bIsPrimary = true);
+	void EquipWeapon(ACPP_WeaponInstance* _WeaponInstance, EWeaponSlot _Slot);
 
 	UFUNCTION(BlueprintCallable,Server,Reliable)
 	void UnEquipWeapon(ACPP_WeaponInstance* WeaponInstance);
 	
-	void UnEquipWeapon(bool bIsPrimary);
+	void UnEquipWeapon_Inner(EWeaponSlot _Slot);
 
 public:
 	UFUNCTION(Server,reliable)
@@ -45,10 +52,10 @@ private:
 	//
 	ACPP_Ammo* FindMatchingAmmo(const ACPP_WeaponInstance* _WeaponInstance);
 	//비무장 상태면 Unarmed Instance로 할당됨
-	UPROPERTY(ReplicatedUsing = OnRep_WeaponInstance)
+	UPROPERTY(ReplicatedUsing = OnRep_PrimaryWeaponInstance)
 	ACPP_WeaponInstance* PrimaryWeaponInstance = nullptr;
 	
-	UPROPERTY(ReplicatedUsing = OnRep_WeaponInstance)
+	UPROPERTY(ReplicatedUsing = OnRep_SecondaryWeaponInstance)
 	ACPP_WeaponInstance* SecondaryWeaponInstance = nullptr;
 	
 	UPROPERTY(Replicated)
@@ -74,6 +81,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	ACPP_WeaponInstance* GetUnarmedInstance() const;
+	bool IsCurrentWeaponSlot(EWeaponSlot _WeaponSlot) const;
 
 	// 0 : Primary , 1 : Secondary
 	UFUNCTION(BlueprintCallable)
@@ -90,6 +98,10 @@ public:
 	//										Network
 	//--------------------------------------------------------------------------------------------------
 private:
+	UFUNCTION()
+	void OnRep_PrimaryWeaponInstance();
+	UFUNCTION()
+	void OnRep_SecondaryWeaponInstance();
 	UFUNCTION()
 	void OnRep_WeaponInstance() const;
 	UFUNCTION()

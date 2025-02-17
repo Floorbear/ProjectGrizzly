@@ -18,6 +18,7 @@ class PROJECTGRIZZLY_API UCPP_GA_SwapWeapon : public UGrizzlyAbility
 
 public:
 	UCPP_GA_SwapWeapon();
+	void DoUndraw();
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -33,8 +34,10 @@ private:
 	bool IsUnarmed(class ACPP_WeaponInstance* _WeaponInstance) const;
 	UAnimMontage* GetCurrentWeaponUndrawAM() const;
 	UAnimMontage* GetCurrentWeaponDrawAM() const;
+	void DoDraw();
+	bool StartDraw();
 
-	
+
 	UFUNCTION()
 	void OnUndrawCompleted(FGameplayEventData _Data);
 	UFUNCTION()

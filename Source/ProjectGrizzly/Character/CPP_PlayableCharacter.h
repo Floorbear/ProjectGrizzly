@@ -290,9 +290,9 @@ public:
 	//										WeaponSlot 
 	//--------------------------------------------------------------------------------------------------
 public:
-	int GetCurrentWeaponSlot() const
+	EWeaponSlot GetCurrentWeaponSlot() const
 	{
-		return CurrentWeaponSlot;
+		return static_cast<EWeaponSlot>(CurrentWeaponSlot);
 	}
 	UFUNCTION(Server,Reliable)
 	void SetCurrentWeaponSlot(int _CurrentWeaponSlot);
@@ -300,7 +300,9 @@ public:
 	virtual ACPP_WeaponInstance* GetCurrentWeaponInstance(){return nullptr;}
 	virtual ACPP_WeaponInstance* GetWeaponInstanceFromSlot(EWeaponSlot _Slot){return nullptr;}
 	virtual bool IsUnarmed(ACPP_WeaponInstance* _WeaponInstance) const;
-	virtual void DrawWeapon(EWeaponSlot _Slot){};
+	UFUNCTION(BlueprintCallable,Category = "WeaponSlot")
+	virtual void TryActivateSwapWeapon(EWeaponSlot _Slot){};
+	virtual void SwapWeapon(EWeaponSlot _Slot){};
 protected:
 	UPROPERTY(Replicated)
 	int CurrentWeaponSlot = 0;

@@ -90,7 +90,10 @@ public:
 	void OnCurrentWeaponSlot();
 	virtual ACPP_WeaponInstance* GetCurrentWeaponInstance() override;
 	virtual ACPP_WeaponInstance* GetWeaponInstanceFromSlot(EWeaponSlot _Slot) override;
-	virtual void DrawWeapon(EWeaponSlot _Slot) override;
+	virtual void TryActivateSwapWeapon(EWeaponSlot _Slot) override;
+
+protected:
+	virtual void SwapWeapon(EWeaponSlot _Slot) override;
 
 
 
