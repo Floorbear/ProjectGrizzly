@@ -6,6 +6,7 @@
 #include "CPP_PGCharacter.h"
 #include "AIModule\Classes\BehaviorTree\BlackboardComponent.h"
 #include "CPP_AIPlayableCharacter.h"
+#include "PlayerInventoryComponent.h"
 #include "Kismet\GameplayStatics.h"
 #include "Kismet\KismetMathLibrary.h"
 
@@ -15,6 +16,9 @@ ACPP_AI_PlayableCharacter_PC::ACPP_AI_PlayableCharacter_PC()
 
 	static auto DT = ConstructorHelpers::FObjectFinder<UDataTable>(TEXT("/Game/ProjectGrizzly/Character/AI/Patrol/DT_PatrolRoute.DT_PatrolRoute"));
 	PatrolDT = DT.Object;
+
+	PlayerInventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("InventoryComponent"));
+	PlayerInventoryComponent->SetIsReplicated(true);
 }
 
 void ACPP_AI_PlayableCharacter_PC::PostInitializeComponents()

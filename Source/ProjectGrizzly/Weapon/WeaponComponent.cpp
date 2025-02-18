@@ -40,10 +40,6 @@ UWeaponComponent::UWeaponComponent()
 void UWeaponComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	if(GetOwner()->HasAuthority())
-	{
-		SetUnarmed();
-	}
 	
 
 	// ...
@@ -240,6 +236,7 @@ void UWeaponComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UWeaponComponent, UnarmedWeaponInstance);
 	DOREPLIFETIME(UWeaponComponent, CurrentWeaponInstance);
 	DOREPLIFETIME(UWeaponComponent, AmmoInstance);
+	DOREPLIFETIME(UWeaponComponent, bIsInfinityMode);
 }
 
 
@@ -390,10 +387,20 @@ void UWeaponComponent::Reload_Inner()
 
 	//무기 인스턴스에 총알 설정
 	CurrentWeaponInstance->SetRounds(CurrentMagazineRounds);
-	AmmoInstance->SetAmount(RemainRounds);
+	
+	if(!bIsInfinityMode)
+	{
+		AmmoInstance->SetAmount(RemainRounds);
+	}
 	//Idle애니메이션으로 변경 : Empty Idle을 사용했을경우 재장전 하고 정상 Idle로 돌아가야함
 	SetAnimIdle();
+}
 
+void UWeaponComponent::SetInfinityAmmo_Implementation(ACPP_WeaponInstance* _Weapon)
+{
+	AmmoInstance = Cast<ACPP_Ammo>(ACPP_Item::CreateItem(_Weapon->GetAmmoName(),GetWorld(),999));
+	check(AmmoInstance);
+	bIsInfinityMode = true;
 }
 
 void UWeaponComponent::InitializeComponent()

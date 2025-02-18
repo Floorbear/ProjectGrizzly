@@ -108,6 +108,9 @@ public:
 	//인스턴스
 	UFUNCTION(BlueprintCallable,Server,Reliable)
 	void RemoveItemInstanceFromInventory(ACPP_Item* _ItemInstance);
+
+	UFUNCTION(BlueprintCallable)
+	ACPP_Item* FindItemFromInventory(FName _ItemName);
 	
 
 	//_HoriSize : 인벤토리의 가로 사이즈

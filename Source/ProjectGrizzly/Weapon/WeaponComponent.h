@@ -199,9 +199,6 @@ public:
 		}
 		return AmmoInstance;
 	}
-	
-	// UPROPERTY(EditAnywhere,BlueprintReadWrite,Category  = "Magazine", meta = (AllowPrivateAccess = "true"))
-	// int PerMagazineRounds;
 
 public:
 	UFUNCTION(BlueprintCallable)
@@ -264,7 +261,14 @@ public:
 			Reload_RPC();
 		}
 	}
+	
 
+public:
+	UFUNCTION(BlueprintCallable, Category = "Ammo" , Server, Reliable)
+	void SetInfinityAmmo(ACPP_WeaponInstance* _Weapon);
+private:
+	UPROPERTY(Replicated)
+	bool bIsInfinityMode = false;
 	//--------------------------------------------------------------------------------------------------
 	//										Network
 	//--------------------------------------------------------------------------------------------------

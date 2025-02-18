@@ -75,7 +75,7 @@ void UCPP_GA_Reload::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 
 	UAbilityTask_PlayMontageAndWait* Task;
 	//로컬 머신에선 TP 재장전 애니메이션 재생 X
-	if(!IsLocallyControlled())
+	if(!IsLocallyControlled() || IsAIControl() )
 	{
 		if (bIsCrouching)
 		{

@@ -17,6 +17,8 @@
 #include "ProjectGrizzly/ProjectGrizzly.h"
 //ToDo : AI쪽으로 가야할 헤더
 #include "AIModule\Classes\AIController.h"
+#include "Blueprint/AIBlueprintHelperLibrary.h"
+
 ACPP_AIPlayableCharacter::ACPP_AIPlayableCharacter()
 {
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
@@ -56,6 +58,7 @@ void ACPP_AIPlayableCharacter::BeginPlay()
 {
 
 	Super::BeginPlay();
+
 	//(리스폰 할 경우) 이전 이펙트 삭제
 	if (HasAuthority())
 	{
@@ -114,6 +117,30 @@ void ACPP_AIPlayableCharacter::SpeedChanged(const struct FOnAttributeChangeData&
 bool ACPP_AIPlayableCharacter::IsAlive() const
 {
 	return GetHealth() > 0.f;
+}
+
+ACPP_AIPlayableCharacter* ACPP_AIPlayableCharacter::SpawnAIPlayableCharacter(UObject* WorldContextObject, TSubclassOf<ACPP_AIPlayableCharacter> _Class, FAIPlayableCharacterSpawnParameter Parameter,UBehaviorTree* BehaviorTree, FVector Location, FRotator Rotation, bool bNoCollisionFail, AActor *Owner)
+{
+	ACPP_AIPlayableCharacter* NewAICharacter = nullptr;
+	NewAICharacter = Cast<ACPP_AIPlayableCharacter>(UAIBlueprintHelperLibrary::SpawnAIFromClass(WorldContextObject,_Class,BehaviorTree,Location,Rotation,bNoCollisionFail,Owner));
+	check(NewAICharacter);
+	NewAICharacter->SetCharacterModel(Parameter.Model);
+	NewAICharacter->GetFactionComponent()->SetFaction(Parameter.Faction);
+	ACPP_AI_PlayableCharacter_PC* PC = Cast<ACPP_AI_PlayableCharacter_PC>(NewAICharacter->GetAIController());
+	check(PC);
+	UPlayerInventoryComponent* Inventory = PC->GetInventoryComponent();
+	check(Inventory);
+
+	//무기 추가
+	Inventory->AddItemToInventory(Parameter.Weapon);
+	ACPP_WeaponInstance* Weapon = Cast<ACPP_WeaponInstance>(Inventory->FindItemFromInventory(Parameter.Weapon));
+	check(Weapon);
+	Inventory->EquipWeapon(Weapon,EWeaponSlot::Primary);
+	Inventory->SwapWeapon(true);
+	
+	NewAICharacter->GetWeaponComponent()->SetInfinityAmmo(Weapon);
+	
+	return NewAICharacter;
 }
 
 bool ACPP_AIPlayableCharacter::IsDead() const

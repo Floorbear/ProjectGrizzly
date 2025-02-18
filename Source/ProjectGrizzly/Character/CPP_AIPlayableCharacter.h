@@ -8,6 +8,19 @@
 /**
  *
  */
+
+USTRUCT(BlueprintType)
+struct FAIPlayableCharacterSpawnParameter
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	EFaction Faction;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	ECharacterModel Model;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	FName Weapon;
+};
+
 UCLASS()
 class PROJECTGRIZZLY_API ACPP_AIPlayableCharacter : public ACPP_PlayableCharacter
 {
@@ -30,6 +43,12 @@ private:
 	UFUNCTION(BlueprintCallable)
 	bool IsAlive() const;
 
+	//--------------------------------------------------------------------------------------------------
+	//										SpawnAIActor
+	//--------------------------------------------------------------------------------------------------
+public:
+	UFUNCTION(BlueprintCallable, Category="AI", meta=(WorldContext="WorldContextObject", UnsafeDuringActorConstruction="true"))
+	static ACPP_AIPlayableCharacter* SpawnAIPlayableCharacter(UObject* WorldContextObject,TSubclassOf<ACPP_AIPlayableCharacter> _Class, FAIPlayableCharacterSpawnParameter Parameter,UBehaviorTree* BehaviorTree, FVector Location, FRotator Rotation = FRotator::ZeroRotator, bool bNoCollisionFail = false, AActor* _Owner = nullptr);
 
 
 	UFUNCTION(BlueprintCallable)

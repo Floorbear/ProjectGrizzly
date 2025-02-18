@@ -100,6 +100,15 @@ void UInventoryComponent::RemoveItemInstanceFromInventory_Implementation(ACPP_It
 	return;
 }
 
+ACPP_Item* UInventoryComponent::FindItemFromInventory(FName _ItemName)
+{
+	if(!Inventory.Contains(_ItemName))
+	{
+		return nullptr;
+	}
+	return *Inventory.Find(_ItemName);
+}
+
 // _HoriSize : UI의 가로 칸의 수
 TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) const
 {

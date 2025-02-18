@@ -14,6 +14,8 @@
  *
  */
 
+class UPlayerInventoryComponent;
+
 UENUM(BlueprintType)
 enum class EDifficulty : uint8
 {
@@ -42,6 +44,7 @@ struct  FThreatenResult
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FThreatenResult")
 	class ACPP_PGCharacter* Causer = NULL;
 };
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDele_OnThreatened, FThreatenResult&, ThreatenResult);
 
 
@@ -162,10 +165,16 @@ public:
 	//UPROPERTY(EditAnywhere,Category = Difficulty)
 	//static TEnumAsByte<enum EDifficulty> CurrentDifficulty; //ToDo : GameInstance로 가야함
 
-	// ----------------------------------
-	//				Deveolopment
-	// ----------------------------------
+	//--------------------------------------------------------------------------------------------------
+	//										Inventory
+	//--------------------------------------------------------------------------------------------------
 
-
+public: UPlayerInventoryComponent* GetInventoryComponent() const
+{
+	check(PlayerInventoryComponent);
+	return PlayerInventoryComponent;
+}
+private:
+	UPlayerInventoryComponent* PlayerInventoryComponent = nullptr;
 
 };

@@ -235,6 +235,10 @@ void ACPP_PlayableCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	TPCamera->SetActive(false);
+	
+	//게임 시작시 디폴트는 Unarmed
+	GetWeaponComponent()->SetUnarmed();
+	
 	if (!IsLocallyControlled())
 	{
 		ShadowModelComponent->SetActive(false);
