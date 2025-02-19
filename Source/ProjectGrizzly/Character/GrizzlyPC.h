@@ -35,6 +35,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsMyComputer();
 
+	//--------------------------------------------------------------------------------------------------
+	//										Inventory
+	//--------------------------------------------------------------------------------------------------
+public:
+	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
+	void ShowInventory(FInventoryUI_Parameter _Parameter);
+	virtual void ShowInventory_Implementation(FInventoryUI_Parameter _Parameter){};
+	
+	UFUNCTION(BlueprintCallable)
 	UPlayerInventoryComponent* GetInventoryComponent() const
 	{
 		return InventoryComponent;

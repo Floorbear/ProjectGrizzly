@@ -19,6 +19,7 @@
 #include "Net\UnrealNetwork.h"
 
 #include "ProjectGrizzly/ProjectGrizzly.h"
+#include "ProjectGrizzly/Item/Interactable.h"
 
 //Client만 호출
 void ACPP_Player::OnRep_PlayerState()
@@ -233,25 +234,8 @@ void ACPP_Player::HandSway(float _DeltaTime)
 	GetHandsMeshComponent()->SetRelativeRotation(TargetRotation.Quaternion());
 }
 
-void ACPP_Player::UpdateHighReady(float _DeltaTime)
+void ACPP_Player::UpdateHighReady(const FVector& CameraLocation, const FHitResult& HitResult, const bool bHit)
 {
-	//거리에 따른 하이레디 float 설정
-
-	//전방에 빔을 쏴서
-	// (벽까지의 거리 / 하이레디 발동 거리) < 1.f 면 하이레디 상태로 진입
-	ETraceTypeQuery TraceType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility);
-
-	FTransform CameraTransform = GetCamera()->GetComponentTransform();
-	FVector ForwardVector = CameraTransform.GetRotation().Vector();
-	FVector CameraLocation = CameraTransform.GetLocation();
-
-	//벽을 등지고 딱붙을때 하이레디를 방지하기위해 Start위치를 살짝 앞으로 한다
-	FVector StartLocation = CameraLocation + ForwardVector * 30.f;
-	FVector EndLocation = CameraLocation + ForwardVector * GetHighReadyDistance();
-
-	FHitResult HitResult;
-	bool bHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(),StartLocation,EndLocation,TraceType,false,{},EDrawDebugTrace::None,
-		HitResult,true);
 	FGameplayTagContainer TagContainer;
 	TagContainer.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.HighReady")));
 	if (!bHit)
@@ -264,10 +248,54 @@ void ACPP_Player::UpdateHighReady(float _DeltaTime)
 
 	GetAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
 	float Distance = FVector::Distance(HitResult.ImpactPoint, CameraLocation);
-	HighReady = Distance / GetHighReadyDistance();
+	HighReady = Distance / GetInteractionDistance();
 	bHighReady = true;
+}
 
+void ACPP_Player::UpdateFrontInteraction(float _DeltaTime)
+{
+	//전방에 빔을 쏴서
+	// (벽까지의 거리 / 상호작용 발동 거리) < 1.f 면 상호작용 상태로 진입
+	ETraceTypeQuery TraceType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility);
 
+	FTransform CameraTransform = GetCamera()->GetComponentTransform();
+	FVector ForwardVector = CameraTransform.GetRotation().Vector();
+	FVector CameraLocation = CameraTransform.GetLocation();
+
+	//벽을 등지고 딱붙을때 뒤에 물체를 확인하는것을 방지
+	FVector StartLocation = CameraLocation + ForwardVector * 30.f;
+	FVector EndLocation = CameraLocation + ForwardVector * GetInteractionDistance();
+
+	FHitResult HitResult;
+	bool bHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(),StartLocation,EndLocation,TraceType,false,{},EDrawDebugTrace::None,
+		HitResult,true);
+	
+	UpdateHighReady(CameraLocation, HitResult, bHit);
+
+	//상호작용
+	AActor* HitActor = HitResult.GetActor();
+	if(HitActor != nullptr)
+	{
+		if(HitActor->ActorHasTag(TEXT("Interactable")))
+		{
+			
+			//ToDo : Press F To Interact
+			AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetController());
+			if(!PC)
+				return;
+			IInteractable* Interaction = Cast<IInteractable>(HitActor);
+			if(!Interaction)
+				return;
+			if(!Interaction->Execute_CanInteract(HitActor))
+				return;
+			Interaction->Execute_Interact(HitActor,PC);
+			
+			// FInventoryUI_Parameter Parameter;
+			// Parameter.Target = HitResult.GetActor();
+			// Parameter.InventoryCategory = EInventoryCategory::ItemContainer;
+			// PC->ShowInventory(Parameter);
+		}
+	}
 }
 
 void ACPP_Player::UpdateHighReadyInterpo(float _DeltaTime)

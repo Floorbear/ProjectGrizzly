@@ -46,6 +46,7 @@ private:
 	FVector CurrentHandsLocationInterpo = { 0,0,0 };
 	UFUNCTION(BlueprintCallable)
 	void HandSway(float _DeltaTime);
+	void UpdateHighReady(const FVector& CameraLocation,const  FHitResult& HitResult, bool bHit);
 	void LeaningCamera(float _DeltaTime);
 	FVector GetHighReadyLocation() const
 	{
@@ -56,11 +57,11 @@ private:
 		return FRotator(0.f, -90.f, -40.f);
 	}
 	UFUNCTION(BlueprintCallable)
-	void UpdateHighReady(float _DeltaTime);
+	void UpdateFrontInteraction(float _DeltaTime);
 	UFUNCTION(BlueprintCallable)
 	void UpdateHighReadyInterpo(float _DeltaTime);
 	// ToDo : °¢ Weapon ÀÇ HighReadyDistance Get
-	float GetHighReadyDistance() const
+	float GetInteractionDistance() const
 	{
 		return 200.f;
 	}
