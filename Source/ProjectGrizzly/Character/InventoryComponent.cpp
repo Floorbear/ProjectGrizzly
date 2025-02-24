@@ -4,6 +4,7 @@
 #include "InventoryComponent.h"
 #include "..\ProjectGrizzly.h"
 #include "Net/UnrealNetwork.h"
+#include "..\Item/InventoryContainer.h"
 #include "ProjectGrizzly/Weapon/CPP_WeaponInstance.h"
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -20,6 +21,12 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	// ...
+
+	//빙의가 끝나고 커넥션이 생성된 시점
+	if(GetOwner()->HasAuthority())
+	{
+		OnInventoryChanged.AddDynamic(this,&UInventoryComponent::On_InventoryChanged);
+	}
 }
 
 
@@ -97,7 +104,6 @@ void UInventoryComponent::RemoveItemInstanceFromInventory_Implementation(ACPP_It
 	Inventory.RemoveSingle(_ItemInstance->GetItemData().Name,_ItemInstance);
 	_ItemInstance->MarkAsGarbage();
 	OnInventoryChanged.Broadcast();
-	return;
 }
 
 ACPP_Item* UInventoryComponent::FindItemFromInventory(FName _ItemName)
@@ -249,8 +255,10 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 void UInventoryComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
+	
 	//서버에서 OnInventoryChanged가 호출될 때
 	//클라이언트에서 OnRep_Inventory가 호출
-	OnInventoryChanged.AddDynamic(this,&UInventoryComponent::On_InventoryChanged);
+	
+	// 아이템박스 같은 넷오너가 없는 액터는 바인드하지 않는다
 }
 

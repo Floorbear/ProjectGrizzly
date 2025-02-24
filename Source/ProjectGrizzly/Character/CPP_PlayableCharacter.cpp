@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "GrizzlyPC.h"
 #include <Kismet/KismetMathLibrary.h>
+#include "PlayerInventoryComponent.h"
 #include <Components/CapsuleComponent.h>
 #include "..\Weapon\WeaponComponent.h"
 #include "Net\UnrealNetwork.h"
@@ -85,6 +86,11 @@ ACPP_PlayableCharacter::ACPP_PlayableCharacter()
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(TEXT("WeaponComponent"));
 	WeaponComponent->SetIsReplicated(true);
 	RemoteViewPitch = true;
+
+
+	//인벤토리
+	InventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("InventoryComponent"));
+	InventoryComponent->SetIsReplicated(true);
 }
 float ACPP_PlayableCharacter::GetLeaningAxis() const
 {

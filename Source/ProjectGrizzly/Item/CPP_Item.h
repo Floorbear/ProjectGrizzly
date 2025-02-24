@@ -70,9 +70,9 @@ public:
 		T* NewItem = World->SpawnActor<T>();
 		if(_Parent != nullptr)
 		{
-			AController* Controller = Cast<AController>(_Parent->GetOwner());
-			checkf(Controller != nullptr,TEXT("_Parent's Owner is not Controller"));
-			NewItem->SetOwner(Controller);
+			AActor* InventoryActor = Cast<AActor>(_Parent->GetOwner());
+			checkf(InventoryActor != nullptr,TEXT("_Parent's Owner is not Pawn"));
+			NewItem->SetOwner(InventoryActor);
 		}
 		NewItem->Init(_ItemRowName);
 		NewItem->Amount = _Amount;
@@ -149,7 +149,7 @@ private:
 	//										Inventory
 	//--------------------------------------------------------------------------------------------------
 protected:
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated , meta = (AllowPrivateAccess = true), BlueprintReadOnly)
 	class UInventoryComponent* Parent = nullptr;
 
 public:
@@ -159,9 +159,14 @@ public:
 	}
 
 public:
-	UFUNCTION(Server,Reliable)
+	UFUNCTION(Server,Reliable,BlueprintCallable)
 	void SetParent(class UInventoryComponent* _Parent);
-	// Amount == 0 을 만족하면 부모로부터 이 아이템을 삭제하라고 하는 함수
+
+	UFUNCTION(BlueprintCallable)
+	class UInventoryComponent* GetParent() const
+	{
+		return  Parent;
+	}
 private:
 	UFUNCTION(Server,Reliable)
 	void CheckConditionAndRemove();

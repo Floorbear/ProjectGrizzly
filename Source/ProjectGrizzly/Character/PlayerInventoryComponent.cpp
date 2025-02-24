@@ -15,22 +15,18 @@ void UPlayerInventoryComponent::BeginPlay()
 
 ACPP_PlayableCharacter* UPlayerInventoryComponent::GetPlayableCharacter() const
 {
-	const AController* PC = Cast<AController>(GetOwner());
-	ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(PC->GetPawn());
+	ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(GetOwner());
 	check(PlayableCharacter);
 	return PlayableCharacter;
 }
 
 void UPlayerInventoryComponent::TryActivateSwapWeapon(EWeaponSlot _Slot)
 {
-	const AController* PC = Cast<AController>(GetOwner());
-	ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(PC->GetPawn());
+	ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(GetOwner());
 	check(PlayableCharacter);
 
 	//로컬 컨트롤러에서 어빌리티 실행을 요청한다
 	//이유 :무기 인스턴스의 변수 리플리케이션이 완료된 상태에서 어빌리티 활성화가 이루워져야 하기 때문
-	if(!PC->IsLocalController())
-		return;
 	PlayableCharacter->TryActivateSwapWeapon(_Slot);
 }
 
@@ -53,8 +49,7 @@ void UPlayerInventoryComponent::SwapWeaponBySlot(EWeaponSlot _Slot)
 void UPlayerInventoryComponent::SwapWeapon_Implementation(bool _IsPrimary)
 {
 	ACPP_WeaponInstance* CurrentWeaponInstance = nullptr;
-	AController* PC = Cast<AController>(GetOwner());
-	ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(PC->GetPawn());
+	ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(GetOwner());
 	
 	if(_IsPrimary)
 	{
@@ -90,8 +85,7 @@ void UPlayerInventoryComponent::EquipWeapon_Implementation(ACPP_WeaponInstance* 
 	
 	
 	//지금 슬롯과 일치하면 플레이어에 무기 장착
-	AController* PC = Cast<AController>(GetOwner());
-	ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(PC->GetPawn());
+	ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(GetOwner());
 	if(PlayableCharacter->GetCurrentWeaponSlot() == _Slot)
 	{
 		TryActivateSwapWeapon(_Slot);
@@ -149,8 +143,7 @@ void UPlayerInventoryComponent::UnEquipWeapon_Inner(EWeaponSlot _Slot)
 
 void UPlayerInventoryComponent::InitWeaponInstanceToUnarmedInstance_Implementation()
 {
-	const AController* PC = Cast<AController>(GetOwner());
-	const ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(PC->GetPawn());
+	const ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(GetOwner());
 	PrimaryWeaponInstance = PlayableCharacter->GetWeaponComponent()->GetUnarmedInstance();
 	SecondaryWeaponInstance = PlayableCharacter->GetWeaponComponent()->GetUnarmedInstance();
 	UnarmedInstance = PlayableCharacter->GetWeaponComponent()->GetUnarmedInstance();
@@ -221,12 +214,13 @@ void UPlayerInventoryComponent::OnRep_WeaponInstance() const
 //서버에서 호출됨
 void UPlayerInventoryComponent::OnRep_OnInventoryChanged()
 {
-	const AController* PC = Cast<AController>(GetOwner());
-	const ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(PC->GetPawn());
+	const ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(GetOwner());
 
 	//현재 장비한 총의 탄약을 다시 확인
 	ACPP_WeaponInstance* CurrentWeaponInstance = PlayableCharacter->GetWeaponComponent()->GetCurrentWeaponInstance();
-	checkf(CurrentWeaponInstance != nullptr,TEXT("CurrentWeaponInstance is NULL"));
+	//checkf(CurrentWeaponInstance != nullptr,TEXT("CurrentWeaponInstance is NULL"));
+	if(CurrentWeaponInstance == nullptr)
+		return;
 	PlayableCharacter->GetWeaponComponent()->SetAmmoInstance(FindMatchingAmmo(CurrentWeaponInstance));
 }
 

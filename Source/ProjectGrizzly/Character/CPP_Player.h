@@ -46,7 +46,7 @@ private:
 	FVector CurrentHandsLocationInterpo = { 0,0,0 };
 	UFUNCTION(BlueprintCallable)
 	void HandSway(float _DeltaTime);
-	void UpdateHighReady(const FVector& CameraLocation,const  FHitResult& HitResult, bool bHit);
+	void UpdateHighReady(TPair<bool,FHitResult>& _HitPair);
 	void LeaningCamera(float _DeltaTime);
 	FVector GetHighReadyLocation() const
 	{
@@ -56,15 +56,10 @@ private:
 	{
 		return FRotator(0.f, -90.f, -40.f);
 	}
-	UFUNCTION(BlueprintCallable)
-	void UpdateFrontInteraction(float _DeltaTime);
+
 	UFUNCTION(BlueprintCallable)
 	void UpdateHighReadyInterpo(float _DeltaTime);
-	// ToDo : 각 Weapon 의 HighReadyDistance Get
-	float GetInteractionDistance() const
-	{
-		return 200.f;
-	}
+
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
@@ -97,6 +92,25 @@ protected:
 	virtual void SwapWeapon(EWeaponSlot _Slot) override;
 
 
+	//--------------------------------------------------------------------------------------------------
+	//										Interaction
+	//--------------------------------------------------------------------------------------------------
+private:
+	class IInteractable* PrevInteractableObject = nullptr;
 
+	
+	bool CanInteractable(TPair<bool, FHitResult>& HitPair) const;
+	TPair<bool,FHitResult> GetFrontHitResult() const;
+	
+	UFUNCTION(BlueprintCallable)
+	void UpdateFrontInteraction(float _DeltaTime);
 
+	UFUNCTION()
+	void TryInteract();
+	
+	// ToDo : 각 Weapon 의 HighReadyDistance Get
+	float GetInteractionDistance() const
+	{
+		return 200.f;
+	}
 };

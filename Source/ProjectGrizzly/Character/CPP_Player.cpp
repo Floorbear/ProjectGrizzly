@@ -19,6 +19,7 @@
 #include "Net\UnrealNetwork.h"
 
 #include "ProjectGrizzly/ProjectGrizzly.h"
+#include "ProjectGrizzly/Item/CPP_InteractableObject.h"
 #include "ProjectGrizzly/Item/Interactable.h"
 
 //Client만 호출
@@ -35,6 +36,9 @@ void ACPP_Player::OnRep_PlayerState()
 	AttributeSet = PS->GetAttributeSet();
 	BindASCInput();
 	SetSpeed(AttributeSet->GetSpeed());
+
+	//무장 초기화
+	GetInventory()->InitWeaponInstanceToUnarmedInstance();
 }
 
 // 서버의 Owner 값이 변경되서 클라이언트에 복제될 때 호출되는 이벤트함수
@@ -121,6 +125,13 @@ void ACPP_Player::PossessedBy(AController* NewController)
 			FGameplayAbilitySpec(ability, 1, static_cast<int32>(Cast<UGrizzlyAbility>(ability->GetDefaultObject())->InputID), this));
 	}
 	Grizzly_LOG(  TEXT("End"));
+	
+	//싱글모드
+	if(IsLocallyControlled())
+	{
+		//무장 초기화
+		GetInventory()->InitWeaponInstanceToUnarmedInstance();
+	}
 }
 
 void ACPP_Player::BindASCInput()
@@ -139,6 +150,7 @@ void ACPP_Player::SetupPlayerInputComponent(class UInputComponent* PlayerInputCo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	PlayerInputComponent->BindAxis(TEXT("Leaning"),this, &ACPP_Player::SetRawLeaningAxis);
 	PlayerInputComponent->BindAction(TEXT("SwapWeapon"),IE_Pressed,this,&ACPP_Player::OnCurrentWeaponSlot);
+	PlayerInputComponent->BindAction(TEXT("Interaction"),IE_Pressed,this,&ACPP_Player::TryInteract);
 	BindASCInput();
 }
 
@@ -146,6 +158,8 @@ void ACPP_Player::BeginPlay()
 {
 	Super::BeginPlay();
 
+
+	
 	if (IsLocallyControlled())
 	{
 		//1인칭 셋팅 진행
@@ -168,9 +182,10 @@ void ACPP_Player::BeginPlay()
 		CrouchingCameraLocation.Z -= 20.f;
 	}
 
-	//캐릭터 모델 설정
+
 	if (HasAuthority())
 	{
+		// 캐릭터 모델 초기화
 		SetCharacterModel(ECharacterModel::Merc_2a);
 	}
 }
@@ -234,8 +249,11 @@ void ACPP_Player::HandSway(float _DeltaTime)
 	GetHandsMeshComponent()->SetRelativeRotation(TargetRotation.Quaternion());
 }
 
-void ACPP_Player::UpdateHighReady(const FVector& CameraLocation, const FHitResult& HitResult, const bool bHit)
+void ACPP_Player::UpdateHighReady(TPair<bool,FHitResult>& _HitPair)
 {
+	bool bHit = _HitPair.Key;
+	FHitResult HitResult = _HitPair.Value;
+	
 	FGameplayTagContainer TagContainer;
 	TagContainer.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.HighReady")));
 	if (!bHit)
@@ -245,14 +263,59 @@ void ACPP_Player::UpdateHighReady(const FVector& CameraLocation, const FHitResul
 		HighReadyInterpo = 1.f;
 		return;
 	}
-
+	FTransform CameraTransform = GetCamera()->GetComponentTransform();
+	FVector ForwardVector = CameraTransform.GetRotation().Vector();
+	FVector CameraLocation = CameraTransform.GetLocation();
+	
 	GetAbilitySystemComponent()->TryActivateAbilitiesByTag(TagContainer);
 	float Distance = FVector::Distance(HitResult.ImpactPoint, CameraLocation);
 	HighReady = Distance / GetInteractionDistance();
 	bHighReady = true;
 }
 
-void ACPP_Player::UpdateFrontInteraction(float _DeltaTime)
+bool ACPP_Player::CanInteractable(TPair<bool, FHitResult>& HitPair) const
+{
+	const FHitResult HitResult = HitPair.Value;
+	if(!HitPair.Key)
+		return false;
+	AActor* HitActor = HitResult.GetActor();
+	if(HitActor == nullptr)
+		return false;
+	if(!HitActor->ActorHasTag(TEXT("Interactable")))
+	{
+		return false;
+	}
+	const AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetController());
+	if(!PC)
+	{
+		return false;
+	}
+
+	//인벤토리 UI가 켜져있는 상태에서 상호작용이 불가능
+	const UUserWidget* InventoryUI = PC->GetInventoryUI();
+	if(!InventoryUI)
+	{
+		return false;
+	}
+	if(InventoryUI->IsVisible())
+		return false;
+
+
+	const IInteractable* Interaction = Cast<IInteractable>(HitActor);
+	if(!Interaction)
+	{
+		return false;
+	}
+	if(!Interaction->Execute_CanInteract(HitActor))
+	{
+		return false;
+	}
+
+	
+	return true;
+}
+
+TPair<bool,FHitResult> ACPP_Player::GetFrontHitResult() const
 {
 	//전방에 빔을 쏴서
 	// (벽까지의 거리 / 상호작용 발동 거리) < 1.f 면 상호작용 상태로 진입
@@ -268,34 +331,59 @@ void ACPP_Player::UpdateFrontInteraction(float _DeltaTime)
 
 	FHitResult HitResult;
 	bool bHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(),StartLocation,EndLocation,TraceType,false,{},EDrawDebugTrace::None,
-		HitResult,true);
-	
-	UpdateHighReady(CameraLocation, HitResult, bHit);
+	                                                  HitResult,true);
+	return TPair<bool,FHitResult>{bHit,HitResult};
+}
 
-	//상호작용
-	AActor* HitActor = HitResult.GetActor();
-	if(HitActor != nullptr)
+void ACPP_Player::UpdateFrontInteraction(float _DeltaTime)
+{
+	TPair<bool,FHitResult> HitPair = GetFrontHitResult();
+	UpdateHighReady(HitPair);
+
+	//이전 프레임에 레이에 히트된 오브젝트가 존재
+	if( PrevInteractableObject != nullptr)
 	{
-		if(HitActor->ActorHasTag(TEXT("Interactable")))
+		//히트된 오브젝트가 이전 프레임 오브젝트와 다르면 이전 오브젝트의 UI 비활성화
+		if(Cast<IInteractable>(HitPair.Value.GetActor()) != PrevInteractableObject)
 		{
-			
-			//ToDo : Press F To Interact
-			AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetController());
-			if(!PC)
-				return;
-			IInteractable* Interaction = Cast<IInteractable>(HitActor);
-			if(!Interaction)
-				return;
-			if(!Interaction->Execute_CanInteract(HitActor))
-				return;
-			Interaction->Execute_Interact(HitActor,PC);
-			
-			// FInventoryUI_Parameter Parameter;
-			// Parameter.Target = HitResult.GetActor();
-			// Parameter.InventoryCategory = EInventoryCategory::ItemContainer;
-			// PC->ShowInventory(Parameter);
+			ACPP_InteractableObject* InteractableObject = Cast<ACPP_InteractableObject>(PrevInteractableObject);
+			if(InteractableObject)
+			{
+				InteractableObject->Execute_CloseWidget(InteractableObject);
+				PrevInteractableObject = nullptr;
+			}
 		}
 	}
+	//상호작용 불가능 상태면 UI를 끈다
+	if(!CanInteractable(HitPair))
+	{
+		if(ACPP_InteractableObject* InteractableObject = Cast<ACPP_InteractableObject>(PrevInteractableObject))
+		{
+			InteractableObject->Execute_CloseWidget(InteractableObject);
+		}
+		return;
+	}
+
+	//히트된 오브젝트가 상호작용 가능
+
+	//상호작용 가능한 오브젝트가 있다고 UI를 띄우기
+	IInteractable* InteractableObject =Cast<IInteractable>(HitPair.Value.GetActor());
+	InteractableObject->Execute_ShowWidget(HitPair.Value.GetActor());
+	PrevInteractableObject = InteractableObject;
+}
+
+void ACPP_Player::TryInteract()
+{
+	if(PrevInteractableObject == nullptr)
+		return;
+	ACPP_InteractableObject* InteractableObject = Cast<ACPP_InteractableObject>(PrevInteractableObject);
+	
+	if(!InteractableObject)
+		return;
+	if(!InteractableObject->Execute_CanInteract(InteractableObject))
+		return;
+	
+	InteractableObject->Execute_Interact(InteractableObject,this);
 }
 
 void ACPP_Player::UpdateHighReadyInterpo(float _DeltaTime)
@@ -400,7 +488,6 @@ ACPP_WeaponInstance* ACPP_Player::GetWeaponInstanceFromSlot(EWeaponSlot _Slot)
 	UPlayerInventoryComponent* Inventory = PC->GetInventoryComponent();
 	ACPP_WeaponInstance* WeaponInstance = Inventory->GetWeaponInstanceFromSlot(_Slot);
 	check(WeaponInstance);
-	
 	return WeaponInstance;
 }
 

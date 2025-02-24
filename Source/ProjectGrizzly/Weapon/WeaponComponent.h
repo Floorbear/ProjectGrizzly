@@ -65,7 +65,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	ACPP_WeaponInstance* GetCurrentWeaponInstance() const
 	{
-		checkf(CurrentWeaponInstance != nullptr,TEXT("CurrentWeaponInstance is Null"));
+		//checkf(CurrentWeaponInstance != nullptr,TEXT("CurrentWeaponInstance is Null"));
 		return CurrentWeaponInstance;
 	}
 

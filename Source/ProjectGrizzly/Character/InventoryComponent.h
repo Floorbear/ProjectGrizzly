@@ -9,6 +9,7 @@
 #include "..\Item\CPP_Item.h"
 #include "InventoryComponent.generated.h"
 
+class ACPP_ItemContainer;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryChanged);
 
 //인벤토리 리플리케이션을 위한 구조체
@@ -78,27 +79,6 @@ struct InventoryTileCoordinate
 	}
 };
 
-UENUM(BlueprintType)
-enum class EInventoryCategory : uint8
-{
-	None,
-	ItemContainer,
-	Shop
-};
-
-USTRUCT(BlueprintType)
-struct FInventoryUI_Parameter
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EInventoryCategory InventoryCategory;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	AActor* Target;
-};
-
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class PROJECTGRIZZLY_API UInventoryComponent : public UActorComponent
 {
@@ -156,6 +136,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	//서버에서만 실행
 	virtual void InitializeComponent() override;
+
 
 protected:
 	TMultiMap<FName,ACPP_Item*> Inventory;

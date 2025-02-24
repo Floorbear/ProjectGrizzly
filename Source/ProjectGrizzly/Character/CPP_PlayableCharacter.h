@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "CPP_PGCharacter.h"
 #include <Engine/DataTable.h>
-
 #include "ProjectGrizzly/Weapon/CPP_WeaponInstance.h"
 #include "CPP_PlayableCharacter.generated.h"
 
@@ -306,6 +305,20 @@ public:
 protected:
 	UPROPERTY(Replicated)
 	int CurrentWeaponSlot = 0;
+
+	//--------------------------------------------------------------------------------------------------
+	//										Inventory
+	//--------------------------------------------------------------------------------------------------
+public:
+	UFUNCTION(BlueprintCallable)
+	class UPlayerInventoryComponent* GetInventory() const
+	{
+		return InventoryComponent;
+	}
+
+private:
+	UPROPERTY(BlueprintReadOnly,VisibleAnywhere,Category = "Inventory",meta = (AllowPrivateAccess = true))
+	class UPlayerInventoryComponent* InventoryComponent;
 	// ------------------------------
 	//				AI
 	// ------------------------------

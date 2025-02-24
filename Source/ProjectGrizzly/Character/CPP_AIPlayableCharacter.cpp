@@ -126,9 +126,7 @@ ACPP_AIPlayableCharacter* ACPP_AIPlayableCharacter::SpawnAIPlayableCharacter(UOb
 	check(NewAICharacter);
 	NewAICharacter->SetCharacterModel(Parameter.Model);
 	NewAICharacter->GetFactionComponent()->SetFaction(Parameter.Faction);
-	ACPP_AI_PlayableCharacter_PC* PC = Cast<ACPP_AI_PlayableCharacter_PC>(NewAICharacter->GetAIController());
-	check(PC);
-	UPlayerInventoryComponent* Inventory = PC->GetInventoryComponent();
+	UPlayerInventoryComponent* Inventory = NewAICharacter->GetInventory();
 	check(Inventory);
 
 	//무기 추가

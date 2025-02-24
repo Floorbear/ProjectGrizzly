@@ -3,19 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Interactable.h"
 #include "GameFramework/Actor.h"
-#include "ProjectGrizzly/Character/InventoryComponent.h"
-#include "CPP_ItemContainer.generated.h"
+#include "InventoryContainer.generated.h"
 
 UCLASS()
-class PROJECTGRIZZLY_API ACPP_ItemContainer : public AActor, public IInteractable
+class PROJECTGRIZZLY_API AInventoryContainer : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ACPP_ItemContainer();
+	AInventoryContainer();
 
 protected:
 	// Called when the game starts or when spawned
@@ -25,20 +23,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-
 public:
 	UFUNCTION(BlueprintCallable)
-	UInventoryComponent* GetInventory() const
+	class UInventoryComponent* GetInventory() const
 	{
 		return Inventory;
 	}
-protected:
-	virtual bool CanInteract_Implementation() const override
-	{
-		return true;
-	}
+	
 private:
-	UPROPERTY()
-	UInventoryComponent* Inventory = nullptr;
+	UPROPERTY(BlueprintReadWrite , meta = (AllowPrivateAccess))
+	class UInventoryComponent* Inventory = nullptr;
 
 };

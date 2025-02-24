@@ -21,6 +21,8 @@ UCPP_GA_SwapWeapon::UCPP_GA_SwapWeapon()
 	BlockAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.ADS")));
 	BlockAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.Shoot")));
 	BlockAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.Reload")));
+
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
 }
 
 void UCPP_GA_SwapWeapon::DoUndraw()
@@ -80,6 +82,7 @@ void UCPP_GA_SwapWeapon::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 	TargetWeaponInstance = nullptr;
 	SourceWeaponInstance = nullptr;
+
 }
 
 bool UCPP_GA_SwapWeapon::IsUnarmed(class ACPP_WeaponInstance* _WeaponInstance) const
@@ -140,6 +143,8 @@ void UCPP_GA_SwapWeapon::OnUndrawCompleted(FGameplayEventData _Data)
 
 void UCPP_GA_SwapWeapon::OnDrawCompleted(FGameplayEventData _Data)
 {
+	GetCharacter()->GetFPWeaponMeshComponent()->SetVisibility(true);
+	GetCharacter()->GetHandsMeshComponent()->SetVisibility(true);
 	K2_EndAbility();
 }
 

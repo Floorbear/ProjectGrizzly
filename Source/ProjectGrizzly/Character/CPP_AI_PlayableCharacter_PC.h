@@ -168,13 +168,6 @@ public:
 	//--------------------------------------------------------------------------------------------------
 	//										Inventory
 	//--------------------------------------------------------------------------------------------------
-
-public: UPlayerInventoryComponent* GetInventoryComponent() const
-{
-	check(PlayerInventoryComponent);
-	return PlayerInventoryComponent;
-}
-private:
-	UPlayerInventoryComponent* PlayerInventoryComponent = nullptr;
+	
 
 };

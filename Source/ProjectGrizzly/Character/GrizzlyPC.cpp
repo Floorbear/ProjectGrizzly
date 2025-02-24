@@ -6,8 +6,6 @@
 
 AGrizzlyPC::AGrizzlyPC()
 {
-	InventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("Inventory"));
-	InventoryComponent->SetIsReplicated(true);
 }
 
 void AGrizzlyPC::BeginPlay()
@@ -47,8 +45,9 @@ void AGrizzlyPC::PostNetInit()
 void AGrizzlyPC::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
-	
-	InventoryComponent->InitWeaponInstanceToUnarmedInstance();
+	// ACPP_PlayableCharacter* PossessCharacter= Cast<ACPP_PlayableCharacter>(aPawn);
+	// check(PossessCharacter);
+	// PossessCharacter->GetInventory()->InitWeaponInstanceToUnarmedInstance();
 }
 
 bool AGrizzlyPC::IsMyComputer()
@@ -65,4 +64,12 @@ bool AGrizzlyPC::IsMyComputer()
 		}
 	}
 	return false;
+}
+
+UPlayerInventoryComponent* AGrizzlyPC::GetInventoryComponent() const
+{
+	ACPP_PlayableCharacter* PossessCharacter= Cast<ACPP_PlayableCharacter>(GetPawn());
+	check(PossessCharacter);
+
+	return PossessCharacter->GetInventory();
 }
