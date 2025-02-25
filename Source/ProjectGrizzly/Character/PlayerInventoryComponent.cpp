@@ -83,7 +83,6 @@ void UPlayerInventoryComponent::EquipWeapon_Implementation(ACPP_WeaponInstance* 
 		SecondaryWeaponInstance = _WeaponInstance;
 	}
 	
-	
 	//지금 슬롯과 일치하면 플레이어에 무기 장착
 	ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(GetOwner());
 	if(PlayableCharacter->GetCurrentWeaponSlot() == _Slot)

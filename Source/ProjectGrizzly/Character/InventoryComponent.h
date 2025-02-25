@@ -112,6 +112,16 @@ public:
 	void RemoveItemInstanceFromInventory(ACPP_Item* _ItemInstance);
 
 	UFUNCTION(BlueprintCallable)
+	void TransferItemInstance(ACPP_Item* _ItemInstance, UInventoryComponent* _TargetInventory);
+private:
+	UFUNCTION(Server,Reliable)
+	void TransferItemInstance_Inner(ACPP_Item* _ItemInstance, UInventoryComponent* _SourceInventory, UInventoryComponent* _TargetInventory);
+
+	UFUNCTION(Client,Reliable)
+	void RequestPlayerInventoryToTransferItemInstance(UInventoryComponent* _PlayerInventory, ACPP_Item* _ItemInstance, UInventoryComponent* _SourceInventory, UInventoryComponent* _TargetInventory);
+
+public:
+	UFUNCTION(BlueprintCallable)
 	ACPP_Item* FindItemFromInventory(FName _ItemName);
 	
 
@@ -136,6 +146,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	//서버에서만 실행
 	virtual void InitializeComponent() override;
+
+	UFUNCTION(BlueprintCallable)
+	bool HasNetOwner() const;
 
 
 protected:

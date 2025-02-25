@@ -180,4 +180,7 @@ public:
 
 	UFUNCTION()
 	virtual void OnRep_ItemData(){};
+
+	UFUNCTION(BlueprintCallable)
+	virtual bool HasNetOwner() const override;
 };

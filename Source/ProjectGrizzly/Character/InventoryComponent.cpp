@@ -2,6 +2,8 @@
 
 
 #include "InventoryComponent.h"
+
+#include "GrizzlyPC.h"
 #include "..\ProjectGrizzly.h"
 #include "Net/UnrealNetwork.h"
 #include "..\Item/InventoryContainer.h"
@@ -22,10 +24,19 @@ void UInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 	// ...
 
-	//빙의가 끝나고 커넥션이 생성된 시점
-	if(GetOwner()->HasAuthority())
+	//오너가 폰이면 인벤토리 변경 이벤트 바인드
+	if(const APawn* OwnerPawn = Cast<APawn>(GetOwner());OwnerPawn)
 	{
 		OnInventoryChanged.AddDynamic(this,&UInventoryComponent::On_InventoryChanged);
+	}
+	else
+	{
+		//상자 같은 오브젝트의 이벤트 바인드
+		//서버에 있는 오브젝트반 이벤트를 바인드
+		if(GetOwner()->HasAuthority())
+		{
+			OnInventoryChanged.AddDynamic(this,&UInventoryComponent::On_InventoryChanged);
+		}
 	}
 }
 
@@ -104,6 +115,66 @@ void UInventoryComponent::RemoveItemInstanceFromInventory_Implementation(ACPP_It
 	Inventory.RemoveSingle(_ItemInstance->GetItemData().Name,_ItemInstance);
 	_ItemInstance->MarkAsGarbage();
 	OnInventoryChanged.Broadcast();
+}
+
+void UInventoryComponent::TransferItemInstance_Inner_Implementation(ACPP_Item* _ItemInstance,
+               UInventoryComponent* _SourceInventory, UInventoryComponent* _TargetInventory)
+{
+	check(_SourceInventory);
+	check(_TargetInventory);
+	check(_ItemInstance->GetParent());
+
+	_ItemInstance->SetParent(_TargetInventory);
+	if(_ItemInstance->IsInstanceMode())
+	{
+		_TargetInventory->AddItemInstanceToInventory(_ItemInstance);
+	}
+	else
+	{
+		//아이템이 TargetInventory에 이미 존재하는경우 이미 존재하는 아이템의 Amount만 증가
+		if(ACPP_Item* FindItem =_TargetInventory->FindItemFromInventory(_ItemInstance->GetItemName());
+			FindItem)
+		{
+			FindItem->AddAmount(_ItemInstance->GetAmount());
+		}
+		else
+		{
+			//아이템이 TargetInventory에 존재하지 않기 때문에 그대로 옮김
+			_TargetInventory->AddItemInstanceToInventory(_ItemInstance);
+		}
+		
+	}
+	_SourceInventory->Inventory.RemoveSingle(_ItemInstance->GetItemName(),_ItemInstance);
+		
+	_SourceInventory->OnInventoryChanged.Broadcast();
+	_TargetInventory->OnInventoryChanged.Broadcast();
+}
+
+void UInventoryComponent::RequestPlayerInventoryToTransferItemInstance_Implementation(UInventoryComponent* _PlayerInventory,
+	ACPP_Item* _ItemInstance, UInventoryComponent* _SourceInventory, UInventoryComponent* _TargetInventory)
+{
+	if(!_PlayerInventory->GetOwner()->HasNetOwner())
+	{
+		return;
+	}
+
+	_PlayerInventory->TransferItemInstance_Inner(_ItemInstance,_SourceInventory,_TargetInventory);
+}
+
+void UInventoryComponent::TransferItemInstance(ACPP_Item* _ItemInstance,
+	UInventoryComponent* _TargetInventory)
+{
+	if(!this->GetOwner()->HasNetOwner())
+	{
+		UInventoryComponent* PlayerInventory =Cast<AGrizzlyPC>(GetWorld()->GetFirstPlayerController())->GetInventoryComponent();
+		RequestPlayerInventoryToTransferItemInstance(PlayerInventory,_ItemInstance,
+			this,_TargetInventory);
+	}
+	else
+	{
+		TransferItemInstance_Inner(_ItemInstance,this,_TargetInventory);
+	}
+	
 }
 
 ACPP_Item* UInventoryComponent::FindItemFromInventory(FName _ItemName)
@@ -260,5 +331,13 @@ void UInventoryComponent::InitializeComponent()
 	//클라이언트에서 OnRep_Inventory가 호출
 	
 	// 아이템박스 같은 넷오너가 없는 액터는 바인드하지 않는다
+}
+
+bool UInventoryComponent::HasNetOwner() const
+{
+	if(!GetOwner())
+		return false;
+
+	return GetOwner()->HasNetOwner();
 }
 

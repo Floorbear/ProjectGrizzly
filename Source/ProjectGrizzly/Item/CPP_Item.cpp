@@ -69,6 +69,8 @@ UDataTable* ACPP_Item::GetItemDT() const
 void ACPP_Item::SetParent_Implementation(class UInventoryComponent* _Parent)
 {
 	Parent = _Parent;
+	check(Parent->GetOwner());
+	SetOwner(Parent->GetOwner());
 }
 
 void ACPP_Item::CheckConditionAndRemove_Implementation()
@@ -86,6 +88,14 @@ void ACPP_Item::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 	DOREPLIFETIME(ACPP_Item, Amount);
 	DOREPLIFETIME(ACPP_Item, ItemData);
 	DOREPLIFETIME(ACPP_Item, Parent);
+}
+
+bool ACPP_Item::HasNetOwner() const
+{
+	if(!Parent)
+		return false;
+
+	return Parent->HasNetOwner();
 }
 
 
