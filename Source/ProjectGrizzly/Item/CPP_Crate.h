@@ -4,19 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "Interactable.h"
-#include "InventoryContainer.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/Actor.h"
-#include "CPP_InteractableObject.generated.h"
+#include "CPP_Crate.generated.h"
 
 UCLASS()
-class PROJECTGRIZZLY_API ACPP_InteractableObject : public AInventoryContainer, public IInteractable
+class PROJECTGRIZZLY_API ACPP_Crate :public AActor, public IInteractable
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ACPP_InteractableObject();
+	ACPP_Crate();
 
 protected:
 	// Called when the game starts or when spawned
@@ -32,8 +31,21 @@ protected:
 	{
 		return true;
 	}
-	
 
+	//--------------------------------------------------------------------------------------------------
+	//										Inventory
+	//--------------------------------------------------------------------------------------------------
+public:
+	UFUNCTION(BlueprintCallable)
+	class UInventoryComponent* GetInventory() const
+	{
+		return Inventory;
+	}
+	
+private:
+	UPROPERTY(BlueprintReadWrite , meta = (AllowPrivateAccess))
+	class UInventoryComponent* Inventory = nullptr;
+	
 	//--------------------------------------------------------------------------------------------------
 	//										Visual
 	//--------------------------------------------------------------------------------------------------

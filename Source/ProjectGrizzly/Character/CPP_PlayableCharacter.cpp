@@ -91,6 +91,7 @@ ACPP_PlayableCharacter::ACPP_PlayableCharacter()
 	//인벤토리
 	InventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("InventoryComponent"));
 	InventoryComponent->SetIsReplicated(true);
+	Tags.Add(TEXT("Interactable"));
 }
 float ACPP_PlayableCharacter::GetLeaningAxis() const
 {
@@ -166,6 +167,19 @@ USkeletalMeshComponent* ACPP_PlayableCharacter::GetTPWeaponComponent() const
 bool ACPP_PlayableCharacter::IsUnarmed(ACPP_WeaponInstance* _WeaponInstance) const
 {
 	return GetWeaponComponent()->GetUnarmedInstance() == _WeaponInstance;
+}
+
+void ACPP_PlayableCharacter::Interact_Implementation(class AActor* _Instigator)
+{
+	IInteractable::Interact_Implementation(_Instigator);
+	AGrizzlyPC* PC = Cast<AGrizzlyPC>(_Instigator->GetOwner());
+	if(!PC)
+		return;
+	
+	FInventoryUI_Parameter UI_Parameter;
+	UI_Parameter.Target = GetInventory();
+	UI_Parameter.InventoryCategory = EInventoryCategory::ItemContainer;
+	PC->ShowInventory(UI_Parameter);
 }
 
 void ACPP_PlayableCharacter::SetCurrentWeaponSlot_Implementation(int _CurrentWeaponSlot)
@@ -357,6 +371,7 @@ void ACPP_PlayableCharacter::Die()
 	FGameplayEffectSpecHandle SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(DeadGameplayEffect, 1, Context);
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	GetMesh()->SetSimulatePhysics(true);
 	Die_Multicast();
 }
@@ -373,6 +388,7 @@ void ACPP_PlayableCharacter::Die_Multicast_Implementation()
 		GetTPWeaponComponent()->SetVisibility(true);
 		GetMesh()->UnHideBoneByName(TEXT("bip01_spine"));
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		
 
 		//카메라 연출
 		Camera->SetActive(false);

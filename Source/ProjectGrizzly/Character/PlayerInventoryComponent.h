@@ -107,5 +107,14 @@ private:
 	UFUNCTION()
 	void OnRep_OnInventoryChanged();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	
 	virtual void InitializeComponent() override;
+
+
+	//Return PlayerControllers[0]->Inventory
+	//Can Only Call in Local Client
+	UFUNCTION(BlueprintCallable, meta=(WorldContext = "_WorldContext"))
+	static UPlayerInventoryComponent* GetPlayerInventoryComponent(UObject* _WorldContext);
+
 };

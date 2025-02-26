@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "CPP_PGCharacter.h"
 #include <Engine/DataTable.h>
+
+#include "ProjectGrizzly/Item/Interactable.h"
 #include "ProjectGrizzly/Weapon/CPP_WeaponInstance.h"
 #include "CPP_PlayableCharacter.generated.h"
 
@@ -32,7 +34,7 @@ public:
 
 
 UCLASS()
-class PROJECTGRIZZLY_API ACPP_PlayableCharacter : public ACPP_PGCharacter
+class PROJECTGRIZZLY_API ACPP_PlayableCharacter : public ACPP_PGCharacter , public IInteractable
 {
 	GENERATED_BODY()
 
@@ -326,6 +328,17 @@ public:
 	UPROPERTY(Replicated, VisibleDefaultsOnly, BlueprintReadWrite, Category = "AI")
 	bool bIsAI = false;
 
+	//--------------------------------------------------------------------------------------------------
+	//										Interact
+	//--------------------------------------------------------------------------------------------------
+protected:
+	virtual bool CanInteract_Implementation() const override
+	{
+		return true;
+	}
 
+	virtual void Interact_Implementation(class AActor* _Instigator) override;
 
+	virtual void ShowWidget_Implementation() override{};
+	virtual void CloseWidget_Implementation() override{};
 };

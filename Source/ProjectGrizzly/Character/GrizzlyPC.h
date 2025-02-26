@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "PlayerInventoryComponent.h"
-#include "ProjectGrizzly/Item/InventoryContainer.h"
 #include "GrizzlyPC.generated.h"
 
 /**
@@ -30,7 +29,7 @@ public:
 	EInventoryCategory InventoryCategory;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	AInventoryContainer* Target;
+	UInventoryComponent* Target;
 };
 
 

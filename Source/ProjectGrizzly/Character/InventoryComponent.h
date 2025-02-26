@@ -144,7 +144,7 @@ private:
 	void OnRep_NetInventory();
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	//서버에서만 실행
+	//서버,클라 둘다 실행됨
 	virtual void InitializeComponent() override;
 
 	UFUNCTION(BlueprintCallable)

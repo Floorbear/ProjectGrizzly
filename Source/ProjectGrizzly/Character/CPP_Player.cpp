@@ -19,7 +19,7 @@
 #include "Net\UnrealNetwork.h"
 
 #include "ProjectGrizzly/ProjectGrizzly.h"
-#include "ProjectGrizzly/Item/CPP_InteractableObject.h"
+#include "ProjectGrizzly/Item/CPP_Crate.h"
 #include "ProjectGrizzly/Item/Interactable.h"
 
 //Client만 호출
@@ -194,7 +194,7 @@ void ACPP_Player::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	//내가 조작하고 있는 폰이 아니라면 아래 로직을 실행하지 않는다.
-	if (!IsLocallyControlled())
+	if (!IsLocallyControlled() || !GetAbilitySystemComponent())
 	{
 		return;
 	}
@@ -330,8 +330,13 @@ TPair<bool,FHitResult> ACPP_Player::GetFrontHitResult() const
 	FVector EndLocation = CameraLocation + ForwardVector * GetInteractionDistance();
 
 	FHitResult HitResult;
-	bool bHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(),StartLocation,EndLocation,TraceType,false,{},EDrawDebugTrace::None,
-	                                                  HitResult,true);
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	
+	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult,StartLocation,EndLocation,ECC_Visibility,QueryParams);
+	// bool bHit = UKismetSystemLibrary::LineTraceSingle(GetWorld(),StartLocation,EndLocation,TraceType,false,{},EDrawDebugTrace::None,
+	//                                                   HitResult,true);
+	// if(bHit)
 	return TPair<bool,FHitResult>{bHit,HitResult};
 }
 
@@ -346,10 +351,9 @@ void ACPP_Player::UpdateFrontInteraction(float _DeltaTime)
 		//히트된 오브젝트가 이전 프레임 오브젝트와 다르면 이전 오브젝트의 UI 비활성화
 		if(Cast<IInteractable>(HitPair.Value.GetActor()) != PrevInteractableObject)
 		{
-			ACPP_InteractableObject* InteractableObject = Cast<ACPP_InteractableObject>(PrevInteractableObject);
-			if(InteractableObject)
+			if(AActor* InteractableObject = Cast<AActor>(PrevInteractableObject);InteractableObject)
 			{
-				InteractableObject->Execute_CloseWidget(InteractableObject);
+				PrevInteractableObject->Execute_CloseWidget(InteractableObject);
 				PrevInteractableObject = nullptr;
 			}
 		}
@@ -357,9 +361,9 @@ void ACPP_Player::UpdateFrontInteraction(float _DeltaTime)
 	//상호작용 불가능 상태면 UI를 끈다
 	if(!CanInteractable(HitPair))
 	{
-		if(ACPP_InteractableObject* InteractableObject = Cast<ACPP_InteractableObject>(PrevInteractableObject))
+		if(AActor* InteractableObject = Cast<AActor>(PrevInteractableObject);InteractableObject)
 		{
-			InteractableObject->Execute_CloseWidget(InteractableObject);
+			PrevInteractableObject->Execute_CloseWidget(InteractableObject);
 		}
 		return;
 	}
@@ -376,14 +380,14 @@ void ACPP_Player::TryInteract()
 {
 	if(PrevInteractableObject == nullptr)
 		return;
-	ACPP_InteractableObject* InteractableObject = Cast<ACPP_InteractableObject>(PrevInteractableObject);
+	AActor* InteractableObject = Cast<AActor>(PrevInteractableObject);
 	
 	if(!InteractableObject)
 		return;
-	if(!InteractableObject->Execute_CanInteract(InteractableObject))
+	if(!PrevInteractableObject->Execute_CanInteract(InteractableObject))
 		return;
 	
-	InteractableObject->Execute_Interact(InteractableObject,this);
+	PrevInteractableObject->Execute_Interact(InteractableObject,this);
 }
 
 void ACPP_Player::UpdateHighReadyInterpo(float _DeltaTime)

@@ -1,16 +1,25 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "CPP_InteractableObject.h"
+#include "CPP_Crate.h"
+
+#include "ProjectGrizzly/Character/InventoryComponent.h"
+
+
 
 // Sets default values
-ACPP_InteractableObject::ACPP_InteractableObject()
+ACPP_Crate::ACPP_Crate()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	SetReplicates(true);
 	
 	Tags.Add(TEXT("Interactable"));
+
+	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
+	Inventory->SetIsReplicated(true);
+
+	bReplicates = true;
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	SetRootComponent(Mesh);
@@ -21,26 +30,26 @@ ACPP_InteractableObject::ACPP_InteractableObject()
 }
 
 // Called when the game starts or when spawned
-void ACPP_InteractableObject::BeginPlay()
+void ACPP_Crate::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
 // Called every frame
-void ACPP_InteractableObject::Tick(float DeltaTime)
+void ACPP_Crate::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
 	
 }
 
-void ACPP_InteractableObject::ShowWidget_Implementation()
+void ACPP_Crate::ShowWidget_Implementation()
 {
 	WidgetComponent->SetVisibility(true);
 }
 
-void ACPP_InteractableObject::CloseWidget_Implementation()
+void ACPP_Crate::CloseWidget_Implementation()
 {
 	WidgetComponent->SetVisibility(false);
 }

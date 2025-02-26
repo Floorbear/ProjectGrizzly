@@ -3,6 +3,7 @@
 
 #include "PlayerInventoryComponent.h"
 #include "CPP_Player.h"
+#include "GrizzlyPC.h"
 #include "ProjectGrizzly/ProjectGrizzly.h"
 #include "Net/UnrealNetwork.h"
 #include "ProjectGrizzly/Weapon/WeaponComponent.h"
@@ -189,20 +190,34 @@ bool UPlayerInventoryComponent::IsCurrentWeaponSlot(EWeaponSlot _WeaponSlot) con
 
 void UPlayerInventoryComponent::OnRep_PrimaryWeaponInstance()
 {
-	if (IsCurrentWeaponSlot(EWeaponSlot::Primary))
+	//SimulatedProxy가 서버 RPC를 보내는 상황을 배제한다
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if(!OwnerPawn)
+		return;
+	if(OwnerPawn->HasAuthority() || OwnerPawn->IsLocallyControlled())
 	{
-		TryActivateSwapWeapon(EWeaponSlot::Primary);
+		if (IsCurrentWeaponSlot(EWeaponSlot::Primary))
+		{
+			TryActivateSwapWeapon(EWeaponSlot::Primary);
+		}
+		OnRep_WeaponInstance();
 	}
-	OnRep_WeaponInstance();
+
 }
 
 void UPlayerInventoryComponent::OnRep_SecondaryWeaponInstance()
 {
-	if (IsCurrentWeaponSlot(EWeaponSlot::Secondary))
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if(!OwnerPawn)
+		return;
+	if(OwnerPawn->HasAuthority() || OwnerPawn->IsLocallyControlled())
 	{
-		TryActivateSwapWeapon(EWeaponSlot::Secondary);
+		if (IsCurrentWeaponSlot(EWeaponSlot::Secondary))
+		{
+			TryActivateSwapWeapon(EWeaponSlot::Secondary);
+		}
+		OnRep_WeaponInstance();
 	}
-	OnRep_WeaponInstance();
 }
 
 void UPlayerInventoryComponent::OnRep_WeaponInstance() const
@@ -220,6 +235,7 @@ void UPlayerInventoryComponent::OnRep_OnInventoryChanged()
 	//checkf(CurrentWeaponInstance != nullptr,TEXT("CurrentWeaponInstance is NULL"));
 	if(CurrentWeaponInstance == nullptr)
 		return;
+	
 	PlayableCharacter->GetWeaponComponent()->SetAmmoInstance(FindMatchingAmmo(CurrentWeaponInstance));
 }
 
@@ -234,7 +250,27 @@ void UPlayerInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 void UPlayerInventoryComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-	OnInventoryChanged.AddDynamic(this,&UPlayerInventoryComponent::OnRep_OnInventoryChanged);
+	int a = 0;
+	if(APawn* OwnerPawn = Cast<APawn>(GetOwner());OwnerPawn)
+	{
+		if(OwnerPawn->IsLocallyControlled() || OwnerPawn->HasAuthority())
+		{
+			OnInventoryChanged.AddDynamic(this,&UPlayerInventoryComponent::OnRep_OnInventoryChanged);
+		}
+	}
+}
+
+UPlayerInventoryComponent* UPlayerInventoryComponent::GetPlayerInventoryComponent(UObject* _WorldContext)
+{
+	const UWorld* World = GEngine->GetWorldFromContextObject(_WorldContext,EGetWorldErrorMode::ReturnNull);
+	check(World);
+	AGrizzlyPC* PC = Cast<AGrizzlyPC>(World->GetFirstPlayerController());
+	check(PC);
+	
+	if(!PC->IsLocalController())
+		return nullptr;
+
+	return Cast<ACPP_PlayableCharacter>(PC->GetPawn())->GetInventory();
 }
 
 

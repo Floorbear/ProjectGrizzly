@@ -123,7 +123,8 @@ ACPP_AIPlayableCharacter* ACPP_AIPlayableCharacter::SpawnAIPlayableCharacter(UOb
 {
 	ACPP_AIPlayableCharacter* NewAICharacter = nullptr;
 	NewAICharacter = Cast<ACPP_AIPlayableCharacter>(UAIBlueprintHelperLibrary::SpawnAIFromClass(WorldContextObject,_Class,BehaviorTree,Location,Rotation,bNoCollisionFail,Owner));
-	check(NewAICharacter);
+	if(!NewAICharacter)
+		return nullptr;
 	NewAICharacter->SetCharacterModel(Parameter.Model);
 	NewAICharacter->GetFactionComponent()->SetFaction(Parameter.Faction);
 	UPlayerInventoryComponent* Inventory = NewAICharacter->GetInventory();

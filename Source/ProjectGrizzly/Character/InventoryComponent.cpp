@@ -6,7 +6,6 @@
 #include "GrizzlyPC.h"
 #include "..\ProjectGrizzly.h"
 #include "Net/UnrealNetwork.h"
-#include "..\Item/InventoryContainer.h"
 #include "ProjectGrizzly/Weapon/CPP_WeaponInstance.h"
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -27,7 +26,11 @@ void UInventoryComponent::BeginPlay()
 	//오너가 폰이면 인벤토리 변경 이벤트 바인드
 	if(const APawn* OwnerPawn = Cast<APawn>(GetOwner());OwnerPawn)
 	{
-		OnInventoryChanged.AddDynamic(this,&UInventoryComponent::On_InventoryChanged);
+		//SimulatedProxy가 이벤트 바인드 되는 것 방지
+		if(OwnerPawn->HasAuthority() || OwnerPawn->IsLocallyControlled())
+		{
+			OnInventoryChanged.AddDynamic(this,&UInventoryComponent::On_InventoryChanged);
+		}
 	}
 	else
 	{
@@ -340,4 +343,6 @@ bool UInventoryComponent::HasNetOwner() const
 
 	return GetOwner()->HasNetOwner();
 }
+
+
 
