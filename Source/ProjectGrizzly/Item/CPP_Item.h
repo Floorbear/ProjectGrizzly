@@ -16,6 +16,16 @@ enum class EItemInteraction : uint8
 	Use			UMETA(DisplayName = "Use")
 };
 
+UENUM(BlueprintType)
+enum class EItemRarity : uint8
+{
+	NoDrop,		
+	Common,
+	Uncommon,
+	Rare,
+	Unique
+};
+
 USTRUCT(BlueprintType)
 struct FItemData : public FTableRowBase
 {
@@ -25,6 +35,12 @@ public:
 	FName Name;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName NameWithOutPrefix;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName Type;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EItemRarity ItemRarity;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int HSize = 1;
 

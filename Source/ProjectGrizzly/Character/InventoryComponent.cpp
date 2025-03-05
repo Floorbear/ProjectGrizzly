@@ -295,6 +295,26 @@ TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) c
 	return Tile;
 }
 
+void UInventoryComponent::SpawnRandomItem(TMap<FName, TArray<FItemData*>> _DropTable,
+	FRandomItemSpawnParameter _Parameter)
+{
+	//필수 아이템 스폰
+	for(int i =0; i < _Parameter.MustSpawnType.Num();i++)
+	{
+		TArray<FItemData*> DropList = _DropTable[_Parameter.MustSpawnType[i]];
+		FItemData* ItemData = GetRandomItemData(DropList);
+		AddItemToInventory(ItemData->Name);
+	}
+}
+
+FItemData* UInventoryComponent::GetRandomItemData(TArray<FItemData*> _DropList)
+{
+	check(!_DropList.IsEmpty());
+
+	int SpawnNum = FMath::RandRange(0,_DropList.Num()-1);
+	return _DropList[SpawnNum];
+}
+
 
 void UInventoryComponent::On_InventoryChanged_Implementation()
 {

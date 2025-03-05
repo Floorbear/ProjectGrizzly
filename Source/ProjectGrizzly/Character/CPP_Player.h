@@ -99,7 +99,7 @@ private:
 	class IInteractable* PrevInteractableObject = nullptr;
 
 	
-	bool CanInteractable(TPair<bool, FHitResult>& HitPair) const;
+	bool CanInteractWithTarget(TPair<bool, FHitResult>& HitPair) const;
 	TPair<bool,FHitResult> GetFrontHitResult() const;
 	
 	UFUNCTION(BlueprintCallable)

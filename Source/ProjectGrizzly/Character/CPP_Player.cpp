@@ -273,7 +273,7 @@ void ACPP_Player::UpdateHighReady(TPair<bool,FHitResult>& _HitPair)
 	bHighReady = true;
 }
 
-bool ACPP_Player::CanInteractable(TPair<bool, FHitResult>& HitPair) const
+bool ACPP_Player::CanInteractWithTarget(TPair<bool, FHitResult>& HitPair) const
 {
 	const FHitResult HitResult = HitPair.Value;
 	if(!HitPair.Key)
@@ -359,7 +359,7 @@ void ACPP_Player::UpdateFrontInteraction(float _DeltaTime)
 		}
 	}
 	//상호작용 불가능 상태면 UI를 끈다
-	if(!CanInteractable(HitPair))
+	if(!CanInteractWithTarget(HitPair))
 	{
 		if(AActor* InteractableObject = Cast<AActor>(PrevInteractableObject);InteractableObject)
 		{

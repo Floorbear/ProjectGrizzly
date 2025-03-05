@@ -6,6 +6,7 @@
 #include "CPP_PGCharacter.h"
 #include <Engine/DataTable.h>
 
+#include "Components/WidgetComponent.h"
 #include "ProjectGrizzly/Item/Interactable.h"
 #include "ProjectGrizzly/Weapon/CPP_WeaponInstance.h"
 #include "CPP_PlayableCharacter.generated.h"
@@ -332,13 +333,15 @@ public:
 	//										Interact
 	//--------------------------------------------------------------------------------------------------
 protected:
-	virtual bool CanInteract_Implementation() const override
-	{
-		return true;
-	}
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "Interact" , meta = (AllowPrivateAccess = true))
+	UWidgetComponent* FieldLootUIWidgetComponent = nullptr;
+	
+	virtual bool CanInteract_Implementation() const override;
 
 	virtual void Interact_Implementation(class AActor* _Instigator) override;
 
-	virtual void ShowWidget_Implementation() override{};
-	virtual void CloseWidget_Implementation() override{};
+	virtual void ShowWidget_Implementation() override;
+	virtual void CloseWidget_Implementation() override;
+
+
 };

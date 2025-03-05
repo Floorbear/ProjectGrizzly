@@ -4,7 +4,7 @@
 #include "CPP_Crate.h"
 
 #include "ProjectGrizzly/Character/InventoryComponent.h"
-
+#include "ProjectGrizzly/Core/GrizzlyGameInstance.h"
 
 
 // Sets default values
@@ -33,6 +33,8 @@ ACPP_Crate::ACPP_Crate()
 void ACPP_Crate::BeginPlay()
 {
 	Super::BeginPlay();
+	// UGrizzlyGameInstance* Instance = Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance());
+	// auto DropTable = Instance->GetDropTable();
 	
 }
 

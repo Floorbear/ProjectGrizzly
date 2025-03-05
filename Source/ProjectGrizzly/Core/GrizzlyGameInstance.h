@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "..\Weapon/WeaponData.h"
+#include "ProjectGrizzly/Item/CPP_Item.h"
+#include "Widgets/Views/STreeView.h"
 #include "GrizzlyGameInstance.generated.h"
 
 /**
@@ -50,6 +52,16 @@ private:
 	UDataTable* WeaponAnimDT = nullptr;
 	UPROPERTY()
 	UDataTable* ItemDT = nullptr;
-	
+
+	//--------------------------------------------------------------------------------------------------
+	//										DropTable
+	//--------------------------------------------------------------------------------------------------
+public:
+	TMap<FName,TArray<FItemData*>> GetDropTable();
+
+
+private:
+	void InitDropTable();
+	TMap<FName,TArray<FItemData*>> DropTable;
 	
 };

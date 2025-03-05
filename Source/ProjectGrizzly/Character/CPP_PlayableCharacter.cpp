@@ -92,6 +92,20 @@ ACPP_PlayableCharacter::ACPP_PlayableCharacter()
 	InventoryComponent = CreateDefaultSubobject<UPlayerInventoryComponent>(TEXT("InventoryComponent"));
 	InventoryComponent->SetIsReplicated(true);
 	Tags.Add(TEXT("Interactable"));
+
+	//필드 루팅 UI
+	FieldLootUIWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("FieldLootUI"));
+	FieldLootUIWidgetComponent->SetupAttachment(GetMesh());
+	FieldLootUIWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	FieldLootUIWidgetComponent->SetRelativeLocation({0,0,100});
+
+	static auto FieldLootUI = ConstructorHelpers::FClassFinder<UUserWidget>(TEXT("/Game/ProjectGrizzly/Item/BP_FieldLootUI.BP_FieldLootUI_C"));
+	if(FieldLootUI.Succeeded())
+	{
+		FieldLootUIWidgetComponent->SetWidgetClass(FieldLootUI.Class);
+		FieldLootUIWidgetComponent->SetVisibility(false);
+	}
+
 }
 float ACPP_PlayableCharacter::GetLeaningAxis() const
 {
@@ -169,6 +183,11 @@ bool ACPP_PlayableCharacter::IsUnarmed(ACPP_WeaponInstance* _WeaponInstance) con
 	return GetWeaponComponent()->GetUnarmedInstance() == _WeaponInstance;
 }
 
+bool ACPP_PlayableCharacter::CanInteract_Implementation() const
+{
+	return IsDead();
+}
+
 void ACPP_PlayableCharacter::Interact_Implementation(class AActor* _Instigator)
 {
 	IInteractable::Interact_Implementation(_Instigator);
@@ -182,9 +201,22 @@ void ACPP_PlayableCharacter::Interact_Implementation(class AActor* _Instigator)
 	PC->ShowInventory(UI_Parameter);
 }
 
+void ACPP_PlayableCharacter::ShowWidget_Implementation()
+{
+	IInteractable::ShowWidget_Implementation();
+	FieldLootUIWidgetComponent->SetVisibility(true);
+}
+
+void ACPP_PlayableCharacter::CloseWidget_Implementation()
+{
+	IInteractable::CloseWidget_Implementation();
+	FieldLootUIWidgetComponent->SetVisibility(false);
+}
+
 void ACPP_PlayableCharacter::SetCurrentWeaponSlot_Implementation(int _CurrentWeaponSlot)
 {
 	CurrentWeaponSlot = _CurrentWeaponSlot;
+	FieldLootUIWidgetComponent->SetVisibility(false);
 }
 
 

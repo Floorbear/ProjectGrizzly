@@ -38,6 +38,30 @@ public:
 	}
 };
 
+//상자, AI에 아이템을 랜덤으로 스폰 설정하는 함수
+USTRUCT(BlueprintType)
+struct FRandomItemSpawnParameter
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	EItemRarity MaxSpawnRarity = EItemRarity::Unique;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	int MinSpawnCount = 1;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	int MaxSpawnCount = 3;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TArray<FName> IgnoreSpawnType;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TArray<FName> MustSpawnType;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TMap<FName,float> SpawnRateOverride;
+};
+
 USTRUCT(BlueprintType)
 struct FInventoryTileNode : public FTableRowBase
 {
@@ -133,6 +157,12 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnInventoryChanged OnInventoryChanged;
 
+	//--------------------------------------------------------------------------------------------------
+	//										RandomItem
+	//--------------------------------------------------------------------------------------------------
+public:
+	void SpawnRandomItem(TMap<FName,TArray<FItemData*>> _DropTable,FRandomItemSpawnParameter _Parameter);
+	static FItemData* GetRandomItemData(TArray<FItemData*> _DropList);
 	//--------------------------------------------------------------------------------------------------
 	//										Network
 	//--------------------------------------------------------------------------------------------------
