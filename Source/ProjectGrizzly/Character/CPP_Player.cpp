@@ -13,6 +13,7 @@
 #include <Components/CapsuleComponent.h>
 #include "..\Weapon\WeaponComponent.h"
 #include <GameFramework/CharacterMovementComponent.h>
+#include "AbilitySystemBlueprintLibrary.h"
 
 #include "Ability/CPP_GA_SwapWeapon.h"
 #include "GameFramework/InputSettings.h"
@@ -21,6 +22,14 @@
 #include "ProjectGrizzly/ProjectGrizzly.h"
 #include "ProjectGrizzly/Item/CPP_Crate.h"
 #include "ProjectGrizzly/Item/Interactable.h"
+
+ACPP_Player::ACPP_Player()
+{
+	UsableItemMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("UsableItemMeshComponent"));
+	UsableItemMeshComponent->SetupAttachment(GetHandsMeshComponent());
+	UsableItemMeshComponent->SetIsReplicated(true);
+	UsableItemMeshComponent->SetVisibility(false);
+}
 
 //Client¸¸ È£Ãâ
 void ACPP_Player::OnRep_PlayerState()
@@ -388,6 +397,15 @@ void ACPP_Player::TryInteract()
 		return;
 	
 	PrevInteractableObject->Execute_Interact(InteractableObject,this);
+}
+
+void ACPP_Player::TryUseItem(ACPP_Item* _Item)
+{
+	FGameplayEventData EventData;
+	EventData.Instigator = this;
+	EventData.Target = this;
+	EventData.OptionalObject = _Item;
+	GetAbilitySystemComponent()->HandleGameplayEvent(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.UseItem")),&EventData);
 }
 
 void ACPP_Player::UpdateHighReadyInterpo(float _DeltaTime)

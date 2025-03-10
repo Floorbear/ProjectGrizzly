@@ -38,6 +38,8 @@ public:
 	}
 };
 
+
+
 //상자, AI에 아이템을 랜덤으로 스폰 설정하는 함수
 USTRUCT(BlueprintType)
 struct FRandomItemSpawnParameter
@@ -51,6 +53,11 @@ public:
 	int MinSpawnCount = 1;
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	int MaxSpawnCount = 3;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	int MinAmmoCount = 1;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	int MaxAmmoCount = 15;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	TArray<FName> IgnoreSpawnType;

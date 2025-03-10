@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include <AbilitySystemComponent.h>
 #include <Engine\DataTable.h>
 #include <PaperSpriteComponent.h>
 #include "CPP_Item.generated.h"
@@ -37,9 +38,31 @@ public:
 	FName NameWithOutPrefix;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName Type;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<EItemInteraction> Interactions;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int Price = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Weight = 1.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EItemRarity ItemRarity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSoftObjectPtr<USkeletalMesh> ItemMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<TSubclassOf<UGameplayEffect>> ItemEffects;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TSoftObjectPtr<UAnimMontage> AM_Hands_UseItem;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TSoftObjectPtr<UAnimMontage> AM_UseItem;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText Description;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int HSize = 1;
@@ -47,20 +70,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int VSize = 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int Price = 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Weight = 1.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FText Description;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<UPaperSprite*> Tiles;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<EItemInteraction> Interactions;
+
 };
 
 
@@ -188,7 +204,12 @@ private:
 	void CheckConditionAndRemove();
 
 public:
-
+	//--------------------------------------------------------------------------------------------------
+	//										Use
+	//--------------------------------------------------------------------------------------------------
+public:
+	UFUNCTION(BlueprintCallable,Category = Use)
+	bool IsUsable() const;
 	//--------------------------------------------------------------------------------------------------
 	//										NetWork
 	//--------------------------------------------------------------------------------------------------

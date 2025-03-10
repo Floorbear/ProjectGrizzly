@@ -96,6 +96,8 @@ void UPlayerInventoryComponent::EquipWeapon_Implementation(ACPP_WeaponInstance* 
 
 void UPlayerInventoryComponent::UnEquipWeapon_Implementation(ACPP_WeaponInstance* WeaponInstance)
 {
+	if(IsUnarmedInstance(WeaponInstance))
+		return;
 	if(PrimaryWeaponInstance == WeaponInstance)
 	{
 		UnEquipWeapon_Inner(EWeaponSlot::Primary);

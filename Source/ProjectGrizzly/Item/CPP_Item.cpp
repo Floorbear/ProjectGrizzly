@@ -82,6 +82,11 @@ void ACPP_Item::CheckConditionAndRemove_Implementation()
 	Parent->RemoveItemInstanceFromInventory(this);
 }
 
+bool ACPP_Item::IsUsable() const
+{
+	return GetItemData().Interactions.Contains(EItemInteraction::Use);
+}
+
 void ACPP_Item::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

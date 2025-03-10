@@ -16,6 +16,7 @@ class PROJECTGRIZZLY_API UGrizzlyAbility : public UGameplayAbility
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	EPGAbilityInputID InputID = EPGAbilityInputID::None;
 
 protected:

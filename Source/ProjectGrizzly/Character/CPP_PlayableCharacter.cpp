@@ -405,6 +405,11 @@ void ACPP_PlayableCharacter::Die()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	GetMesh()->SetSimulatePhysics(true);
+
+	//인벤토리
+	GetInventory()->UnEquipWeapon(GetInventory()->GetWeaponInstanceFromSlot(EWeaponSlot::Secondary));
+	GetInventory()->UnEquipWeapon(GetInventory()->GetWeaponInstanceFromSlot(EWeaponSlot::Primary));
+	GetTPWeaponComponent()->SetVisibility(false);
 	Die_Multicast();
 }
 

@@ -33,9 +33,13 @@ ACPP_Crate::ACPP_Crate()
 void ACPP_Crate::BeginPlay()
 {
 	Super::BeginPlay();
-	// UGrizzlyGameInstance* Instance = Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance());
-	// auto DropTable = Instance->GetDropTable();
-	
+	if(HasAuthority())
+	{
+		UGrizzlyGameInstance* Instance = Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance());
+		auto DropTable = Instance->GetDropTable();
+		FRandomItemSpawnParameter RandomItemSpawnParameter;
+		GetInventory()->SpawnRandomItem(DropTable,RandomItemSpawnParameter);
+	}
 }
 
 // Called every frame

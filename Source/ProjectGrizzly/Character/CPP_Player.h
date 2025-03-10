@@ -10,6 +10,7 @@ UCLASS()
 class PROJECTGRIZZLY_API ACPP_Player : public ACPP_PlayableCharacter
 {
 	GENERATED_BODY()
+	ACPP_Player();
 
 protected:
 	void OnRep_PlayerState() override;
@@ -113,4 +114,19 @@ private:
 	{
 		return 200.f;
 	}
+
+	//--------------------------------------------------------------------------------------------------
+	//										UseItem
+	//--------------------------------------------------------------------------------------------------
+private:
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category = UseItem, meta = (AllowPrivateAccess = true))
+	USkeletalMeshComponent* UsableItemMeshComponent = nullptr;
+public:
+	UFUNCTION(BlueprintCallable,Category = UseItem)
+	USkeletalMeshComponent* GetUsableItemMeshComponent() const
+	{
+		return UsableItemMeshComponent;
+	}
+	UFUNCTION(BlueprintCallable,Category = UseItem)
+	void TryUseItem(ACPP_Item* _Item);
 };

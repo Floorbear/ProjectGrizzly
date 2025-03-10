@@ -23,6 +23,8 @@ UCPP_GA_SwapWeapon::UCPP_GA_SwapWeapon()
 	BlockAbilitiesWithTag.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.Reload")));
 
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::ServerInitiated;
+
+	
 }
 
 void UCPP_GA_SwapWeapon::DoUndraw()

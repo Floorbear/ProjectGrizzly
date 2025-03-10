@@ -16,8 +16,10 @@
 
 #include "ProjectGrizzly/ProjectGrizzly.h"
 //ToDo : AI쪽으로 가야할 헤더
+#include "AI/NavigationSystemBase.h"
 #include "AIModule\Classes\AIController.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "ProjectGrizzly/Core/GrizzlyGameInstance.h"
 
 ACPP_AIPlayableCharacter::ACPP_AIPlayableCharacter()
 {
@@ -136,6 +138,18 @@ ACPP_AIPlayableCharacter* ACPP_AIPlayableCharacter::SpawnAIPlayableCharacter(UOb
 	check(Weapon);
 	Inventory->EquipWeapon(Weapon,EWeaponSlot::Primary);
 	Inventory->SwapWeapon(true);
+	//1 ~ 15발 추가됨 > 사망시 루팅되는 탄약 량
+	Inventory->AddItemToInventory(Weapon->GetAmmoName(),FMath::RandRange(1,15));
+
+	//랜덤 아이템 스폰
+	const UWorld* World = FNavigationSystem::GetWorldFromContextObject(WorldContextObject);
+	check(World);
+	UGrizzlyGameInstance* Instance = Cast<UGrizzlyGameInstance>(World->GetGameInstance());
+	FRandomItemSpawnParameter RandomItemSpawnParameter;
+	RandomItemSpawnParameter.IgnoreSpawnType.Add(TEXT("Ammo"));
+	RandomItemSpawnParameter.IgnoreSpawnType.Add(TEXT("Weapon"));
+
+	Inventory->SpawnRandomItem(Instance->GetDropTable(),RandomItemSpawnParameter);
 	
 	NewAICharacter->GetWeaponComponent()->SetInfinityAmmo(Weapon);
 	

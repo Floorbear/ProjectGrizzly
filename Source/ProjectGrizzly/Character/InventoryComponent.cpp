@@ -6,7 +6,11 @@
 #include "GrizzlyPC.h"
 #include "..\ProjectGrizzly.h"
 #include "Net/UnrealNetwork.h"
+#include "ProjectGrizzly/Core/GrizzlyGameInstance.h"
 #include "ProjectGrizzly/Weapon/CPP_WeaponInstance.h"
+
+
+
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
 {
@@ -303,13 +307,66 @@ void UInventoryComponent::SpawnRandomItem(TMap<FName, TArray<FItemData*>> _DropT
 	{
 		TArray<FItemData*> DropList = _DropTable[_Parameter.MustSpawnType[i]];
 		FItemData* ItemData = GetRandomItemData(DropList);
-		AddItemToInventory(ItemData->Name);
+		int SpawnAmount = 1;
+		if(ItemData->Type == TEXT("Ammo"))
+		{
+			SpawnAmount =  FMath::RandRange(_Parameter.MinAmmoCount,_Parameter.MaxAmmoCount);
+		}
+		AddItemToInventory(ItemData->Name,SpawnAmount);
+		_Parameter.IgnoreSpawnType.Add(ItemData->Type);
+	}
+
+	//드랍 테이블 구성
+	TArray<FItemData*> DropList;
+	for(auto i : _DropTable)
+	{
+		if(_Parameter.IgnoreSpawnType.Contains(i.Key))
+			continue;
+
+		//스폰 레이트 설정
+		float SpawnRate = 1.0f;
+		if(_Parameter.SpawnRateOverride.Contains(i.Key))
+		{
+			SpawnRate = _Parameter.SpawnRateOverride[i.Key];
+		}
+
+		//각 아이템을 드랍 리스트에 넣음
+		for(auto j : i.Value)
+		{
+			const int MaxRarity = 5;
+			//레어도에 따른 가중치 설정 후 가중치 만큼 드랍리스트에 넣기
+			float fWeight = MaxRarity - static_cast<int>(j->ItemRarity);
+			int Weight = FMath::CeilToInt(fWeight * SpawnRate);
+			//리스트에 넣기
+			for(int k =0; k < Weight; k++)
+			{
+				DropList.Add(j);
+			}
+		}
+	}
+
+	//드랍 리스트에 있는 element 중 랜덤 아이템 스폰
+	int SpawnCount = FMath::RandRange(_Parameter.MinSpawnCount,_Parameter.MaxSpawnCount);
+	for(int i = 0; i < SpawnCount; i++)
+	{
+		FItemData* ItemData = GetRandomItemData(DropList);
+		//DropList에 아이템이 더이상 존재하지 않는경우
+		if(!ItemData)
+			break;
+		int SpawnAmount = 1;
+		if(ItemData->Type == TEXT("Ammo"))
+		{
+			SpawnAmount =  FMath::RandRange(_Parameter.MinAmmoCount,_Parameter.MaxAmmoCount);
+		}
+		AddItemToInventory(ItemData->Name,SpawnAmount);
+		DropList.Remove(ItemData);
 	}
 }
 
 FItemData* UInventoryComponent::GetRandomItemData(TArray<FItemData*> _DropList)
 {
-	check(!_DropList.IsEmpty());
+	if(_DropList.IsEmpty())
+		return nullptr;
 
 	int SpawnNum = FMath::RandRange(0,_DropList.Num()-1);
 	return _DropList[SpawnNum];
