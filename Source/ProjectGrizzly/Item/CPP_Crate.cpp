@@ -29,10 +29,8 @@ ACPP_Crate::ACPP_Crate()
 	WidgetComponent->SetVisibility(false);
 }
 
-// Called when the game starts or when spawned
-void ACPP_Crate::BeginPlay()
+void ACPP_Crate::SpawnRandomItem()
 {
-	Super::BeginPlay();
 	if(HasAuthority())
 	{
 		UGrizzlyGameInstance* Instance = Cast<UGrizzlyGameInstance>(GetWorld()->GetGameInstance());
@@ -40,6 +38,13 @@ void ACPP_Crate::BeginPlay()
 		FRandomItemSpawnParameter RandomItemSpawnParameter;
 		GetInventory()->SpawnRandomItem(DropTable,RandomItemSpawnParameter);
 	}
+}
+
+// Called when the game starts or when spawned
+void ACPP_Crate::BeginPlay()
+{
+	Super::BeginPlay();
+
 }
 
 // Called every frame

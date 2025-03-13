@@ -9,6 +9,7 @@
 #include "Widgets/Views/STreeView.h"
 #include "GrizzlyGameInstance.generated.h"
 
+class UPlayerInventoryComponent;
 /**
  * 
  */
@@ -23,6 +24,11 @@ private:
 
 public:
 	UGrizzlyGameInstance();
+//--------------------------------------------------------------------------------------------------
+//										World
+//--------------------------------------------------------------------------------------------------
+	void OnWorldInitialized(UWorld* _World, const UWorld::InitializationValues _InitializationValues);
+	bool bIsTraveled = false;
 
 //--------------------------------------------------------------------------------------------------
 //										Weapon
@@ -63,5 +69,16 @@ public:
 private:
 	void InitDropTable();
 	TMap<FName,TArray<FItemData*>> DropTable;
+
+	//--------------------------------------------------------------------------------------------------
+	//										Inventory
+	//--------------------------------------------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	TArray<struct FItemMapData> GetPlayerInventory() const ; 
+	
+	UFUNCTION(BlueprintCallable)
+	void SetPlayerInventory(TArray<struct FItemMapData> _Inventory) ;
+
+	TArray<FItemMapData> Inventory;
 	
 };

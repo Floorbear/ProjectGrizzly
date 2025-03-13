@@ -23,9 +23,12 @@ public:
 		
 	}
 	FItemMapData(FName _Key, class ACPP_Item* _Value) : Key(_Key), Value(_Value) {}
+	FItemMapData(FName _Key, int _Amount) : Key(_Key), Amount(_Amount) {}
 public:
 	UPROPERTY()
 	FName Key = "";
+
+	int Amount = 1;
 
 	UPROPERTY()
 	class ACPP_Item* Value = nullptr;
@@ -145,6 +148,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void TransferItemInstance(ACPP_Item* _ItemInstance, UInventoryComponent* _TargetInventory);
 private:
+	bool IsEmptyTileRange(int _PosXStart, int _PosXEnd, int _PosY, TArray<FInventoryTileRow> _Tile) const;
 	UFUNCTION(Server,Reliable)
 	void TransferItemInstance_Inner(ACPP_Item* _ItemInstance, UInventoryComponent* _SourceInventory, UInventoryComponent* _TargetInventory);
 
@@ -159,6 +163,7 @@ public:
 	//_HoriSize : 인벤토리의 가로 사이즈
 	UFUNCTION(BlueprintCallable)
 	TArray<FInventoryTileRow> GetInventoryTile(int _HoriSize) const;
+	
 
 	// 인벤토리 변경이 일어날 때 호출되는 델리게이트
 	UPROPERTY(BlueprintAssignable)
@@ -187,7 +192,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool HasNetOwner() const;
 
+	//--------------------------------------------------------------------------------------------------
+	//										Interface for Instance
+	//--------------------------------------------------------------------------------------------------
+	UFUNCTION(BlueprintCallable)
+	void SetInventory(TArray<FItemMapData> _Inventory);
+	UFUNCTION(BlueprintCallable)
+	TArray<FItemMapData> ToMapDataInventory() const;
 
+	//--------------------------------------------------------------------------------------------------
+	//										Core
+	//--------------------------------------------------------------------------------------------------
 protected:
 	TMultiMap<FName,ACPP_Item*> Inventory;
 
@@ -196,3 +211,5 @@ protected:
 	
 
 };
+
+

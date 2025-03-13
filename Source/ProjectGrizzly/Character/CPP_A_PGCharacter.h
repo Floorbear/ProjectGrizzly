@@ -18,6 +18,7 @@ class PROJECTGRIZZLY_API UCPP_A_PGCharacter : public UAnimInstance
 
 public:
 	UCPP_A_PGCharacter();
+	void UpdateAILogic(class ACPP_PlayableCharacter* Character);
 	UPROPERTY(BlueprintAssignable, BlueprintCallable, EditDefaultsOnly, Category = "Reload")
 	FOnReloadStartDelegate OnReloadStartDelegate;
 
@@ -46,6 +47,7 @@ public:
 	EWeaponType CurrentWeaponType = EWeaponType::No;
 	struct GrizzlyAnimSequence
 	{
+		UAnimSequenceBase* Hip_IdleSequence_NotAlert = nullptr;
 		UAnimSequenceBase* Hip_IdleSequence = nullptr;
 		UAnimSequenceBase* Hip_ForwardSequence = nullptr;
 		UAnimSequenceBase* Hip_RunSequence= nullptr;
@@ -59,6 +61,9 @@ public:
 	};
 	TMap<EWeaponType,GrizzlyAnimSequence> AnimSequenceMap;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
+	UAnimSequenceBase* Hip_IdleSequence_NotAlert;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
 	UAnimSequenceBase* Hip_IdleSequence;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AnimSequence")
@@ -131,4 +136,13 @@ private:
 	// ----------------------------------
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Crouch", meta = (AllowPrivateAccess = "true"))
 	bool bIsCrouching = false;
+
+	//--------------------------------------------------------------------------------------------------
+	//										Cautious
+	//--------------------------------------------------------------------------------------------------
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Crouch", meta = (AllowPrivateAccess = "true"))
+	bool bIsAlert = true;
+	//--------------------------------------------------------------------------------------------------
+	//										AI
+	//--------------------------------------------------------------------------------------------------
 };

@@ -2,14 +2,14 @@
 
 
 #include "GrizzlyGameInstance.h"
-
+#include "..\Character/PlayerInventoryComponent.h"
 #include "ProjectGrizzly/ProjectGrizzly.h"
 #include "ProjectGrizzly/Item/CPP_Item.h"
 
 void UGrizzlyGameInstance::Init()
 {
 	Super::Init();
-
+	// FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &UGrizzlyGameInstance::OnWorldInitialized);
 }
 
 UGrizzlyGameInstance::UGrizzlyGameInstance()
@@ -33,6 +33,14 @@ UGrizzlyGameInstance::UGrizzlyGameInstance()
 	}
 	Grizzly_LOG(TEXT("GrizzlyInstance is loaded"));
 
+}
+
+void UGrizzlyGameInstance::OnWorldInitialized(UWorld* _World, const UWorld::InitializationValues _InitializationValues)
+{
+	if(IsDedicatedServerInstance() && !bIsTraveled)
+	{
+		GetWorld()->ServerTravel(TEXT("/Game/FirstPerson/Maps/FirstPersonMap.FirstPersonMap?listen"));
+	}
 }
 
 TMap<FName, TArray<FItemData*>> UGrizzlyGameInstance::GetDropTable()
@@ -66,6 +74,20 @@ void UGrizzlyGameInstance::InitDropTable()
 		{
 			DropTable[ItemData->Type].Add(ItemData);
 		}
+	}
+}
+
+TArray<FItemMapData> UGrizzlyGameInstance::GetPlayerInventory() const
+{
+	return Inventory;
+}
+
+void UGrizzlyGameInstance::SetPlayerInventory(TArray<FItemMapData> _Inventory)
+{
+	Inventory.Empty();
+	for(auto i : _Inventory)
+	{
+		Inventory.Add({i.Key,i.Amount});
 	}
 }
 

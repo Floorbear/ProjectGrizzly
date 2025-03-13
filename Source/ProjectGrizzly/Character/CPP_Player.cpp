@@ -106,6 +106,10 @@ void ACPP_Player::PossessedBy(AController* NewController)
 	//(리스폰 할 경우) 이전 이펙트 삭제
 	FGameplayTagContainer Container;
 	Container.AddTag(FGameplayTag::RequestGameplayTag("Ability.State.Dead"));
+	for (auto Effect : StartEffects)
+	{
+		AbilitySystemComponent->RemoveActiveGameplayEffectBySourceEffect(Effect,GetAbilitySystemComponent());
+	}
 	AbilitySystemComponent->RemoveActiveEffectsWithGrantedTags(Container);
 
 	//스타트 이펙트 적용

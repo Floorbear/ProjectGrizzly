@@ -17,6 +17,7 @@ public:
 	// Sets default values for this actor's properties
 	ACPP_Crate();
 
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -79,4 +80,11 @@ public:
 private:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category= "UI",meta=(AllowPrivateAccess = true))
 	UWidgetComponent* WidgetComponent = nullptr;
+
+	//--------------------------------------------------------------------------------------------------
+	//										SpawnItemInterface
+	//--------------------------------------------------------------------------------------------------
+public:
+	UFUNCTION(BlueprintCallable)
+	void SpawnRandomItem();
 };

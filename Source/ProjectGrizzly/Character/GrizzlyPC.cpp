@@ -2,6 +2,8 @@
 
 
 #include "GrizzlyPC.h"
+
+#include "Net/UnrealNetwork.h"
 #include "ProjectGrizzly/ProjectGrizzly.h"
 
 AGrizzlyPC::AGrizzlyPC()
@@ -72,4 +74,15 @@ UPlayerInventoryComponent* AGrizzlyPC::GetInventoryComponent() const
 	check(PossessCharacter);
 
 	return PossessCharacter->GetInventory();
+}
+
+void AGrizzlyPC::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AGrizzlyPC,GamePhase);
+}
+
+void AGrizzlyPC::SetGamePhase_Implementation(EGamePhase _GamePhase)
+{
+	GamePhase = _GamePhase;
 }

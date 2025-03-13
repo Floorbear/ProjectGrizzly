@@ -451,7 +451,7 @@ bool ACPP_PlayableCharacter::IsDead() const
 	ACPP_GrizzlyPS* PS = Cast<ACPP_GrizzlyPS>(GetPlayerState());
 	if (!IsValid(PS))
 	{
-		return false;
+		return true;
 	}
 	return !PS->IsAlive();
 }

@@ -75,6 +75,27 @@ private:
 	//			Damage
 	// ----------------------------------
 	virtual float TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
-	
+
+	//--------------------------------------------------------------------------------------------------
+	//										Alert
+	//--------------------------------------------------------------------------------------------------
+private:
+	UPROPERTY(Replicated,BlueprintReadWrite,Category = Alert,meta = (AllowPrivateAccess = true))
+	bool bIsAlert = true;
+public:
+	UFUNCTION(BlueprintCallable)
+	bool IsAlert() const
+	{
+		return bIsAlert;
+	}
+
+	UFUNCTION()
+	void CheckAlert();
+
+	//--------------------------------------------------------------------------------------------------
+	//										Network
+	//--------------------------------------------------------------------------------------------------
+protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 };

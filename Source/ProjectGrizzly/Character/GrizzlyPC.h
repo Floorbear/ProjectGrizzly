@@ -19,6 +19,14 @@ enum class EInventoryCategory : uint8
 	Shop
 };
 
+UENUM(BlueprintType)
+enum class EGamePhase : uint8
+{
+	Loadout,
+	Playing
+};
+
+
 USTRUCT(BlueprintType)
 struct FInventoryUI_Parameter
 {
@@ -75,4 +83,25 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	UPlayerInventoryComponent* GetInventoryComponent() const;
+	//--------------------------------------------------------------------------------------------------
+	//										Network 
+	//--------------------------------------------------------------------------------------------------
+protected:
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+	//--------------------------------------------------------------------------------------------------
+	//										Network - GameSet
+	//--------------------------------------------------------------------------------------------------
+private:
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = Network, meta = (AllowPrivateAccess = true),Replicated)
+	EGamePhase GamePhase;
+public:
+	UFUNCTION(BlueprintCallable)
+	EGamePhase GetGamePhase() const
+	{
+		return GamePhase;
+	}
+
+	UFUNCTION(BlueprintCallable,Server, Reliable)
+	void SetGamePhase(EGamePhase _GamePhase);
 };

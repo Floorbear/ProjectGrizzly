@@ -10,6 +10,7 @@
 #include "GrizzlyPC.h"
 #include <Kismet/KismetMathLibrary.h>
 #include <Components/CapsuleComponent.h>
+#include <BehaviorTree/BlackboardComponent.h>
 #include "CPP_AI_PlayableCharacter_PC.h"
 #include "..\Weapon\WeaponComponent.h"
 #include "Net\UnrealNetwork.h"
@@ -54,6 +55,22 @@ float ACPP_AIPlayableCharacter::TakeDamage(float Damage, FDamageEvent const& Dam
 	
 }
 
+void ACPP_AIPlayableCharacter::CheckAlert()
+{
+	if(HasAuthority())
+	{
+		if(AAIController* AIController = Cast<AAIController>(GetController());AIController)
+		{
+			bIsAlert = !AIController->GetBlackboardComponent()->GetValueAsBool(TEXT("LostsTargetActor"));
+		}
+	}
+}
+
+void ACPP_AIPlayableCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ACPP_AIPlayableCharacter, bIsAlert);
+}
 
 
 void ACPP_AIPlayableCharacter::BeginPlay()
@@ -97,6 +114,9 @@ void ACPP_AIPlayableCharacter::BeginPlay()
 
 	//1ÀÎÄª ¸Þ½¬ ¼û±â±â 
 	GetHandsMeshComponent()->SetVisibility(false, true);
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle,this,&ACPP_AIPlayableCharacter::CheckAlert,1.0f,true,1.f);
 }
 
 void ACPP_AIPlayableCharacter::HealthChanged(const struct FOnAttributeChangeData& Data)

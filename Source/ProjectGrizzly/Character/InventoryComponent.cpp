@@ -184,6 +184,24 @@ void UInventoryComponent::TransferItemInstance(ACPP_Item* _ItemInstance,
 	
 }
 
+bool UInventoryComponent::IsEmptyTileRange(int _PosXStart, int _PosXEnd, int _PosY, TArray<FInventoryTileRow> _Tile) const
+{
+	bool Result = true;
+	for(int i = _PosXStart; i <= _PosXEnd; i++)
+	{
+		if(i >= _Tile[_PosY].Column.Num())
+		{
+			return false;
+		}
+		if(!_Tile[_PosY].Column[i].bIsEmpty)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 ACPP_Item* UInventoryComponent::FindItemFromInventory(FName _ItemName)
 {
 	if(!Inventory.Contains(_ItemName))
@@ -218,6 +236,10 @@ TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) c
 	{
 		ACPP_Item* CurItem = TempInventory.begin().Value();
 		FName CurItemName = TempInventory.begin().Key();
+		if(!CurItem)
+		{
+			return Tile;
+		}
 
 		FItemData ItemData = CurItem->GetItemData();
 		//현재 아이템이 렌더링할수 있는 상태가 아니면 다음으로 넘어간다
@@ -230,7 +252,7 @@ TArray<FInventoryTileRow> UInventoryComponent::GetInventoryTile(int _HoriSize) c
 		if (Tile[Pos.Y].Column[Pos.X].bIsEmpty)
 		{
 			//현재 위치에서 가로 사이즈에 맞는 아이템이 들어가는지 확인
-			if (ItemData.HSize <= _HoriSize - Pos.X)
+			if (ItemData.HSize <= _HoriSize - Pos.X && IsEmptyTileRange(Pos.X,Pos.X + ItemData.HSize,Pos.Y,Tile))
 			{
 				Tile[Pos.Y].Column[Pos.X].bIsEmpty = false;
 				Tile[Pos.Y].Column[Pos.X].Item = CurItem;
@@ -388,12 +410,7 @@ void UInventoryComponent::OnRep_NetInventory()
 {
 	//클라이언트
 	//NetInventory To Inventory
-	Inventory.Empty();
-	for(auto& i : NetInventory)
-	{
-		Inventory.Add(i.Key,i.Value);
-	}
-	OnInventoryChanged.Broadcast();
+	SetInventory(NetInventory);
 }
 
 
@@ -421,5 +438,25 @@ bool UInventoryComponent::HasNetOwner() const
 	return GetOwner()->HasNetOwner();
 }
 
+void UInventoryComponent::SetInventory(TArray<FItemMapData> _Inventory)
+{
+	Inventory.Empty();
+	for(auto& i : _Inventory)
+	{
+		AddItemToInventory(i.Key,i.Amount);
+		// i.Value->SetParent(this);
+		// Inventory.Add(i.Key,i.Value);
+	}
+	OnInventoryChanged.Broadcast();
+}
 
+TArray<FItemMapData> UInventoryComponent::ToMapDataInventory() const
+{
+	TArray<FItemMapData> ReturnInventory;
+	for(auto& i : Inventory)
+	{
+		ReturnInventory.Add({i.Key,i.Value->GetAmount()});
+	}
+	return ReturnInventory;
+}
 
