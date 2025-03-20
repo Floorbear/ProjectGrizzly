@@ -7,7 +7,9 @@
 #include "..\Weapon/WeaponData.h"
 #include "ProjectGrizzly/Item/CPP_Item.h"
 #include "Widgets/Views/STreeView.h"
+#include "..\Character/InventoryComponent.h"
 #include "GrizzlyGameInstance.generated.h"
+
 
 class UPlayerInventoryComponent;
 /**
@@ -73,12 +75,18 @@ private:
 	//--------------------------------------------------------------------------------------------------
 	//										Inventory
 	//--------------------------------------------------------------------------------------------------
+public:
 	UFUNCTION(BlueprintCallable)
-	TArray<struct FItemMapData> GetPlayerInventory() const ; 
-	
-	UFUNCTION(BlueprintCallable)
-	void SetPlayerInventory(TArray<struct FItemMapData> _Inventory) ;
+	const FInventoryData& GetInventoryFromKey(FName _Key);
 
-	TArray<FItemMapData> Inventory;
+	
+
+	UFUNCTION(BlueprintCallable)
+	void SetInventory(UPARAM(ref) FInventoryData& _InventoryData) ;
+
+private:
+	FInventoryData* FindInventoryByKey(FName _Key);
+	
+	TArray<FInventoryData> Inventory;
 	
 };

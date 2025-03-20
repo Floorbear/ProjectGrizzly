@@ -410,7 +410,14 @@ void UInventoryComponent::OnRep_NetInventory()
 {
 	//클라이언트
 	//NetInventory To Inventory
-	SetInventory(NetInventory);
+	Inventory.Empty();
+	for(auto& i : NetInventory)
+	{
+		AddItemToInventory(i.Key,i.Amount);
+		// i.Value->SetParent(this);
+		// Inventory.Add(i.Key,i.Value);
+	}
+	OnInventoryChanged.Broadcast();
 }
 
 
@@ -438,24 +445,28 @@ bool UInventoryComponent::HasNetOwner() const
 	return GetOwner()->HasNetOwner();
 }
 
-void UInventoryComponent::SetInventory(TArray<FItemMapData> _Inventory)
+void UInventoryComponent::SetInventory(FInventoryData _InventoryData)
 {
 	Inventory.Empty();
-	for(auto& i : _Inventory)
+	for(auto& i : _InventoryData.InventoryData)
 	{
-		AddItemToInventory(i.Key,i.Amount);
+		AddItemToInventory(i.ItemName,i.Amount);
 		// i.Value->SetParent(this);
 		// Inventory.Add(i.Key,i.Value);
 	}
 	OnInventoryChanged.Broadcast();
 }
 
-TArray<FItemMapData> UInventoryComponent::ToMapDataInventory() const
+FInventoryData UInventoryComponent::ToInventoryData(FName _InventoryName) const
 {
-	TArray<FItemMapData> ReturnInventory;
+	FInventoryData ReturnInventory;
+	ReturnInventory.InventoryName = _InventoryName;
 	for(auto& i : Inventory)
 	{
-		ReturnInventory.Add({i.Key,i.Value->GetAmount()});
+		FInventoryEntry NewEntry;
+		NewEntry.ItemName = i.Value->GetItemName();
+		NewEntry.Amount = i.Value->GetAmount();
+		ReturnInventory.InventoryData.Add(NewEntry);
 	}
 	return ReturnInventory;
 }

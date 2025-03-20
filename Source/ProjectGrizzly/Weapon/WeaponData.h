@@ -10,6 +10,7 @@
 UENUM(BlueprintType)
 enum class EWeaponSlot : uint8
 {
+	NoEquip	UMETA(DisplayName = "NoEquip"),
 	Primary	UMETA(DisplayName = "Primary"),
 	Secondary	UMETA(DisplayName = "Secondary")	
 };

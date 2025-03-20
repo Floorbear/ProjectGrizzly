@@ -41,7 +41,48 @@ public:
 	}
 };
 
+//
+USTRUCT(BlueprintType)
+struct FInventoryEntry
+{
+	GENERATED_BODY()
+public:
+	FInventoryEntry()
+	{
+		
+	}
 
+public:
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	FName ItemName = "";
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	int Amount = 1;
+};
+
+USTRUCT(BlueprintType)
+struct FInventoryData
+{
+	GENERATED_BODY()
+public:
+	FInventoryData()
+	{
+		
+	}
+
+public:
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	FName InventoryName;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TArray<FInventoryEntry> InventoryData;
+
+	bool operator== (const FInventoryData& _Data) const
+	{
+		if(_Data.InventoryName == this->InventoryName)
+			return true;
+		return false;
+	}
+};
 
 //상자, AI에 아이템을 랜덤으로 스폰 설정하는 함수
 USTRUCT(BlueprintType)
@@ -196,9 +237,9 @@ public:
 	//										Interface for Instance
 	//--------------------------------------------------------------------------------------------------
 	UFUNCTION(BlueprintCallable)
-	void SetInventory(TArray<FItemMapData> _Inventory);
+	void SetInventory(FInventoryData _InventoryData);
 	UFUNCTION(BlueprintCallable)
-	TArray<FItemMapData> ToMapDataInventory() const;
+	FInventoryData ToInventoryData(FName _InventoryName) const;
 
 	//--------------------------------------------------------------------------------------------------
 	//										Core

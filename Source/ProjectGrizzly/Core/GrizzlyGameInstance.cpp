@@ -10,6 +10,42 @@ void UGrizzlyGameInstance::Init()
 {
 	Super::Init();
 	// FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &UGrizzlyGameInstance::OnWorldInitialized);
+	
+	FInventoryData PlayerInventory;
+	PlayerInventory.InventoryName = TEXT("Player");
+
+	FInventoryData StashInventory;
+	StashInventory.InventoryName = TEXT("Stash");
+
+	TArray<FInventoryEntry> ItemSet;
+	FInventoryEntry Colt;
+	Colt.ItemName = TEXT("Weapon_Colt");
+	Colt.Amount = 1;
+	ItemSet.Add(Colt);
+	FInventoryEntry AKM;
+	AKM.ItemName = TEXT("Weapon_AKM");
+	AKM.Amount = 1;
+	ItemSet.Add(AKM);
+
+	FInventoryEntry ColtAmmo;
+	ColtAmmo.ItemName = TEXT("Ammo_45ACP");
+	ColtAmmo.Amount = 100;
+	ItemSet.Add(ColtAmmo);
+
+	FInventoryEntry AKMAmmo;
+	AKMAmmo.ItemName = TEXT("Ammo_7.62x39mm");
+	AKMAmmo.Amount = 300;
+	ItemSet.Add(AKMAmmo);
+
+	FInventoryEntry Medickit;
+	Medickit.ItemName = TEXT("Medical_Medickit");
+	Medickit.Amount = 10;
+	ItemSet.Add(Medickit);
+
+	StashInventory.InventoryData = ItemSet;
+	
+	SetInventory(PlayerInventory);
+	SetInventory(StashInventory);
 }
 
 UGrizzlyGameInstance::UGrizzlyGameInstance()
@@ -77,17 +113,44 @@ void UGrizzlyGameInstance::InitDropTable()
 	}
 }
 
-TArray<FItemMapData> UGrizzlyGameInstance::GetPlayerInventory() const
+const FInventoryData& UGrizzlyGameInstance::GetInventoryFromKey(FName _Key)
 {
-	return Inventory;
+	FInventoryData* InventoryData = FindInventoryByKey(_Key);
+	if(!InventoryData)
+	{
+		Grizzly_LOG(TEXT("%s is not included in Instance's Inventory"),*_Key.ToString());
+	}
+
+	return *InventoryData;
 }
 
-void UGrizzlyGameInstance::SetPlayerInventory(TArray<FItemMapData> _Inventory)
+void UGrizzlyGameInstance::SetInventory(FInventoryData& _InventoryData)
 {
-	Inventory.Empty();
-	for(auto i : _Inventory)
+	FInventoryData* InventoryData = FindInventoryByKey(_InventoryData.InventoryName);
+	if(InventoryData)
 	{
-		Inventory.Add({i.Key,i.Amount});
+		*InventoryData = _InventoryData;
+	}
+	else
+	{
+		Inventory.Add(_InventoryData);
 	}
 }
+
+FInventoryData* UGrizzlyGameInstance::FindInventoryByKey(FName _Key)
+{
+	FInventoryData* InventoryData = nullptr;
+	for(int i = 0; i < Inventory.Num(); i++)
+	{
+		if(Inventory[i].InventoryName == _Key)
+		{
+			InventoryData = &Inventory[i];
+			break;
+		}
+	}
+
+	return InventoryData;
+}
+
+
 
