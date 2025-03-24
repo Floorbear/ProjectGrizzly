@@ -1,4 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -294,10 +295,10 @@ public:
 public:
 	EWeaponSlot GetCurrentWeaponSlot() const
 	{
-		return static_cast<EWeaponSlot>(CurrentWeaponSlot);
+		return CurrentWeaponSlot;
 	}
 	UFUNCTION(Server,Reliable)
-	void SetCurrentWeaponSlot(int _CurrentWeaponSlot);
+	void SetCurrentWeaponSlot(EWeaponSlot _CurrentWeaponSlot);
 
 	virtual ACPP_WeaponInstance* GetCurrentWeaponInstance(){return nullptr;}
 	virtual ACPP_WeaponInstance* GetWeaponInstanceFromSlot(EWeaponSlot _Slot){return nullptr;}
@@ -307,7 +308,7 @@ public:
 	virtual void SwapWeapon(EWeaponSlot _Slot){};
 protected:
 	UPROPERTY(Replicated)
-	int CurrentWeaponSlot = 0;
+	EWeaponSlot CurrentWeaponSlot = EWeaponSlot::Primary;
 
 	//--------------------------------------------------------------------------------------------------
 	//										Inventory

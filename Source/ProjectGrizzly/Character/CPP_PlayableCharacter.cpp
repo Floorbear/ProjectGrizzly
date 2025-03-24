@@ -159,6 +159,7 @@ void ACPP_PlayableCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	DOREPLIFETIME(ACPP_PlayableCharacter, CharacterModel);
 	DOREPLIFETIME(ACPP_PlayableCharacter, LeaningAxis);
 	DOREPLIFETIME(ACPP_PlayableCharacter, CurrentWeaponSlot);
+	
 
 }
 void ACPP_PlayableCharacter::SetBendDownDegree_Server_Implementation(float _Degree)
@@ -213,10 +214,10 @@ void ACPP_PlayableCharacter::CloseWidget_Implementation()
 	FieldLootUIWidgetComponent->SetVisibility(false);
 }
 
-void ACPP_PlayableCharacter::SetCurrentWeaponSlot_Implementation(int _CurrentWeaponSlot)
+void ACPP_PlayableCharacter::SetCurrentWeaponSlot_Implementation(EWeaponSlot _CurrentWeaponSlot)
 {
 	CurrentWeaponSlot = _CurrentWeaponSlot;
-	FieldLootUIWidgetComponent->SetVisibility(false);
+	//FieldLootUIWidgetComponent->SetVisibility(false);
 }
 
 
@@ -224,7 +225,7 @@ void ACPP_PlayableCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	UpdateBendDownDegree();
-	//UpdateADS(DeltaTime);
+	UpdateADS(DeltaTime);
 	if (IsMyComputer())
 	{
 

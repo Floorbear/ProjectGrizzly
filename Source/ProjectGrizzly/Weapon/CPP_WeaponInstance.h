@@ -67,17 +67,27 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsEquipped() const
 	{
-		return bIsEquipped;
+		if(EquippedSlot == EWeaponSlot::NoEquip)
+		{
+			return false;
+		}
+		return true;
 	}
 
 	UFUNCTION(BlueprintCallable)
-	void SetEquipped(const bool IsEquipped)
+	EWeaponSlot GetEquippedSlot() const
 	{
-		bIsEquipped = IsEquipped;
+		return EquippedSlot;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	void SetEquipped(const EWeaponSlot _EquippedSlot)
+	{
+		EquippedSlot = _EquippedSlot;
 	}
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_IsEquipped)
-	bool bIsEquipped;
+	EWeaponSlot EquippedSlot;
 
 	//--------------------------------------------------------------------------------------------------
 	//										FireMode

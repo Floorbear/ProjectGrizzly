@@ -10,6 +10,12 @@
 #include "..\Character/InventoryComponent.h"
 #include "GrizzlyGameInstance.generated.h"
 
+UENUM(BlueprintType)
+enum class EGamePhase : uint8
+{
+	Loadout,
+	Playing
+};
 
 class UPlayerInventoryComponent;
 /**
@@ -86,7 +92,30 @@ public:
 
 private:
 	FInventoryData* FindInventoryByKey(FName _Key);
-	
+
+	UPROPERTY(BlueprintReadOnly,EditAnywhere,Category = Inventory, meta = (AllowPrivateAccess = true))
 	TArray<FInventoryData> Inventory;
+
+	//--------------------------------------------------------------------------------------------------
+	//										GamePhase
+	//--------------------------------------------------------------------------------------------------
+private:
+	UPROPERTY(BlueprintReadOnly,EditAnywhere,Category = GamePhase, meta = (AllowPrivateAccess = true))
+	EGamePhase GamePhase;
+
+public:
+	UFUNCTION(BlueprintCallable, Category = GamePhase)
+	EGamePhase GetGamePhase() const
+	{
+		return GamePhase;
+	}
 	
+	UFUNCTION(BlueprintCallable, Category = GamePhase)
+	void SetGamePhase(EGamePhase _GamePhase)
+	{
+		GamePhase = _GamePhase;
+	}
+	
+	UPROPERTY(BlueprintReadOnly,EditAnywhere,Category = test, meta = (AllowPrivateAccess = true))
+	int testcount = 0;
 };

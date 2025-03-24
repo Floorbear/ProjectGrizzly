@@ -88,7 +88,7 @@ void ACPP_WeaponInstance::OnRep_IsEquipped() const
 void ACPP_WeaponInstance::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ACPP_WeaponInstance,bIsEquipped);
+	DOREPLIFETIME(ACPP_WeaponInstance,EquippedSlot);
 	DOREPLIFETIME(ACPP_WeaponInstance,Rounds);
 }
 

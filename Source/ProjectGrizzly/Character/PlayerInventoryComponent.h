@@ -82,13 +82,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	ACPP_WeaponInstance* GetUnarmedInstance() const;
 	bool IsCurrentWeaponSlot(EWeaponSlot _WeaponSlot) const;
-
-	// 0 : Primary , 1 : Secondary
+	
 	UFUNCTION(BlueprintCallable)
-	TArray<ACPP_WeaponInstance*> GetWeaponInstances() const
-	{
-		return {PrimaryWeaponInstance,SecondaryWeaponInstance};
-	}
+	ACPP_WeaponInstance* FindWeaponInstanceFromSlot(EWeaponSlot _Slot) const;
 	//--------------------------------------------------------------------------------------------------
 	//										Interface
 	//--------------------------------------------------------------------------------------------------
@@ -117,4 +113,7 @@ private:
 	UFUNCTION(BlueprintCallable, meta=(WorldContext = "_WorldContext"))
 	static UPlayerInventoryComponent* GetPlayerInventoryComponent(UObject* _WorldContext);
 
+	//인벤토리 재할당이 일어났을 때 호출되는 함수
+	UFUNCTION()
+	void OnRep_OnInventorySet();
 };

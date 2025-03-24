@@ -73,7 +73,8 @@ FTransform UCPP_GA_Shoot::CalculateBulletSpawnTransform(const FTransform& _Camer
 	}
 
 	//정조준 하면 랜덤 스프레드 값이 작아짐
-	float ADSFactor = 1.f - Cast<ACPP_PlayableCharacter>(GetCharacter())->GetADSFactor();
+	float ADSValue = Cast<ACPP_PlayableCharacter>(GetCharacter())->GetADSFactor();
+	float ADSFactor = 1.f - ADSValue;
 
 
 	//AI일경우 난이도에 따라 랜덤 스프레드 값이 추가됨

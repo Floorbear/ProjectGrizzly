@@ -75,22 +75,24 @@ void UPlayerInventoryComponent::EquipWeapon_Implementation(ACPP_WeaponInstance* 
 {
 	//기존에 무기를 착용하고 있는 무기를 인벤토리에 돌려둔다
 	UnEquipWeapon_Inner(_Slot);
+	_WeaponInstance->SetEquipped(_Slot);
 	if(_Slot == EWeaponSlot::Primary)
 	{
 		PrimaryWeaponInstance = _WeaponInstance;
 	}
-	else
+	else if(_Slot == EWeaponSlot::Secondary)
 	{
 		SecondaryWeaponInstance = _WeaponInstance;
 	}
 	
 	//지금 슬롯과 일치하면 플레이어에 무기 장착
+	//현재 게임모드가 진행중이여야함
 	ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(GetOwner());
-	if(PlayableCharacter->GetCurrentWeaponSlot() == _Slot)
+	UGrizzlyGameInstance* GameInstance =  Cast<UGrizzlyGameInstance>(PlayableCharacter->GetGameInstance());
+	if(PlayableCharacter->GetCurrentWeaponSlot() == _Slot && GameInstance->GetGamePhase() == EGamePhase::Playing)
 	{
 		TryActivateSwapWeapon(_Slot);
 	}
-	_WeaponInstance->SetEquipped(true);
 	OnInventoryChanged.Broadcast();
 }
 
@@ -98,11 +100,14 @@ void UPlayerInventoryComponent::UnEquipWeapon_Implementation(ACPP_WeaponInstance
 {
 	if(IsUnarmedInstance(WeaponInstance))
 		return;
+	ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(GetOwner());
+	UGrizzlyGameInstance* GameInstance =  Cast<UGrizzlyGameInstance>(PlayableCharacter->GetGameInstance());
+	EGamePhase GamePhase = GameInstance->GetGamePhase();
 	if(PrimaryWeaponInstance == WeaponInstance)
 	{
 		UnEquipWeapon_Inner(EWeaponSlot::Primary);
 		//들고있는 무기를 장착해제하면 장착 해제 어빌리티 활성화
-		if(GetPlayableCharacter()->GetCurrentWeaponSlot() == EWeaponSlot::Primary)
+		if(GetPlayableCharacter()->GetCurrentWeaponSlot() == EWeaponSlot::Primary && GamePhase == EGamePhase::Playing)
 		{
 			TryActivateSwapWeapon(EWeaponSlot::Primary);
 		}
@@ -111,7 +116,7 @@ void UPlayerInventoryComponent::UnEquipWeapon_Implementation(ACPP_WeaponInstance
 	else if(SecondaryWeaponInstance == WeaponInstance)
 	{
 		UnEquipWeapon_Inner(EWeaponSlot::Secondary);
-		if(GetPlayableCharacter()->GetCurrentWeaponSlot() == EWeaponSlot::Secondary)
+		if(GetPlayableCharacter()->GetCurrentWeaponSlot() == EWeaponSlot::Secondary && GamePhase == EGamePhase::Playing)
 		{
 			TryActivateSwapWeapon(EWeaponSlot::Secondary);
 		}
@@ -138,7 +143,7 @@ void UPlayerInventoryComponent::UnEquipWeapon_Inner(EWeaponSlot _Slot)
 	
 	if(!IsUnarmedInstance(CurrentWeaponInstance))
 	{
-		CurrentWeaponInstance->SetEquipped(false);
+		CurrentWeaponInstance->SetEquipped(EWeaponSlot::NoEquip);
 	}
 	OnInventoryChanged.Broadcast();
 }
@@ -190,6 +195,21 @@ bool UPlayerInventoryComponent::IsCurrentWeaponSlot(EWeaponSlot _WeaponSlot) con
 	return false;
 }
 
+ACPP_WeaponInstance* UPlayerInventoryComponent::FindWeaponInstanceFromSlot(EWeaponSlot _Slot) const
+{
+	for(auto& i :Inventory)
+	{
+		if(ACPP_WeaponInstance* WeaponInstance = Cast<ACPP_WeaponInstance>(i.Value); WeaponInstance)
+		{
+			if(WeaponInstance->GetEquippedSlot() == _Slot)
+			{
+				return WeaponInstance;
+			}
+		}
+	}
+	return nullptr;
+}
+
 void UPlayerInventoryComponent::OnRep_PrimaryWeaponInstance()
 {
 	//SimulatedProxy가 서버 RPC를 보내는 상황을 배제한다
@@ -231,7 +251,7 @@ void UPlayerInventoryComponent::OnRep_WeaponInstance() const
 void UPlayerInventoryComponent::OnRep_OnInventoryChanged()
 {
 	const ACPP_PlayableCharacter* PlayableCharacter = Cast<ACPP_PlayableCharacter>(GetOwner());
-
+	
 	//현재 장비한 총의 탄약을 다시 확인
 	ACPP_WeaponInstance* CurrentWeaponInstance = PlayableCharacter->GetWeaponComponent()->GetCurrentWeaponInstance();
 	//checkf(CurrentWeaponInstance != nullptr,TEXT("CurrentWeaponInstance is NULL"));
@@ -255,9 +275,14 @@ void UPlayerInventoryComponent::InitializeComponent()
 	int a = 0;
 	if(APawn* OwnerPawn = Cast<APawn>(GetOwner());OwnerPawn)
 	{
+		//오토노머스 예외
 		if(OwnerPawn->IsLocallyControlled() || OwnerPawn->HasAuthority())
 		{
 			OnInventoryChanged.AddDynamic(this,&UPlayerInventoryComponent::OnRep_OnInventoryChanged);
+		}
+		if(OwnerPawn->HasAuthority())
+		{
+			OnInventorySet.AddDynamic(this,&UPlayerInventoryComponent::OnRep_OnInventorySet);
 		}
 	}
 }
@@ -273,6 +298,22 @@ UPlayerInventoryComponent* UPlayerInventoryComponent::GetPlayerInventoryComponen
 		return nullptr;
 
 	return Cast<ACPP_PlayableCharacter>(PC->GetPawn())->GetInventory();
+}
+
+void UPlayerInventoryComponent::OnRep_OnInventorySet()
+{
+	PrimaryWeaponInstance = GetUnarmedInstance();
+	SecondaryWeaponInstance = GetUnarmedInstance();
+	if(ACPP_WeaponInstance* PrimaryWeapon = FindWeaponInstanceFromSlot(EWeaponSlot::Primary); PrimaryWeapon)
+	{
+		PrimaryWeaponInstance = PrimaryWeapon;
+		//EquipWeapon(PrimaryWeapon,EWeaponSlot::Primary);
+	}
+	if(ACPP_WeaponInstance* SecondaryWeapon = 	FindWeaponInstanceFromSlot(EWeaponSlot::Secondary); SecondaryWeapon)
+	{
+		SecondaryWeaponInstance = SecondaryWeapon;
+		//EquipWeapon(SecondaryWeapon,EWeaponSlot::Secondary);
+	}
 }
 
 

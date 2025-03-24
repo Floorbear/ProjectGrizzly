@@ -7,6 +7,7 @@
 #include <Engine\DataTable.h>
 #include <PaperSpriteComponent.h>
 #include "..\Item\CPP_Item.h"
+#include "ProjectGrizzly/Weapon/WeaponData.h"
 #include "InventoryComponent.generated.h"
 
 class ACPP_ItemContainer;
@@ -58,6 +59,9 @@ public:
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	int Amount = 1;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	EWeaponSlot EquippedSlot = EWeaponSlot::NoEquip;
 };
 
 USTRUCT(BlueprintType)
@@ -174,6 +178,8 @@ public:
 	//태그포함이름
 	UFUNCTION(BlueprintCallable,Server,Reliable)
 	void AddItemToInventory(FName _ItemName, int _Amount = 1);
+	
+	void AddItemToInventory_Inner(FInventoryEntry& Entry);
 
 	//인스턴스
 	UFUNCTION(Server,Reliable)
@@ -209,6 +215,10 @@ public:
 	// 인벤토리 변경이 일어날 때 호출되는 델리게이트
 	UPROPERTY(BlueprintAssignable)
 	FOnInventoryChanged OnInventoryChanged;
+
+	// 인벤토리 자체가 재할당 될 때 호출되는 델리게이트
+	UPROPERTY(BlueprintAssignable)
+	FOnInventoryChanged OnInventorySet;
 
 	//--------------------------------------------------------------------------------------------------
 	//										RandomItem

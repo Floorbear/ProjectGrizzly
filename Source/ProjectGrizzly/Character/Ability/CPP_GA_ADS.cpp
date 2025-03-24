@@ -83,7 +83,6 @@ void UCPP_GA_ADS::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 	ACPP_PlayableCharacter* Player = Cast<ACPP_PlayableCharacter>(CurrentActorInfo->AvatarActor);
 	Player->SetADS(true);
 	
-
 	ApplyADSEffect();
 
 	UTickTask* Tick = UTickTask::CreateTickTask(this, NAME_None);//->
@@ -139,8 +138,8 @@ void UCPP_GA_ADS::Tick(float _DeltaTime)
 	}
 	
 	// 어빌리티의 종료 체크는 오토노머스에서 하겠다
-	bool IsMyComputer = Player->IsMyComputer();
-	if (IsMyComputer)
+	bool IsLocallyControlled = Player->IsLocallyControlled();
+	if (IsLocallyControlled)
 	{
 		if (Player->GetADSFactor() < 0.02 && !Player->GetADS())
 		{

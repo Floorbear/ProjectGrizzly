@@ -48,6 +48,12 @@ void ACPP_Player::OnRep_PlayerState()
 
 	//무장 초기화
 	GetInventory()->InitWeaponInstanceToUnarmedInstance();
+
+	//인벤토리 초기화
+	if(AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetController()); PC)
+	{
+		PC->LoadPlayerInventoryFromInstance();
+	}
 }
 
 // 서버의 Owner 값이 변경되서 클라이언트에 복제될 때 호출되는 이벤트함수
@@ -495,8 +501,8 @@ void ACPP_Player::OnCurrentWeaponSlot()
 	{
 		if(GetWorld()->GetFirstPlayerController()->PlayerInput->IsPressed(Mappings[i].Key))
 		{
-			CurrentWeaponSlot = i;
-			SetCurrentWeaponSlot(i);
+			EWeaponSlot Slot = static_cast<EWeaponSlot>(i+1);
+			SetCurrentWeaponSlot(Slot);
 		}
 	}
 }
@@ -520,8 +526,7 @@ ACPP_WeaponInstance* ACPP_Player::GetWeaponInstanceFromSlot(EWeaponSlot _Slot)
 void ACPP_Player::TryActivateSwapWeapon(EWeaponSlot _Slot)
 {
 	Super::TryActivateSwapWeapon(_Slot);
-	CurrentWeaponSlot = static_cast<int>(_Slot);
-	SetCurrentWeaponSlot(CurrentWeaponSlot);
+	SetCurrentWeaponSlot(_Slot);
 	GetAbilitySystemComponent()->TryActivateAbilityByClass(UCPP_GA_SwapWeapon::StaticClass());
 }
 

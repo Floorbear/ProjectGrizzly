@@ -115,6 +115,8 @@ void UGrizzlyGameInstance::InitDropTable()
 
 const FInventoryData& UGrizzlyGameInstance::GetInventoryFromKey(FName _Key)
 {
+	testcount++;
+	int a = testcount;
 	FInventoryData* InventoryData = FindInventoryByKey(_Key);
 	if(!InventoryData)
 	{

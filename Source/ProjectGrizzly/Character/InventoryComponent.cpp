@@ -56,8 +56,11 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	// ...
 }
 
-void UInventoryComponent::AddItemToInventory_Implementation(FName _ItemName, int _Amount)
+void UInventoryComponent::AddItemToInventory_Inner(FInventoryEntry& Entry)
 {
+	int _Amount = Entry.Amount;
+	FName _ItemName = Entry.ItemName;
+	
 	if (_Amount <= 0)
 	{
 		Grizzly_LOG(TEXT("%d is not over 1"), _Amount);
@@ -87,8 +90,23 @@ void UInventoryComponent::AddItemToInventory_Implementation(FName _ItemName, int
 	{
 		Grizzly_LOG(TEXT("%s is not included in Table"), *_ItemName.ToString());
 	}
+
+	//무기면 장착 데이터를 추가해줌
+	if(ACPP_WeaponInstance* WeaponInstance = Cast<ACPP_WeaponInstance>(NewItem);WeaponInstance)
+	{
+		WeaponInstance->SetEquipped(Entry.EquippedSlot);
+	}
 	Inventory.Add(_ItemName, NewItem);
 	OnInventoryChanged.Broadcast();
+}
+
+
+void UInventoryComponent::AddItemToInventory_Implementation(FName _ItemName, int _Amount)
+{
+	FInventoryEntry Entry;
+	Entry.ItemName = _ItemName;
+	Entry.Amount = _Amount;
+	AddItemToInventory_Inner(Entry);
 }
 
 
@@ -413,9 +431,8 @@ void UInventoryComponent::OnRep_NetInventory()
 	Inventory.Empty();
 	for(auto& i : NetInventory)
 	{
-		AddItemToInventory(i.Key,i.Amount);
-		// i.Value->SetParent(this);
-		// Inventory.Add(i.Key,i.Value);
+		i.Value->SetParent(this);
+		Inventory.Add(i.Key,i.Value);
 	}
 	OnInventoryChanged.Broadcast();
 }
@@ -450,11 +467,13 @@ void UInventoryComponent::SetInventory(FInventoryData _InventoryData)
 	Inventory.Empty();
 	for(auto& i : _InventoryData.InventoryData)
 	{
-		AddItemToInventory(i.ItemName,i.Amount);
+		AddItemToInventory_Inner(i);
+		//AddItemToInventory(i.ItemName,i.Amount);
 		// i.Value->SetParent(this);
 		// Inventory.Add(i.Key,i.Value);
 	}
 	OnInventoryChanged.Broadcast();
+	OnInventorySet.Broadcast();
 }
 
 FInventoryData UInventoryComponent::ToInventoryData(FName _InventoryName) const
@@ -466,6 +485,11 @@ FInventoryData UInventoryComponent::ToInventoryData(FName _InventoryName) const
 		FInventoryEntry NewEntry;
 		NewEntry.ItemName = i.Value->GetItemName();
 		NewEntry.Amount = i.Value->GetAmount();
+
+		if(ACPP_WeaponInstance* WeaponInstance = Cast<ACPP_WeaponInstance>(i.Value);WeaponInstance)
+		{
+			NewEntry.EquippedSlot = WeaponInstance->GetEquippedSlot();
+		}
 		ReturnInventory.InventoryData.Add(NewEntry);
 	}
 	return ReturnInventory;

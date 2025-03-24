@@ -295,7 +295,7 @@ void UCPP_GA_UseItem::OnDrawItemCompleted(FGameplayEventData _Data)
 	}
 	else
 	{
-		//실행 흐름 : 클라이언트 > 서버
+		//실행 흐름 : 클라이언트 To 서버
 		//클라이언트에서 EndAbility를 했기 때문에
 		//서버에서 OnDrawItemCompleted 실행하지않고 바로 EndAbility가 됨
 		if(HasAuthority(&CurrentActivationInfo))

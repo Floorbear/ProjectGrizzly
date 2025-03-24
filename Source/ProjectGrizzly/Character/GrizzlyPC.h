@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "PlayerInventoryComponent.h"
+#include "ProjectGrizzly/Core/GrizzlyGameInstance.h"
 #include "GrizzlyPC.generated.h"
 
 /**
@@ -19,12 +20,7 @@ enum class EInventoryCategory : uint8
 	Shop
 };
 
-UENUM(BlueprintType)
-enum class EGamePhase : uint8
-{
-	Loadout,
-	Playing
-};
+
 
 
 USTRUCT(BlueprintType)
@@ -83,6 +79,13 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	UPlayerInventoryComponent* GetInventoryComponent() const;
+
+	//--------------------------------------------------------------------------------------------------
+	//										Inventory - GameStart
+	//--------------------------------------------------------------------------------------------------
+public:
+	UFUNCTION(BlueprintCallable, Category = Inventory)
+	void LoadPlayerInventoryFromInstance();
 	//--------------------------------------------------------------------------------------------------
 	//										Network 
 	//--------------------------------------------------------------------------------------------------
@@ -92,16 +95,14 @@ protected:
 	//--------------------------------------------------------------------------------------------------
 	//										Network - GameSet
 	//--------------------------------------------------------------------------------------------------
-private:
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = Network, meta = (AllowPrivateAccess = true),Replicated)
-	EGamePhase GamePhase;
 public:
 	UFUNCTION(BlueprintCallable)
-	EGamePhase GetGamePhase() const
-	{
-		return GamePhase;
-	}
+	EGamePhase GetGamePhase() const;
 
-	UFUNCTION(BlueprintCallable,Server, Reliable)
+	//GameInstance is not replicated. So that Replicate GamePhase Parameter, Need to use Client RPC
+	UFUNCTION(BlueprintCallable,Category = GamePhase, Client,Reliable)
 	void SetGamePhase(EGamePhase _GamePhase);
+
+	
+	
 };
