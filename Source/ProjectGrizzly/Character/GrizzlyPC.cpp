@@ -91,13 +91,13 @@ void AGrizzlyPC::LoadPlayerInventoryFromInstance()
 	}
 	const FInventoryData& InventoryData = GameInstance->GetInventoryFromKey(TEXT("Player"));
 	GetInventoryComponent()->SetInventory(InventoryData);
-	// if(ACPP_WeaponInstance* PrimaryWeapon = 	GetInventoryComponent()->FindWeaponInstanceFromSlot(EWeaponSlot::Primary); PrimaryWeapon)
+	// if(ACPP_WeaponInstance* PrimaryWeaponInstance =GetInventoryComponent()->FindWeaponInstanceFromSlot(EWeaponSlot::Primary);PrimaryWeaponInstance)
 	// {
-	// 	GetInventoryComponent()->EquipWeapon(PrimaryWeapon,EWeaponSlot::Primary);
+	// 	GetInventoryComponent()->SetWeaponInstanceToSlot(PrimaryWeaponInstance,EWeaponSlot::Primary);
 	// }
-	// if(ACPP_WeaponInstance* SecondaryWeapon = 	GetInventoryComponent()->FindWeaponInstanceFromSlot(EWeaponSlot::Secondary); SecondaryWeapon)
+	// if(ACPP_WeaponInstance* SecondaryWeaponInstance =GetInventoryComponent()->FindWeaponInstanceFromSlot(EWeaponSlot::Secondary);SecondaryWeaponInstance)
 	// {
-	// 	GetInventoryComponent()->EquipWeapon(SecondaryWeapon,EWeaponSlot::Secondary);
+	// 	GetInventoryComponent()->SetWeaponInstanceToSlot(SecondaryWeaponInstance,EWeaponSlot::Secondary);
 	// }
 
 }

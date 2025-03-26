@@ -431,6 +431,8 @@ void UInventoryComponent::OnRep_NetInventory()
 	Inventory.Empty();
 	for(auto& i : NetInventory)
 	{
+		if(!i.Value)
+			continue;
 		i.Value->SetParent(this);
 		Inventory.Add(i.Key,i.Value);
 	}
@@ -462,7 +464,7 @@ bool UInventoryComponent::HasNetOwner() const
 	return GetOwner()->HasNetOwner();
 }
 
-void UInventoryComponent::SetInventory(FInventoryData _InventoryData)
+void UInventoryComponent::SetInventory_Implementation(FInventoryData _InventoryData)
 {
 	Inventory.Empty();
 	for(auto& i : _InventoryData.InventoryData)
@@ -472,8 +474,8 @@ void UInventoryComponent::SetInventory(FInventoryData _InventoryData)
 		// i.Value->SetParent(this);
 		// Inventory.Add(i.Key,i.Value);
 	}
+	
 	OnInventoryChanged.Broadcast();
-	OnInventorySet.Broadcast();
 }
 
 FInventoryData UInventoryComponent::ToInventoryData(FName _InventoryName) const

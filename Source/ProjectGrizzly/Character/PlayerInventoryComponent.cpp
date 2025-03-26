@@ -156,6 +156,27 @@ void UPlayerInventoryComponent::InitWeaponInstanceToUnarmedInstance_Implementati
 	UnarmedInstance = PlayableCharacter->GetWeaponComponent()->GetUnarmedInstance();
 }
 
+void UPlayerInventoryComponent::SetWeaponInstanceToSlot_Implementation(ACPP_WeaponInstance* _Weapon,EWeaponSlot _Slot)
+{
+	switch (_Slot)
+	{
+	case EWeaponSlot::Primary :
+		{
+			PrimaryWeaponInstance = _Weapon;
+			break;
+		}
+	case EWeaponSlot::Secondary:
+		{
+			SecondaryWeaponInstance = _Weapon;
+			break;
+		}
+	default:
+		{
+			Grizzly_LOG(TEXT("Type is wrong"));
+		}
+	}
+}
+
 ACPP_Ammo* UPlayerInventoryComponent::FindMatchingAmmo(const ACPP_WeaponInstance* _WeaponInstance)
 {
 	if(IsUnarmedInstance(_WeaponInstance))
@@ -259,6 +280,22 @@ void UPlayerInventoryComponent::OnRep_OnInventoryChanged()
 		return;
 	
 	PlayableCharacter->GetWeaponComponent()->SetAmmoInstance(FindMatchingAmmo(CurrentWeaponInstance));
+	
+}
+
+void UPlayerInventoryComponent::CheckEquippedWeaponInstance()
+{
+	// 장착한 무장을 다시 확인
+	if(ACPP_WeaponInstance* PrimaryWeapon = FindWeaponInstanceFromSlot(EWeaponSlot::Primary); PrimaryWeapon)
+	{
+		PrimaryWeaponInstance = PrimaryWeapon;
+		//EquipWeapon(PrimaryWeapon,EWeaponSlot::Primary);
+	}
+	if(ACPP_WeaponInstance* SecondaryWeapon = 	FindWeaponInstanceFromSlot(EWeaponSlot::Secondary); SecondaryWeapon)
+	{
+		SecondaryWeaponInstance = SecondaryWeapon;
+		//EquipWeapon(SecondaryWeapon,EWeaponSlot::Secondary);
+	}
 }
 
 void UPlayerInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -275,14 +312,14 @@ void UPlayerInventoryComponent::InitializeComponent()
 	int a = 0;
 	if(APawn* OwnerPawn = Cast<APawn>(GetOwner());OwnerPawn)
 	{
-		//오토노머스 예외
+		//오토노머스
 		if(OwnerPawn->IsLocallyControlled() || OwnerPawn->HasAuthority())
 		{
 			OnInventoryChanged.AddDynamic(this,&UPlayerInventoryComponent::OnRep_OnInventoryChanged);
 		}
 		if(OwnerPawn->HasAuthority())
 		{
-			OnInventorySet.AddDynamic(this,&UPlayerInventoryComponent::OnRep_OnInventorySet);
+			OnInventoryChanged.AddDynamic(this,&UPlayerInventoryComponent::CheckEquippedWeaponInstance);
 		}
 	}
 }
@@ -300,21 +337,6 @@ UPlayerInventoryComponent* UPlayerInventoryComponent::GetPlayerInventoryComponen
 	return Cast<ACPP_PlayableCharacter>(PC->GetPawn())->GetInventory();
 }
 
-void UPlayerInventoryComponent::OnRep_OnInventorySet()
-{
-	PrimaryWeaponInstance = GetUnarmedInstance();
-	SecondaryWeaponInstance = GetUnarmedInstance();
-	if(ACPP_WeaponInstance* PrimaryWeapon = FindWeaponInstanceFromSlot(EWeaponSlot::Primary); PrimaryWeapon)
-	{
-		PrimaryWeaponInstance = PrimaryWeapon;
-		//EquipWeapon(PrimaryWeapon,EWeaponSlot::Primary);
-	}
-	if(ACPP_WeaponInstance* SecondaryWeapon = 	FindWeaponInstanceFromSlot(EWeaponSlot::Secondary); SecondaryWeapon)
-	{
-		SecondaryWeaponInstance = SecondaryWeapon;
-		//EquipWeapon(SecondaryWeapon,EWeaponSlot::Secondary);
-	}
-}
 
 
 

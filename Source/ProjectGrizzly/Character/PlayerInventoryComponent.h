@@ -47,7 +47,10 @@ public:
 public:
 	UFUNCTION(Server,reliable)
 	void InitWeaponInstanceToUnarmedInstance();
-	
+
+	//인벤토리가 인스턴스로 부터 초기화될 때 사용됨
+	UFUNCTION(Server,reliable)
+	void SetWeaponInstanceToSlot(ACPP_WeaponInstance* _Weapon,EWeaponSlot _Slot);
 private:
 	//
 	ACPP_Ammo* FindMatchingAmmo(const ACPP_WeaponInstance* _WeaponInstance);
@@ -102,6 +105,11 @@ private:
 	void OnRep_WeaponInstance() const;
 	UFUNCTION()
 	void OnRep_OnInventoryChanged();
+
+	//서버에서 호출됨
+	//서버의 OnInventoryChanged에 바인드
+	UFUNCTION()
+	void CheckEquippedWeaponInstance();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	
@@ -112,8 +120,5 @@ private:
 	//Can Only Call in Local Client
 	UFUNCTION(BlueprintCallable, meta=(WorldContext = "_WorldContext"))
 	static UPlayerInventoryComponent* GetPlayerInventoryComponent(UObject* _WorldContext);
-
-	//인벤토리 재할당이 일어났을 때 호출되는 함수
-	UFUNCTION()
-	void OnRep_OnInventorySet();
+	
 };

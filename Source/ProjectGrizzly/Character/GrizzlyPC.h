@@ -84,6 +84,7 @@ public:
 	//										Inventory - GameStart
 	//--------------------------------------------------------------------------------------------------
 public:
+	//Called Locally Controlled because of GameInstance. After init Client inventory, RPC is Called which is Client To Sever Inventory 
 	UFUNCTION(BlueprintCallable, Category = Inventory)
 	void LoadPlayerInventoryFromInstance();
 	//--------------------------------------------------------------------------------------------------

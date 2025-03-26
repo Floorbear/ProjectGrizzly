@@ -216,9 +216,7 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnInventoryChanged OnInventoryChanged;
 
-	// 인벤토리 자체가 재할당 될 때 호출되는 델리게이트
-	UPROPERTY(BlueprintAssignable)
-	FOnInventoryChanged OnInventorySet;
+
 
 	//--------------------------------------------------------------------------------------------------
 	//										RandomItem
@@ -246,7 +244,7 @@ public:
 	//--------------------------------------------------------------------------------------------------
 	//										Interface for Instance
 	//--------------------------------------------------------------------------------------------------
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable,Server,Reliable)
 	void SetInventory(FInventoryData _InventoryData);
 	UFUNCTION(BlueprintCallable)
 	FInventoryData ToInventoryData(FName _InventoryName) const;
