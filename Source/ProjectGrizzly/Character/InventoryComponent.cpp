@@ -464,6 +464,30 @@ bool UInventoryComponent::HasNetOwner() const
 	return GetOwner()->HasNetOwner();
 }
 
+void UInventoryComponent::RequestPlayerInventoryToAddAmount_ServerRPC_Implementation(ACPP_Item* _Item, int Amount)
+{
+	_Item->AddAmount(Amount);
+}
+
+void UInventoryComponent::RequestPlayerInventoryToAddAmount_Implementation(ACPP_Item* _Item, int Amount)
+{
+	//소유권이 없는 액터에서 호출시 소유권이 있는 액터에서 호출되도록 함
+	if(!HasNetOwner())
+	{
+		AGrizzlyPC* PC = Cast<AGrizzlyPC>(GetWorld()->GetFirstPlayerController());
+		PC->GetInventoryComponent()->RequestPlayerInventoryToAddAmount(_Item,Amount);
+		return;
+	}
+	//소유권이 있는 액터
+	else
+	{
+		//Item의 Amount를 설정하는 RPC
+		RequestPlayerInventoryToAddAmount_ServerRPC(_Item,Amount);
+		return;
+	}
+	
+}
+
 void UInventoryComponent::SetInventory_Implementation(FInventoryData _InventoryData)
 {
 	Inventory.Empty();

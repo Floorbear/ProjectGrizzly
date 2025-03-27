@@ -137,6 +137,10 @@ void ACPP_GrizzlyPS::SpeedChanged(const struct FOnAttributeChangeData& Data)
 	if (IsAlive() && HasAuthority())
 	{
 		ACPP_PGCharacter* Character = Cast<ACPP_PGCharacter>(GetPawn());
+		if(!Character)
+		{
+			return;
+		}
 		Character->SetSpeed(GetSpeed());
 	}
 

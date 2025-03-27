@@ -241,9 +241,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool HasNetOwner() const;
 
+	//소유권이 없는 인벤토리에서 아이템의 수량을 제어할 때 사용
+	UFUNCTION(BlueprintCallable,Client,Reliable)
+	void RequestPlayerInventoryToAddAmount(ACPP_Item* _Item,int Amount);
+
+private:
+	//RequestPlayerInventoryToAddAmount에서 서버에 아이템 수량 정보를 보내는 함수
+	UFUNCTION(Server,Reliable)
+	void RequestPlayerInventoryToAddAmount_ServerRPC(ACPP_Item* _Item,int Amount);
+
 	//--------------------------------------------------------------------------------------------------
 	//										Interface for Instance
 	//--------------------------------------------------------------------------------------------------
+public:
 	UFUNCTION(BlueprintCallable,Server,Reliable)
 	void SetInventory(FInventoryData _InventoryData);
 	UFUNCTION(BlueprintCallable)

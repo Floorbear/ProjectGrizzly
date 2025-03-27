@@ -113,6 +113,11 @@ EGamePhase AGrizzlyPC::GetGamePhase() const
 	return GameInstance->GetGamePhase();
 }
 
+void AGrizzlyPC::MapTravel(FString _LevelName)
+{
+	ClientTravel(_LevelName,TRAVEL_Absolute);
+}
+
 void AGrizzlyPC::SetGamePhase_Implementation(EGamePhase _GamePhase)
 {
 	UGrizzlyGameInstance* GameInstance = Cast<UGrizzlyGameInstance>(GetGameInstance());

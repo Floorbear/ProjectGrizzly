@@ -104,6 +104,9 @@ public:
 	UFUNCTION(BlueprintCallable,Category = GamePhase, Client,Reliable)
 	void SetGamePhase(EGamePhase _GamePhase);
 
+	UFUNCTION(BlueprintCallable)
+	void MapTravel(FString _LevelName);
+
 	
 	
 };

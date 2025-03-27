@@ -124,18 +124,10 @@ public:
 		return ItemData.Name;
 	}
 	
-	UFUNCTION(BlueprintCallable)
-	void AddAmount(int _Amount)
-	{
-		Amount = FMath::Clamp(Amount + _Amount,0,9999);
-		CheckConditionAndRemove();
-	}
-	UFUNCTION(BlueprintCallable)
-	void SetAmount(int _Amount)
-	{
-		Amount = FMath::Clamp(_Amount,0,9999);
-		CheckConditionAndRemove();
-	}
+	UFUNCTION(BlueprintCallable,Server,Reliable)
+	void AddAmount(int _Amount);
+	UFUNCTION(BlueprintCallable,Server,Reliable)
+	void SetAmount(int _Amount);
 	UFUNCTION(BlueprintCallable)
 	int GetAmount() const
 	{

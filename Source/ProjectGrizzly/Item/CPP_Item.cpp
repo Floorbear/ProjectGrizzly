@@ -52,6 +52,26 @@ ACPP_Item* ACPP_Item::CreateItem(FName _ItemRowName,UObject* _WorldContext, int 
 	return NewItem;
 }
 
+void ACPP_Item::AddAmount_Implementation(int _Amount)
+{
+	Amount = FMath::Clamp(Amount + _Amount,0,9999);
+	CheckConditionAndRemove();
+	if(Parent)
+	{
+		Parent->OnInventoryChanged.Broadcast();
+	}
+}
+
+void ACPP_Item::SetAmount_Implementation(int _Amount)
+{
+	Amount = FMath::Clamp(_Amount,0,9999);
+	CheckConditionAndRemove();
+	if(Parent)
+	{
+		Parent->OnInventoryChanged.Broadcast();
+	}
+}
+
 void ACPP_Item::Init(FName _RowName)
 {
 	FItemData* Data = GetItemDT()->FindRow<FItemData>(_RowName, FString(""));
