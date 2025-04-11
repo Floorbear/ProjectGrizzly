@@ -285,6 +285,7 @@ void UPlayerInventoryComponent::OnRep_OnInventoryChanged()
 
 void UPlayerInventoryComponent::CheckEquippedWeaponInstance()
 {
+	//fd
 	// 장착한 무장을 다시 확인
 	if(ACPP_WeaponInstance* PrimaryWeapon = FindWeaponInstanceFromSlot(EWeaponSlot::Primary); PrimaryWeapon)
 	{

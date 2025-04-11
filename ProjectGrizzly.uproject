@@ -31,6 +31,10 @@
 		{
 			"Name": "UdpMessaging",
 			"Enabled": false
+		},
+		{
+			"Name": "Landmass",
+			"Enabled": true
 		}
 	]
 }
