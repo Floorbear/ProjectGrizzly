@@ -321,10 +321,22 @@ void ACPP_AI_PlayableCharacter_PC::OnThreatened(FThreatenResult& _ThreatenResult
 
 }
 
+void ACPP_AI_PlayableCharacter_PC::SetPatrolLocation(FVector& _Location)
+{
+	GetBlackboardComponent()->SetValueAsVector(TEXT("PatrolLocation"), _Location);
+}
+
 void ACPP_AI_PlayableCharacter_PC::InitPatrol()
 {
-	PatrolRoute = PatrolDT->FindRow<FPatrolRoute>(RouteName, FString(""))->Route;
-	GetBlackboardComponent()->SetValueAsVector(TEXT("PatrolLocation"), PatrolRoute[0].Get()->GetActorLocation());
+	//RouteName이 Default면 현재 위치를 로케이션으로 지정
+	FVector TargetLocation = FVector::Zero();
+	if(RouteName.Compare(TEXT("Default")) != 0)
+	{
+		PatrolRoute = PatrolDT->FindRow<FPatrolRoute>(RouteName, FString(""))->Route;
+		TargetLocation = PatrolRoute[0].Get()->GetActorLocation();
+	}
+
+	GetBlackboardComponent()->SetValueAsVector(TEXT("PatrolLocation"), TargetLocation);
 	GetBlackboardComponent()->SetValueAsBool(TEXT("LostsTargetActor"), true);
 }
 

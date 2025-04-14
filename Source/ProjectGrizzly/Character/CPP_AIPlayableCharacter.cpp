@@ -141,6 +141,23 @@ bool ACPP_AIPlayableCharacter::IsAlive() const
 	return GetHealth() > 0.f;
 }
 
+
+void ACPP_AIPlayableCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	
+	//PC에 패트롤 포인트가 존재하지 않으면 현재 위치에 대기하도록 설정
+	if(ACPP_AI_PlayableCharacter_PC* PC = Cast<ACPP_AI_PlayableCharacter_PC>(NewController);PC)
+	{
+		if(PC->GetPatrolRoute().IsEmpty())
+		{
+			FVector Location = GetActorLocation();
+			PC->SetPatrolLocation(Location);
+		}
+	}
+	
+}
+
 ACPP_AIPlayableCharacter* ACPP_AIPlayableCharacter::SpawnAIPlayableCharacter(UObject* WorldContextObject, TSubclassOf<ACPP_AIPlayableCharacter> _Class, FAIPlayableCharacterSpawnParameter Parameter,UBehaviorTree* BehaviorTree, FVector Location, FRotator Rotation, bool bNoCollisionFail, AActor *Owner)
 {
 	ACPP_AIPlayableCharacter* NewAICharacter = nullptr;
@@ -172,6 +189,7 @@ ACPP_AIPlayableCharacter* ACPP_AIPlayableCharacter::SpawnAIPlayableCharacter(UOb
 	Inventory->SpawnRandomItem(Instance->GetDropTable(),RandomItemSpawnParameter);
 	
 	NewAICharacter->GetWeaponComponent()->SetInfinityAmmo(Weapon);
+	
 	
 	return NewAICharacter;
 }

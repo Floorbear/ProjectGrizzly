@@ -128,9 +128,9 @@ private:
 	UFUNCTION()
 	void OnThreatened(FThreatenResult& _ThreatenResult);
 
-	// ----------------------------------
-	//				Patrol
-	// ----------------------------------
+	//--------------------------------------------------------------------------------------------------
+	//										Patrol
+	//--------------------------------------------------------------------------------------------------
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int CurrentPatrolIndex = 0;
@@ -139,6 +139,9 @@ public:
 	{
 		return PatrolRoute;
 	}
+
+	UFUNCTION(BlueprintCallable,Category = Patrol)
+	void SetPatrolLocation(FVector& _Location);
 
 private:
 	void InitPatrol();
