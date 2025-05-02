@@ -17,7 +17,7 @@ void UCPP_WeaponAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	USkeletalMeshComponent* HandSKComponent = Player->GetHandsMeshComponent();
 	if (IsValid(HandSKComponent->SkeletalMesh))
 	{
-		FTransform LeftHandTransform = HandSKComponent->GetSocketTransform(TEXT("LeftHand"), RTS_Component);
+		FTransform LeftHandTransform = HandSKComponent->GetSocketTransform(LeftHandSocketName, RTS_Component);
 		FTransform RightHandTransform = HandSKComponent->GetSocketTransform(TEXT("RightHand"), RTS_Component);
 
 		LeftHandLocation = LeftHandTransform.GetLocation();

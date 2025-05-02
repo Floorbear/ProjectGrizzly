@@ -133,6 +133,7 @@ void UCPP_GA_SwapWeapon::DoDraw()
 		WaitGameplayEvent(this,FGameplayTag::RequestGameplayTag(TEXT("Event.Montage.SwapWeapon.OnDrawStarted")));
 	StartTask->EventReceived.AddDynamic(this,&UCPP_GA_SwapWeapon::OnDrawStarted);
 	StartTask->ReadyForActivation();
+	
 
 	//·»´õ¸µ off
 	GetCharacter()->GetFPWeaponMeshComponent()->SetVisibility(false);

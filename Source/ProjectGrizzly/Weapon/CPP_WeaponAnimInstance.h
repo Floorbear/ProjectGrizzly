@@ -17,6 +17,9 @@ class PROJECTGRIZZLY_API UCPP_WeaponAnimInstance : public UAnimInstance
 
 public:
 	void NativeUpdateAnimation(float DeltaSeconds) override;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "IK")
+	FName LeftHandSocketName;
 
 private:
 	UPROPERTY(VisibleDefaultsOnly,BlueprintReadOnly,Category = "IK", meta = (AllowPrivateAccess = "true"))

@@ -238,6 +238,8 @@ void ACPP_PlayableCharacter::Tick(float DeltaTime)
 
 void ACPP_PlayableCharacter::UpdateADS(float DeltaTime)
 {
+	float ADSSpeed= 0.7f;
+	DeltaTime *= ADSSpeed;
 	USkeletalMeshComponent* Hands = GetHandsMeshComponent();
 	FVector CurrentLocation = Hands->GetRelativeLocation();
 	FVector InterpoValue =GetADSHandsLocation();
@@ -305,7 +307,7 @@ void ACPP_PlayableCharacter::OnRep_SetCharacterModel()
 	ensure(CharacterModelEnum);
 	FName EnumToName(CharacterModelEnum->GetDisplayNameTextByValue((int64)CharacterModel).ToString());
 
-	static const UDataTable* DT_CHARACTERMODEL = LoadObject<UDataTable>(NULL, TEXT("/Game/ProjectGrizzly/Character/DT_CharacterModel.DT_CharacterModel"));
+	static const UDataTable* DT_CHARACTERMODEL = LoadObject<UDataTable>(NULL, TEXT("/Game/ProjectGrizzly/Character/Model/DT_CharacterModel.DT_CharacterModel"));
 
 	FCharacterModel* Model = DT_CHARACTERMODEL->FindRow<FCharacterModel>(EnumToName, FString(""));
 	ensure(Model); //_Model이 NonSet입니당
@@ -412,6 +414,8 @@ void ACPP_PlayableCharacter::Die()
 	GetInventory()->UnEquipWeapon(GetInventory()->GetWeaponInstanceFromSlot(EWeaponSlot::Primary));
 	GetTPWeaponComponent()->SetVisibility(false);
 	Die_Multicast();
+
+
 }
 
 void ACPP_PlayableCharacter::Die_Multicast_Implementation()
@@ -445,6 +449,11 @@ void ACPP_PlayableCharacter::Die_Multicast_Implementation()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetSimulatePhysics(true);
 
+	if(HasAuthority())
+	{
+		//죽으면 스트리밍 로드 최적화
+		bAlwaysRelevant = false;
+	}
 }
 
 bool ACPP_PlayableCharacter::IsDead() const

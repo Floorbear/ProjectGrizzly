@@ -99,6 +99,44 @@ public:
 public:
 	UFUNCTION(BlueprintCallable)
 	virtual UFactionComponent* GetFactionComponent() const PURE_VIRTUAL(ACPP_PGCharacter::GetFactionComponent, return NULL;);
+
+	//--------------------------------------------------------------------------------------------------
+	//										Sound
+	//--------------------------------------------------------------------------------------------------
+private:
+
+
+	UPROPERTY(EditDefaultsOnly)
+	UAudioComponent* CharacterAudioComponent;
+
+	UPROPERTY(EditDefaultsOnly)
+	UAudioComponent* GunAudioComponent;
+	//두 함수 전부 GAS에서 사용함
+	UFUNCTION(NetMulticast,Unreliable)
+	void PlaySoundAtLocation_Prediction(USoundBase* _Sound,FVector _Location,ACPP_PGCharacter* _Instigator);
+	UFUNCTION(NetMulticast,Unreliable)
+	void PlaySoundAtComponent_Prediction(UAudioComponent* _Component,USoundBase* _Sound,ACPP_PGCharacter* _Instigator);
+public:
+	UFUNCTION(BlueprintCallable)
+	UAudioComponent* GetWeaponAudioComponent() const
+	{
+		return GunAudioComponent;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	UAudioComponent* GetCharacterAudioComponent() const
+	{
+		return CharacterAudioComponent;
+	}
+
+	//GAS에서만 정상적으로 작동함
+	//즉 서버, 로컬 클라이언트 두개의 실행흐름을 가질때 작동함
+	UFUNCTION(BlueprintCallable)
+	void PlaySoundAtLocation(USoundBase* _Sound,FVector _Location);
+
+	UFUNCTION(BlueprintCallable)
+	void PlaySoundAtComponent(UAudioComponent* _Component,USoundBase* _Sound);
+
 	//---------------------------------------------------
 	//						Perception
 	//---------------------------------------------------

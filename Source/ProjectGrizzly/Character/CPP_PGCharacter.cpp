@@ -3,14 +3,23 @@
 #include "CPP_GrizzlyPS.h"
 #include <GameFramework\CharacterMovementComponent.h>
 #include "AIModule\Classes\AIController.h"
+#include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ACPP_PGCharacter::ACPP_PGCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	
 
 
+	CharacterAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("CharacterAudio"));
+	CharacterAudioComponent->SetupAttachment(GetMesh());
+
+	GunAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("GunAudio"));
+	GunAudioComponent->SetupAttachment(GetMesh());
+	
 }
 
 
@@ -148,6 +157,65 @@ UAbilitySystemComponent* ACPP_PGCharacter::GetAbilitySystemComponent() const
 void ACPP_PGCharacter::Die()
 {
 
+}
+
+void ACPP_PGCharacter::PlaySoundAtLocation_Prediction_Implementation(USoundBase* _Sound, FVector _Location,ACPP_PGCharacter* _Instigator)
+{
+	if(!_Instigator)
+	{
+		return;
+	}
+
+	if(_Instigator->IsLocallyControlled())
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(),_Sound,_Location);
+}
+
+void ACPP_PGCharacter::PlaySoundAtComponent_Prediction_Implementation(UAudioComponent* _Component, USoundBase* _Sound,
+	ACPP_PGCharacter* _Instigator)
+{
+	if(!_Instigator)
+	{
+		return;
+	}
+
+	if(_Instigator->IsLocallyControlled())
+	{
+		return;
+	}
+	if(!IsValid(_Component))
+		return;
+	_Component->SetSound(_Sound);
+	_Component->Play();
+}
+
+void ACPP_PGCharacter::PlaySoundAtLocation(USoundBase* _Sound,FVector _Location)
+{
+	if(HasAuthority())
+	{
+		PlaySoundAtLocation_Prediction(_Sound,_Location,this);
+	}
+	else //로컬에서 실행
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(),_Sound,_Location);
+	}
+}
+
+void ACPP_PGCharacter::PlaySoundAtComponent(UAudioComponent* _Component, USoundBase* _Sound)
+{
+	if(!IsValid(_Component))
+		return;
+	if(HasAuthority())
+	{
+		PlaySoundAtComponent_Prediction(_Component,_Sound,this);
+	}
+	{
+		_Component->SetSound(_Sound);
+		_Component->Play();
+	}
 }
 
 bool ACPP_PGCharacter::CanBeSeenFrom(const FVector& ObserverLocation, FVector& OutSeenLocation, int32& NumberOfLoSChecksPerformed, float& OutSightStrength, const AActor* IgnoreActor, const bool* bWasVisible, int32* UserData) const

@@ -46,13 +46,15 @@ private:
 	//										Override
 	//--------------------------------------------------------------------------------------------------
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void Die() override;
 
 	//--------------------------------------------------------------------------------------------------
 	//										SpawnAIActor
 	//--------------------------------------------------------------------------------------------------
 public:
 	UFUNCTION(BlueprintCallable, Category="AI", meta=(WorldContext="WorldContextObject", UnsafeDuringActorConstruction="true"))
-	static ACPP_AIPlayableCharacter* SpawnAIPlayableCharacter(UObject* WorldContextObject,TSubclassOf<ACPP_AIPlayableCharacter> _Class, FAIPlayableCharacterSpawnParameter Parameter,UBehaviorTree* BehaviorTree, FVector Location, FRotator Rotation = FRotator::ZeroRotator, bool bNoCollisionFail = false, AActor* _Owner = nullptr);
+	static ACPP_AIPlayableCharacter* SpawnAIPlayableCharacter(UObject* WorldContextObject, TSubclassOf<ACPP_AIPlayableCharacter> _Class, FAIPlayableCharacterSpawnParameter Parameter, UBehaviorTree* BehaviorTree, FVector Location, FName
+	                                                          _WayPoint, FRotator Rotation = FRotator::ZeroRotator, bool bNoCollisionFail = false, AActor* _Owner = nullptr);
 
 
 	UFUNCTION(BlueprintCallable)
@@ -95,6 +97,7 @@ public:
 
 	UFUNCTION()
 	void CheckAlert();
+	
 
 	//--------------------------------------------------------------------------------------------------
 	//										Network

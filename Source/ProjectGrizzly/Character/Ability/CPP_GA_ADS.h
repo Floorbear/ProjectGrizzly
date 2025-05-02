@@ -65,4 +65,12 @@ private:
 	UFUNCTION()
 	void OnReceivedADSRelieveEvent(struct FGameplayEventData _Payload);
 
+	//--------------------------------------------------------------------------------------------------
+	//										Sound
+	//--------------------------------------------------------------------------------------------------
+	UPROPERTY()
+	USoundBase* ADS_In_Sound; 
+	UPROPERTY()
+	USoundBase* ADS_Out_Sound; 
+
 };

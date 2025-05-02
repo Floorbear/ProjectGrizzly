@@ -17,9 +17,11 @@
 
 #include "ProjectGrizzly/ProjectGrizzly.h"
 //ToDo : AI쪽으로 가야할 헤더
+#include "BrainComponent.h"
 #include "AI/NavigationSystemBase.h"
 #include "AIModule\Classes\AIController.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "CPP_AI_PlayableCharacter_PC.h"
 #include "ProjectGrizzly/Core/GrizzlyGameInstance.h"
 
 ACPP_AIPlayableCharacter::ACPP_AIPlayableCharacter()
@@ -158,7 +160,17 @@ void ACPP_AIPlayableCharacter::PossessedBy(AController* NewController)
 	
 }
 
-ACPP_AIPlayableCharacter* ACPP_AIPlayableCharacter::SpawnAIPlayableCharacter(UObject* WorldContextObject, TSubclassOf<ACPP_AIPlayableCharacter> _Class, FAIPlayableCharacterSpawnParameter Parameter,UBehaviorTree* BehaviorTree, FVector Location, FRotator Rotation, bool bNoCollisionFail, AActor *Owner)
+void ACPP_AIPlayableCharacter::Die()
+{
+	Super::Die();
+	if(AAIController* AIController = GetAIController();AIController)
+	{
+		AIController->GetBrainComponent()->StopLogic(TEXT("AI is Dead"));
+	}
+}
+
+ACPP_AIPlayableCharacter* ACPP_AIPlayableCharacter::SpawnAIPlayableCharacter(UObject* WorldContextObject, TSubclassOf<ACPP_AIPlayableCharacter> _Class, FAIPlayableCharacterSpawnParameter Parameter, UBehaviorTree* BehaviorTree, FVector Location, FName
+                                                                             _WayPoint, FRotator Rotation, bool bNoCollisionFail, AActor *Owner)
 {
 	ACPP_AIPlayableCharacter* NewAICharacter = nullptr;
 	NewAICharacter = Cast<ACPP_AIPlayableCharacter>(UAIBlueprintHelperLibrary::SpawnAIFromClass(WorldContextObject,_Class,BehaviorTree,Location,Rotation,bNoCollisionFail,Owner));
@@ -189,7 +201,34 @@ ACPP_AIPlayableCharacter* ACPP_AIPlayableCharacter::SpawnAIPlayableCharacter(UOb
 	Inventory->SpawnRandomItem(Instance->GetDropTable(),RandomItemSpawnParameter);
 	
 	NewAICharacter->GetWeaponComponent()->SetInfinityAmmo(Weapon);
+
+	//팩션 패치 스폰
+	switch (Parameter.Faction)
+	{
+	case EFaction::Bandit :
+		{
+			Inventory->AddItemToInventory(TEXT("Etc_BanditPatch"),1);
+			break;
+		}
+	case EFaction::Loner :
+		{
+			Inventory->AddItemToInventory(TEXT("Etc_LonerPatch"),1);
+			break;
+		}
+	case EFaction::Mercenary :
+		{
+			Inventory->AddItemToInventory(TEXT("Etc_MercenaryPatch"),1);
+			break;
+		}
+	}
 	
+
+	//웨이포인트 설정
+	if(!_WayPoint.IsEqual(TEXT("Default")))
+	{
+		NewAICharacter->GetAIController()->RouteName = _WayPoint;
+		NewAICharacter->GetAIController()->UpdatePatrol();
+	}
 	
 	return NewAICharacter;
 }

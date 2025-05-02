@@ -18,13 +18,29 @@ UCPP_GA_ADS::UCPP_GA_ADS()
 	InputID = EPGAbilityInputID::ADS;
 
 	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.State.ADS")));
+
+	static auto ADS_In_Object = ConstructorHelpers::FObjectFinder<USoundBase>(TEXT("/Game/ProjectGrizzly/Gun/Sound/ADS_In.ADS_In"));
+	if(ADS_In_Object.Succeeded())
+	{
+		ADS_In_Sound = ADS_In_Object.Object;
+	}
+
+	static auto ADS_Out_Object = ConstructorHelpers::FObjectFinder<USoundBase>(TEXT("/Game/ProjectGrizzly/Gun/Sound/ADS_Out.ADS_Out"));
+	if(ADS_Out_Object.Succeeded())
+	{
+		ADS_Out_Sound = ADS_Out_Object.Object;
+	}
 }
 
 void UCPP_GA_ADS::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
 	bShouldCancel = true;
 	ACPP_PlayableCharacter* Player = Cast<ACPP_PlayableCharacter>(CurrentActorInfo->AvatarActor);
-	Player->SetADS(false);
+	if(Player)
+	{
+		Player->SetADS(false);
+	}
+
 	//Super::K2_CancelAbility();
 }
 
@@ -39,6 +55,9 @@ void UCPP_GA_ADS::InputPressed(const FGameplayAbilitySpecHandle Handle, const FG
 	Player->SetADS(true);
 
 	ApplyADSEffect();
+
+	//ADS 家府 犁积
+	Player->PlaySoundAtComponent(Player->GetWeaponAudioComponent(),ADS_In_Sound);
 
 	if (ADSRelieveHandle.IsValid())
 	{
@@ -58,7 +77,9 @@ void UCPP_GA_ADS::InputReleased(const FGameplayAbilitySpecHandle Handle, const F
 
 	ApplyADSRelieveEffect();
 
-
+	//ADS 家府 犁积
+	Player->PlaySoundAtComponent(Player->GetWeaponAudioComponent(),ADS_Out_Sound);
+	
 	if (ADSHandle.IsValid())
 	{
 		ActorInfo->AbilitySystemComponent->RemoveActiveGameplayEffect(ADSHandle);
@@ -85,9 +106,13 @@ void UCPP_GA_ADS::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 	
 	ApplyADSEffect();
 
+	//ADS 家府 犁积
+	Player->PlaySoundAtComponent(Player->GetWeaponAudioComponent(),ADS_In_Sound);
+
 	UTickTask* Tick = UTickTask::CreateTickTask(this, NAME_None);//->
 	Tick->OnTick.AddDynamic(this, &UCPP_GA_ADS::Tick);
 	Tick->ReadyForActivation();
+	
 
 	//ACPP_PlayableCharacter* Player = Cast<ACPP_PlayableCharacter>(CurrentActorInfo->AvatarActor);
 	//UCPP_A_PGCharacter* AnimInstance = Cast<UCPP_A_PGCharacter>(Player->GetMesh()->GetAnimInstance());

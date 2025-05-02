@@ -135,7 +135,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int CurrentPatrolIndex = 0;
 	UFUNCTION(BlueprintCallable)
-	TArray<TSoftObjectPtr<ACPP_PatrolPoint>> GetPatrolRoute() const
+	TArray<ACPP_PatrolPoint* > GetPatrolRoute() const
 	{
 		return PatrolRoute;
 	}
@@ -143,15 +143,17 @@ public:
 	UFUNCTION(BlueprintCallable,Category = Patrol)
 	void SetPatrolLocation(FVector& _Location);
 
-private:
-	void InitPatrol();
-
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FName RouteName = FName(TEXT("Default"));
 
+	void UpdatePatrol();
+private:
+	
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	TArray<TSoftObjectPtr<ACPP_PatrolPoint>> PatrolRoute;
+	TArray<ACPP_PatrolPoint*> PatrolRoute;
 
 	UDataTable* PatrolDT;
 	// ----------------------------------

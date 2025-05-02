@@ -11,6 +11,7 @@ UENUM(BlueprintType)
 enum class EFaction : uint8
 {
 	NonSet				UMETA(DisplayName = "NonSet"), //팩션에 무조건 소속해 있어야함 > 따라서  NonSet일 경우는 팩션 설정이 안된 '잘못된' 상태
+	Loner			UMETA(DisplayName = "Loner"),
 	Mercenary			UMETA(DisplayName = "Mercenary"),
 	Bandit				UMETA(DisplayName = "Bandit")
 };

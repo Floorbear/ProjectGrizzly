@@ -5,11 +5,16 @@
 #include "..\Character/PlayerInventoryComponent.h"
 #include "ProjectGrizzly/ProjectGrizzly.h"
 #include "ProjectGrizzly/Item/CPP_Item.h"
+#include "ProjectGrizzly/Character/CPP_PlayableCharacter.h"
+#include "ProjectGrizzly/Character/FactionComponent.h"
 
 void UGrizzlyGameInstance::Init()
 {
 	Super::Init();
 	// FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &UGrizzlyGameInstance::OnWorldInitialized);
+
+	MyFaction = EFaction::Loner;
+	MyCharacterModel = ECharacterModel::Loner_1;
 	
 	FInventoryData PlayerInventory;
 	PlayerInventory.InventoryName = TEXT("Player");
@@ -71,13 +76,6 @@ UGrizzlyGameInstance::UGrizzlyGameInstance()
 
 }
 
-void UGrizzlyGameInstance::OnWorldInitialized(UWorld* _World, const UWorld::InitializationValues _InitializationValues)
-{
-	if(IsDedicatedServerInstance() && !bIsTraveled)
-	{
-		GetWorld()->ServerTravel(TEXT("/Game/FirstPerson/Maps/FirstPersonMap.FirstPersonMap?listen"));
-	}
-}
 
 TMap<FName, TArray<FItemData*>> UGrizzlyGameInstance::GetDropTable()
 {

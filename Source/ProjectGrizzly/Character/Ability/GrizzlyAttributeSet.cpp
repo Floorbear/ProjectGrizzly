@@ -26,11 +26,12 @@ void UGrizzlyAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 }
 
 //서버에서만 실행 됨
+//어트리뷰트 값이 변경되면 호출되는 콜백 함수
 void UGrizzlyAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
 
-
+	//변경된 값이 데미지라면
 	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 	{
 		UAbilitySystemComponent* Source = Data.EffectSpec.GetContext().GetInstigatorAbilitySystemComponent();

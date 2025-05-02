@@ -24,6 +24,9 @@
 #include <Curves\CurveVector.h>
 #include <Camera\CameraComponent.h>
 
+#include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
+
 UCPP_GA_Shoot::UCPP_GA_Shoot()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -82,17 +85,16 @@ FTransform UCPP_GA_Shoot::CalculateBulletSpawnTransform(const FTransform& _Camer
 	if (IsAIControl())
 	{
 		ACPP_AIPlayableCharacter* AIActor = Cast<ACPP_AIPlayableCharacter>(CurrentActorInfo->AvatarActor);
-		ACPP_AI_PlayableCharacter_PC* AIController= Cast<ACPP_AI_PlayableCharacter_PC>(AIActor->GetAIController());
-		switch (AIController->GetDifficulty())
+		switch (GetDifficulty())
 		{
 		case EDifficulty::Novice:
 			DifficultyFactor = RandomSpread * 2.f;
 			break;
 		case EDifficulty::Standard:
-			DifficultyFactor = RandomSpread * 1.5f;
+			DifficultyFactor = RandomSpread * 1.0f;
 			break;
 		case EDifficulty::Expert:
-			DifficultyFactor = RandomSpread * 1.f;
+			DifficultyFactor = RandomSpread * 0.6f;
 			break;
 		case EDifficulty::Laser:
 			DifficultyFactor = 0.f;
@@ -153,6 +155,10 @@ void UCPP_GA_Shoot::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	auto StopShootListen = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag(("Event.Control.Gunplay.StopShoot")));
 	StopShootListen->EventReceived.AddDynamic(this, &UCPP_GA_Shoot::OnReceiveStopShoot);
 	StopShootListen->ReadyForActivation();
+
+	//총알 데미지 설정
+	BulletDamage = GetWeaponComponent()->GetCurrentWeaponData()->Damage;
+
 	
 	if (!GetWeaponComponent()->IsMagazineEmpty())
 	{
@@ -163,6 +169,8 @@ void UCPP_GA_Shoot::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	}
 	else
 	{
+		//찐빠의 흔적
+		//원래 CanActivateAbility, CommitCheck에서 해당 작업을 했어야함..
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	}
 
@@ -293,6 +301,12 @@ void UCPP_GA_Shoot::Shoot()
 		CurrentActorInfo->AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 	}
 
+	//격발 사운드 재생
+	if(USoundBase* ShootSound = GetWeaponComponent()->GetCurrentWeaponData()->Shoot_Sound;ShootSound)
+	{
+		GetCharacter()->PlaySoundAtComponent(GetCharacter()->GetWeaponAudioComponent(),ShootSound);
+	}
+	
 	BP_Shoot();
 	// 총알 생성
 	//if (Player->IsMyComputer() == true)
@@ -395,6 +409,7 @@ void UCPP_GA_Shoot::SpawnBullet(const FTransform& CharacterTransform, const FTra
 	FGameplayEffectSpecHandle HitParticleEffectHandle = MakeOutgoingGameplayEffectSpec(BulletHitParticleEffect, GetAbilityLevel());
 	Bullet->DamageEffectHandle = DamageEffectHandle;
 	Bullet->HitParticleEffectHandle = HitParticleEffectHandle;
+	
 	DamageEffectHandle.Data.Get()->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("Data.Damage")), BulletDamage);
 	Bullet->FinishSpawning(BulletTransform);
 

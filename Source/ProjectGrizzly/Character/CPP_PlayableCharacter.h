@@ -19,7 +19,14 @@ UENUM(BlueprintType)
 enum class ECharacterModel : uint8
 {
 	None				UMETA(DisplayName = "None"),
+	Loner_1				UMETA(DisplayName = "Loner_1"),
+	Loner_2				UMETA(DisplayName = "Loner_2"),
+	Loner_3				UMETA(DisplayName = "Loner_3"),
+	Merc_1				UMETA(DisplayName = "Merc_1"),
 	Merc_2a				UMETA(DisplayName = "Merc_2a"),
+	Merc_3				UMETA(DisplayName = "Merc_3"),
+	Bandit_1			UMETA(DisplayName = "Bandit_1"),
+	Bandit_2			UMETA(DisplayName = "Bandit_2"),
 	Bandit_3a			UMETA(DisplayName = "Bandit_3a")
 };
 
@@ -59,7 +66,7 @@ protected:
 	// ------------------------------------------------
 	//					Visual Model
 	// ------------------------------------------------
-private:
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = VisualModel, meta = (AllowPrivateAccess = "true"), ReplicatedUsing = OnRep_SetCharacterModel)
 	ECharacterModel CharacterModel = ECharacterModel::None;
 	UFUNCTION()

@@ -69,7 +69,7 @@ void ACPP_AI_PlayableCharacter_PC::Tick(float DeltaTime)
 void ACPP_AI_PlayableCharacter_PC::BeginPlay()
 {
 	Super::BeginPlay();
-	InitPatrol();
+	UpdatePatrol();
 
 }
 
@@ -326,16 +326,31 @@ void ACPP_AI_PlayableCharacter_PC::SetPatrolLocation(FVector& _Location)
 	GetBlackboardComponent()->SetValueAsVector(TEXT("PatrolLocation"), _Location);
 }
 
-void ACPP_AI_PlayableCharacter_PC::InitPatrol()
+void ACPP_AI_PlayableCharacter_PC::UpdatePatrol()
 {
 	//RouteName이 Default면 현재 위치를 로케이션으로 지정
 	FVector TargetLocation = FVector::Zero();
 	if(RouteName.Compare(TEXT("Default")) != 0)
 	{
-		PatrolRoute = PatrolDT->FindRow<FPatrolRoute>(RouteName, FString(""))->Route;
-		TargetLocation = PatrolRoute[0].Get()->GetActorLocation();
+		TArray<FName> Routes = PatrolDT->FindRow<FPatrolRoute>(RouteName, FString(""))->RoutePointNames;
+		TArray<AActor*> AllPatrolPoint;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(),ACPP_PatrolPoint::StaticClass(),AllPatrolPoint);
+		for(FName i : Routes)
+		{
+			for(AActor* j : AllPatrolPoint)
+			{
+				if(Cast<ACPP_PatrolPoint>(j)->PointName.IsEqual(i))
+				{
+					PatrolRoute.Add(Cast<ACPP_PatrolPoint>(j));
+					break;
+				}
+			}
+		}
+		if(!PatrolRoute.IsEmpty())
+		{
+			TargetLocation = PatrolRoute[0]->GetActorLocation();
+		}
 	}
-
 	GetBlackboardComponent()->SetValueAsVector(TEXT("PatrolLocation"), TargetLocation);
 	GetBlackboardComponent()->SetValueAsBool(TEXT("LostsTargetActor"), true);
 }

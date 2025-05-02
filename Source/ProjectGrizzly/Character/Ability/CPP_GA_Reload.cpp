@@ -8,6 +8,7 @@
 #include "..\..\Weapon\\WeaponComponent.h"
 #include "..\CPP_A_PGCharacter.h"
 #include "..\CPP_PlayableCharacter.h"
+#include "Components/AudioComponent.h"
 #include "GameFramework\CharacterMovementComponent.h"
 
 UCPP_GA_Reload::UCPP_GA_Reload()
@@ -45,6 +46,8 @@ void UCPP_GA_Reload::CancelAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 		Player->GetHandsMeshComponent()->GetAnimInstance()->Montage_StopWithBlendOut(0.1f,GetCurrentHandsReloadMontage());
 		Player->GetFPWeaponMeshComponent()->GetAnimInstance()->Montage_StopWithBlendOut(0.1f,GetCurrentWeaponReloadMontage());
+
+		Player->GetWeaponAudioComponent()->Stop();
 	}
 	
 }
@@ -89,6 +92,20 @@ void UCPP_GA_Reload::ActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 		}
 		//Task->OnCompleted.AddDynamic(this, &UCPP_GA_Reload::OnCompleted);
 		Task->ReadyForActivation();
+	}
+	//재장전 사운드 재생
+	if(UWeaponComponent* WeaponComponent = GetWeaponComponent(); WeaponComponent)
+	{
+		USoundBase* ReloadSound = nullptr;
+		if(GetWeaponComponent()->IsMagazineEmpty())
+		{
+			ReloadSound = GetWeaponComponent()->GetCurrentWeaponData()->Reload_Empty_Sound;
+		}
+		else
+		{
+			ReloadSound = GetWeaponComponent()->GetCurrentWeaponData()->Reload_Sound;
+		}
+		GetCharacter()->PlaySoundAtComponent(GetCharacter()->GetWeaponAudioComponent(),ReloadSound);
 	}
 
 	//재장전 완료에 대한 콜백 등록

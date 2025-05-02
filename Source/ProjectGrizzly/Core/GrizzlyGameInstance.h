@@ -10,6 +10,8 @@
 #include "..\Character/InventoryComponent.h"
 #include "GrizzlyGameInstance.generated.h"
 
+
+
 UENUM(BlueprintType)
 enum class EGamePhase : uint8
 {
@@ -35,7 +37,6 @@ public:
 //--------------------------------------------------------------------------------------------------
 //										World
 //--------------------------------------------------------------------------------------------------
-	void OnWorldInitialized(UWorld* _World, const UWorld::InitializationValues _InitializationValues);
 	bool bIsTraveled = false;
 
 //--------------------------------------------------------------------------------------------------
@@ -118,4 +119,35 @@ public:
 	
 	UPROPERTY(BlueprintReadOnly,EditAnywhere,Category = test, meta = (AllowPrivateAccess = true))
 	int testcount = 0;
+
+	//--------------------------------------------------------------------------------------------------
+	//										Faction & Model
+	//--------------------------------------------------------------------------------------------------
+private:
+	EFaction MyFaction;
+	ECharacterModel MyCharacterModel;
+public:
+	UFUNCTION(BlueprintCallable, Category = Faction)
+	void SetFaction(EFaction _Faction)
+	{
+		MyFaction = _Faction;
+	}
+
+	UFUNCTION(BlueprintCallable, Category = Faction)
+	EFaction GetFaction() const
+	{
+		return MyFaction;
+	}
+
+	UFUNCTION(BlueprintCallable,Category = Model)
+	void SetCharacterModel(ECharacterModel _CharacterModel)
+	{
+		MyCharacterModel = _CharacterModel;
+	}
+
+	UFUNCTION(BlueprintCallable, Category = Model)
+	ECharacterModel GetCharacterModel() const
+	{
+		return MyCharacterModel;
+	}
 };

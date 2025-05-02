@@ -9,6 +9,7 @@
 #include "..\Character\CPP_A_Hands.h"
 #include "Net\UnrealNetwork.h"
 #include "..\Core/GrizzlyGameInstance.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "ProjectGrizzly/Character/CPP_A_PGCharacter.h"
 
 
@@ -186,6 +187,9 @@ void UWeaponComponent::SetWeapon_Inner(ACPP_WeaponInstance* _WeaponInstance)
 	Character->SetIdleHandsLocation(_WeaponData->IdleHandsLocation);
 	Character->SetADSHandsLocation(_WeaponData->ADSHandsLocation);
 	Character->SetHandsRotation(_WeaponData->HandsRotation);
+
+
+	
 
 	//손 애니메이션 초기화
 	UCPP_A_Hands* HandsAnimInstance = Cast<UCPP_A_Hands>(Character->GetHandsMeshComponent()->GetAnimInstance());

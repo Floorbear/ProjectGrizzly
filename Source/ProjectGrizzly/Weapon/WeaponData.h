@@ -35,7 +35,8 @@ enum class ECaliber: uint8
 {
 	No ,
 	C76239			UMETA(DisplayName = "7.62x39mm"),
-	C45ACP			UMETA(DisplayName = "45ACP")
+	C45ACP			UMETA(DisplayName = "45ACP"),
+	C55645			UMETA(DisplayName = "5.56x45mm")
 };
 
 USTRUCT(BlueprintType)
@@ -51,6 +52,8 @@ public:
 	EWeaponType WeaponType;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<EWeaponMode> WeaponModes;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Damage;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float RPM;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -72,6 +75,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector IdleHandsLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector LeftHandRelativeLocation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector ADSHandsLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FRotator HandsRotation;
@@ -83,6 +88,17 @@ public:
 	TSoftObjectPtr<USkeletalMesh> WeaponSkeletalMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UAnimInstance> WeaponAnimClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundBase* Shoot_Sound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundBase* Reload_Sound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundBase* Reload_Empty_Sound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundBase* Draw_Sound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundBase* UnDraw_Sound;
 
 };
 

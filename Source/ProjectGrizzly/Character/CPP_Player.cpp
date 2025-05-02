@@ -182,7 +182,7 @@ void ACPP_Player::BeginPlay()
 	if (IsLocallyControlled())
 	{
 		//1인칭 셋팅 진행
-		GetMesh()->HideBoneByName(TEXT("bip01_spine"), EPhysBodyOp::PBO_None);
+		GetMesh()->HideBoneByName(TEXT("bip01"), EPhysBodyOp::PBO_None);
 		GetTPWeaponComponent()->SetVisibility(false);
 		ShadowModelComponent->SetCastShadow(true);
 		ShadowWeaponComponent->SetCastShadow(true);
@@ -205,7 +205,7 @@ void ACPP_Player::BeginPlay()
 	if (HasAuthority())
 	{
 		// 캐릭터 모델 초기화
-		SetCharacterModel(ECharacterModel::Merc_2a);
+		SetCharacterModel(CharacterModel);
 	}
 }
 

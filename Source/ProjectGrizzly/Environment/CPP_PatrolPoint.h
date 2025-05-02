@@ -33,7 +33,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName PointName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EPatrolAction PatrolAction;
 private:
@@ -50,6 +51,6 @@ struct FPatrolRoute : public FTableRowBase
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<TSoftObjectPtr<ACPP_PatrolPoint>> Route;
+	TArray<FName> RoutePointNames;
 
 };
