@@ -33,12 +33,12 @@ void UGrizzlyGameInstance::Init()
 	ItemSet.Add(AKM);
 
 	FInventoryEntry ColtAmmo;
-	ColtAmmo.ItemName = TEXT("Ammo_45ACP");
+	ColtAmmo.ItemName = TEXT("Ammo_C45ACP");
 	ColtAmmo.Amount = 100;
 	ItemSet.Add(ColtAmmo);
 
 	FInventoryEntry AKMAmmo;
-	AKMAmmo.ItemName = TEXT("Ammo_7.62x39mm");
+	AKMAmmo.ItemName = TEXT("Ammo_C76239");
 	AKMAmmo.Amount = 300;
 	ItemSet.Add(AKMAmmo);
 

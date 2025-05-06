@@ -168,6 +168,7 @@ protected:
 	bool InstanceMode = false;
 
 private:
+	UPROPERTY()
 	UDataTable* ItemDT;
 	//--------------------------------------------------------------------------------------------------
 	//										Inventory

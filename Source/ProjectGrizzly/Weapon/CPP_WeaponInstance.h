@@ -28,6 +28,7 @@ protected:
 	bool CanRender() const override;
 
 private:
+	UPROPERTY()
 	UDataTable* WeaponDataDT = nullptr;
 public:
 	FWeaponData* GetWeaponData() const;

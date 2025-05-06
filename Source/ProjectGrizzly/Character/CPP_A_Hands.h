@@ -45,13 +45,13 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "HandSway", meta = (AllowPrivateAccess = "true"));
 	FRotator HandSwayRotator;
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sequence", meta = (AllowPrivateAccess = "true"));
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sequence", meta = (AllowPrivateAccess = "true"))
 	UAnimSequenceBase* IdleSequence;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sequence", meta = (AllowPrivateAccess = "true"));
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sequence", meta = (AllowPrivateAccess = "true"))
 	UAnimSequenceBase* MoveForwardSequence;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sequence", meta = (AllowPrivateAccess = "true"));
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sequence", meta = (AllowPrivateAccess = "true"))
 	UAnimSequenceBase* MoveBackSequence;
 
 	//-------------------------------
@@ -65,7 +65,7 @@ private:
 	//			Sprint
 	//-------------------------------
 	public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sequence", meta = (AllowPrivateAccess = "true"));
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sequence", meta = (AllowPrivateAccess = "true"))
 	UAnimSequenceBase* SprintSequence;
 	private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sprint", meta = (AllowPrivateAccess = "true"));

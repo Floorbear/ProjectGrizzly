@@ -195,8 +195,12 @@ ACPP_Ammo* UPlayerInventoryComponent::FindMatchingAmmo(const ACPP_WeaponInstance
 
 bool UPlayerInventoryComponent::IsUnarmedInstance(const ACPP_WeaponInstance* _WeaponInstance) const
 {
-	// if(_WeaponInstance->GetWeaponData()->WeaponName.Compare(TEXT("Unarmed")) != 0)
-	// 	return false;
+	if(_WeaponInstance == nullptr)
+	{
+		return true;
+	}
+	if(_WeaponInstance->GetWeaponData()->WeaponName.Compare(TEXT("Unarmed")) == 0)
+		return true;
 	if(_WeaponInstance != UnarmedInstance)
 		return false;
 	return true;

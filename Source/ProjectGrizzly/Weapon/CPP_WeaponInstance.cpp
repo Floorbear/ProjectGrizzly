@@ -53,13 +53,19 @@ FWeaponData ACPP_WeaponInstance::K2_GetWeaponData() const
 FName ACPP_WeaponInstance::GetAmmoName() const
 {
 	UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE,TEXT("ECaliber"),true);
-	FText TAmmoName = EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(GetWeaponData()->Caliber));
+	//FText TAmmoName = EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(GetWeaponData()->Caliber));
+	FName TAmmoName = EnumPtr->GetNameByValue(static_cast<int64>(GetWeaponData()->Caliber));
 	FString AmmoName = TAmmoName.ToString();
+	//Split
+	AmmoName.Split(TEXT("::"),nullptr,&AmmoName);
 
 	//이상한 이름이 있는지 체크
 	for(int i =0; i < EnumPtr->NumEnums(); i++)
 	{
-		bool Equal = AmmoName.Equals(EnumPtr->GetDisplayNameTextByIndex(i).ToString());
+		//bool Equal = AmmoName.Equals(EnumPtr->GetDisplayNameTextByIndex(i).ToString());
+		FString CurAmmoName = EnumPtr->GetNameByIndex(i).ToString();
+		CurAmmoName.Split(TEXT("::"),nullptr,&CurAmmoName);
+		bool Equal = AmmoName.Equals(CurAmmoName);
 		if(Equal)
 		{
 			//접두사 추가

@@ -48,8 +48,12 @@ void UGrizzlyAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffec
 		}
 		//데미지에 의한 HP감소를 제외한 이벤트들은 폰에서 처리한다
 		const FHitResult* HitResult = Data.EffectSpec.GetContext().GetHitResult();
-		TSubclassOf<UDamageType> DamageType;
-		UGameplayStatics::ApplyPointDamage(Data.Target.AvatarActor,LocalDamage,HitResult->ImpactNormal,*HitResult,SourceController,SourceActor, DamageType);
+		if(HitResult)
+		{
+			TSubclassOf<UDamageType> DamageType;
+			UGameplayStatics::ApplyPointDamage(Data.Target.AvatarActor,LocalDamage,HitResult->ImpactNormal,*HitResult,SourceController,SourceActor, DamageType);
+		}
+
 	}
 
 	if (Data.EvaluatedData.Attribute == GetStaminaAttribute())

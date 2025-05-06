@@ -44,7 +44,9 @@ private:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "ADS",meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UGameplayEffect> GE_ADS;
 
+	UPROPERTY()
 	FActiveGameplayEffectHandle ADSRelieveHandle;
+	UPROPERTY()
 	FActiveGameplayEffectHandle ADSHandle;
 
 	UFUNCTION()

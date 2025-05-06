@@ -74,10 +74,12 @@ public:
 	//							Data Table Manage 
 	// ----------------------------------------------------------------------
 private:
+	UPROPERTY()
 	UDataTable* WeaponDataDT = nullptr;
+	UPROPERTY()
 	UDataTable* WeaponAnimDT = nullptr;
 	
-
+	UPROPERTY()
 	class UCurveVector* WeaponRecoilCurve;
 
 public:
@@ -152,8 +154,11 @@ public:
 	// ----------------------------------------------------------------------------------------------------
 
 private:
+	UPROPERTY()
 	TMap<FName, UAnimMontage*> FP_Weapon_MontageMap;
+	UPROPERTY()
 	TMap<FName, UAnimMontage*> FP_Hands_MontageMap;
+	UPROPERTY()
 	TMap<FName, UAnimMontage*> TP_MontageMap;
 
 	void InitTPAnim();

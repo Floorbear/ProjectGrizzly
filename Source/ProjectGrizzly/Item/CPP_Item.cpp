@@ -75,7 +75,10 @@ void ACPP_Item::SetAmount_Implementation(int _Amount)
 void ACPP_Item::Init(FName _RowName)
 {
 	FItemData* Data = GetItemDT()->FindRow<FItemData>(_RowName, FString(""));
-	ensure(Data != NULL); // _ItemRowName 이 DT_Item의 이름에 등록돼있지 않음
+	if(Data == nullptr)
+	{
+		return;
+	}
 	ItemData = *Data;
 }
 

@@ -23,6 +23,7 @@ protected:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const override;
 private:
+	UPROPERTY()
 	 const ACPP_Item* Item = nullptr;
 
 	TArray<TSubclassOf<UGameplayEffect>> ItemEffects;
@@ -33,6 +34,7 @@ private:
 	//--------------------------------------------------------------------------------------------------
 	//										Draw & UnDraw
 	//--------------------------------------------------------------------------------------------------
+	UPROPERTY()
 	ACPP_WeaponInstance* SourceWeaponInstance = nullptr;
 	void DoUndrawWeapon();
 	void DoDrawItem();
@@ -52,7 +54,9 @@ private:
 	//--------------------------------------------------------------------------------------------------
 	UAnimMontage* GetCurrentWeaponUndrawAM() const;
 	UAnimMontage* GetCurrentWeaponDrawAM() const;
+	UPROPERTY()
 	UAnimMontage* AM_Hands = nullptr;
+	UPROPERTY()
 	UAnimMontage* AM_Item = nullptr;
 
 	//--------------------------------------------------------------------------------------------------

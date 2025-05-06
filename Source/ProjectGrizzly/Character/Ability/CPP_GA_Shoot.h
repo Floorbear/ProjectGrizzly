@@ -66,7 +66,9 @@ private:
 	
 	//UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Recoil", meta = (AllowPrivateAccess = "true"))
 	//class UCurveVector* WeaponRecoilCurve;
+	UPROPERTY()
 	class UAbilityTask_PlayMontageAndWait* MontageTask;
+	UPROPERTY()
 	class UAbilityTask_WaitGameplayEvent* EventReceivedTask;
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category = "Recoil", meta = (AllowPrivateAccess = "true"))
 	class UAbilityTask_WaitDelay* WaitTask;

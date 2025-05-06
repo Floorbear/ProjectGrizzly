@@ -351,5 +351,8 @@ protected:
 	virtual void ShowWidget_Implementation() override;
 	virtual void CloseWidget_Implementation() override;
 
+	UPROPERTY()
+	UDataTable* DT_CHARACTERMODEL = nullptr;
+
 
 };

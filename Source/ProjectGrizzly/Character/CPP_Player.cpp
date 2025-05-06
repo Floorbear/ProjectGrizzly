@@ -336,6 +336,8 @@ bool ACPP_Player::CanInteractWithTarget(TPair<bool, FHitResult>& HitPair) const
 
 TPair<bool,FHitResult> ACPP_Player::GetFrontHitResult() const
 {
+	if(!IsLocallyControlled())
+		return TPair<bool,FHitResult>{false,FHitResult()};
 	//전방에 빔을 쏴서
 	// (벽까지의 거리 / 상호작용 발동 거리) < 1.f 면 상호작용 상태로 진입
 	ETraceTypeQuery TraceType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Visibility);

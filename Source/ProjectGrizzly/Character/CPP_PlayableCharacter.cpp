@@ -106,6 +106,13 @@ ACPP_PlayableCharacter::ACPP_PlayableCharacter()
 		FieldLootUIWidgetComponent->SetVisibility(false);
 	}
 
+	//데이터테이블
+	const static auto DT = ConstructorHelpers::FObjectFinder<UDataTable>(TEXT("/Game/ProjectGrizzly/Character/Model/DT_CharacterModel.DT_CharacterModel"));
+	if(DT.Succeeded())
+	{
+		DT_CHARACTERMODEL = DT.Object;
+	}
+
 }
 float ACPP_PlayableCharacter::GetLeaningAxis() const
 {
@@ -305,12 +312,14 @@ void ACPP_PlayableCharacter::OnRep_SetCharacterModel()
 {
 	const UEnum* CharacterModelEnum = FindObject<UEnum>(ANY_PACKAGE, TEXT("ECharacterModel"), true);
 	ensure(CharacterModelEnum);
-	FName EnumToName(CharacterModelEnum->GetDisplayNameTextByValue((int64)CharacterModel).ToString());
 
-	static const UDataTable* DT_CHARACTERMODEL = LoadObject<UDataTable>(NULL, TEXT("/Game/ProjectGrizzly/Character/Model/DT_CharacterModel.DT_CharacterModel"));
 
-	FCharacterModel* Model = DT_CHARACTERMODEL->FindRow<FCharacterModel>(EnumToName, FString(""));
-	ensure(Model); //_Model이 NonSet입니당
+	FString EnumToName = CharacterModelEnum->GetNameByValue(static_cast<int64>(CharacterModel)).ToString();
+	EnumToName.Split(TEXT("::"),nullptr,&EnumToName);
+
+	
+	FCharacterModel* Model = DT_CHARACTERMODEL->FindRow<FCharacterModel>(FName(EnumToName), FString(""));
+	checkf(Model,TEXT("%s is not Valid"),*EnumToName); //_Model이 NonSet입니당
 
 	if (Model->Character.IsPending()) //에셋이 로딩돼있지 않은 경우 에셋 로딩
 	{

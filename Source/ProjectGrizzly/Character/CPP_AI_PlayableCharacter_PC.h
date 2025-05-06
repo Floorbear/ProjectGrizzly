@@ -155,6 +155,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	TArray<ACPP_PatrolPoint*> PatrolRoute;
 
+	UPROPERTY()
 	UDataTable* PatrolDT;
 	// ----------------------------------
 	//				Difficulty
