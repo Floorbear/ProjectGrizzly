@@ -1,7 +1,5 @@
 # ProjectGrizzly
 
-# Project Grizzly
-
 > UE5 기반 1인칭 협동 FPS | 오픈월드 익스트렉션 슈터
 
 ---
@@ -14,7 +12,12 @@ Project Grizzly는 Unreal Engine 5를 기반으로 개발된 오픈월드 협동
 
 ---
 
-## 🎮 주요 특징
+##  시연 영상
+
+- https://www.youtube.com/watch?v=Jp2hhS6l_QY
+  
+---
+##  주요 특징
 
 ### 1. **GAS(Gameplay Ability System) 기반 캐릭터 설계**
 - 사격, 정조준, 재장전, 질주, 기울이기 등 모든 행동을 어빌리티화
@@ -46,11 +49,11 @@ Project Grizzly는 Unreal Engine 5를 기반으로 개발된 오픈월드 협동
 
 ---
 
-## 🧩 기술 스택
+## 기술 스택
 
 | 항목           | 상세 내용                                                                 |
 |----------------|--------------------------------------------------------------------------|
-| 언리얼 버전     | Unreal Engine 5.3                                                        |
+| 언리얼 버전     | Unreal Engine 5.0.3                                                        |
 | 네트워크        | Dedicated Server, RPC, Replication                                       |
 | 캐릭터 시스템    | Gameplay Ability System (GAS), AttributeSet                             |
 | AI             | Behavior Tree, EQS, AIPerceptionComponent, Blackboard                    |
@@ -59,9 +62,19 @@ Project Grizzly는 Unreal Engine 5를 기반으로 개발된 오픈월드 협동
 
 ---
 
-## 🛠️ 설치 및 실행
+## 설치 및 실행
 
-1. 본 프로젝트는 UE5.3 이상에서 동작합니다.
-2. 클론:
-```bash
-git clone https://github.com/Floorbear/ProjectGrizzly.git
+1. 서버 다운로드 : https://drive.google.com/file/d/165U8YYTWuHxuPJlpSis6jMkz8tSav-8g/view?usp=sharing
+2. 클라이언트 다운로드 : https://drive.google.com/file/d/1RirW2wNALXqVSdz5vJx95lZJ1X_x__6o/view?usp=sharing
+3. 서버 구동 : WindowsServer - StartServer.bat 실행
+4. 클라이언트 실행 : WindowsClient - ProjectGrizzlyClient.exe 실행
+5. 서버 접속 : Go To Zone - 서버IP 입력 후 서버 접속 (기본 포트 7777)
+
+---
+
+##  개발자 Email
+
+floorbear2723@gmail.com
+
+
+
