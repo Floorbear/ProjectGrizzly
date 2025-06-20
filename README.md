@@ -15,8 +15,15 @@ Project Grizzly는 Unreal Engine 5를 기반으로 개발된 오픈월드 협동
 ##  시연 영상
 
 - https://www.youtube.com/watch?v=Jp2hhS6l_QY
+
+---
+
+##  기술소개서
+
+- 다운 : https://drive.google.com/file/d/1Ia1EGuGqAz2j_CBeaNlbsc76H71lMs5a/view?usp=sharing
   
 ---
+
 ##  주요 특징
 
 ### 1. **GAS(Gameplay Ability System) 기반 캐릭터 설계**
