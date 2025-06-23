@@ -14,15 +14,23 @@ Project Grizzly는 Unreal Engine 5를 기반으로 개발된 오픈월드 협동
 
 ##  시연 영상
 
-- [YouTube 시연 영상 링크](<[https://www.youtube.com/watch?v=ECLa2Q2OpWU&ab_channel=Bear](https://www.youtube.com/watch?v=Jp2hhS6l_QY)>)
+- [YouTube 시연 영상 링크](https://www.youtube.com/watch?v=Jp2hhS6l_QY)
 
 ---
 
 ##  기술소개서
 
 - [다운](https://drive.google.com/file/d/1Ia1EGuGqAz2j_CBeaNlbsc76H71lMs5a/view?usp=sharing)
-- 
+
 ---
+
+## 설치 및 실행
+
+1. [서버 다운로드](https://drive.google.com/file/d/165U8YYTWuHxuPJlpSis6jMkz8tSav-8g/view?usp=sharing)
+2. [클라이언트 다운로드](https://drive.google.com/file/d/1RirW2wNALXqVSdz5vJx95lZJ1X_x__6o/view?usp=sharing)
+3. 서버 구동 : WindowsServer - StartServer.bat 실행
+4. 클라이언트 실행 : WindowsClient - ProjectGrizzlyClient.exe 실행
+5. 서버 접속 : Go To Zone - 서버IP 입력 후 서버 접속 (기본 포트 7777)
 
 ##  주요 특징
 
@@ -66,16 +74,6 @@ Project Grizzly는 Unreal Engine 5를 기반으로 개발된 오픈월드 협동
 | AI             | Behavior Tree, EQS, AIPerceptionComponent, Blackboard                    |
 | UI             | UMG, TileView 기반 인벤토리 UI                                          |
 | 기타 기술       | VectorCurve 기반 반동 구현, IK 리타깃팅, AnimNotify 기반 이벤트 트리거     |
-
----
-
-## 설치 및 실행
-
-1. 서버 다운로드 : https://drive.google.com/file/d/165U8YYTWuHxuPJlpSis6jMkz8tSav-8g/view?usp=sharing
-2. 클라이언트 다운로드 : https://drive.google.com/file/d/1RirW2wNALXqVSdz5vJx95lZJ1X_x__6o/view?usp=sharing
-3. 서버 구동 : WindowsServer - StartServer.bat 실행
-4. 클라이언트 실행 : WindowsClient - ProjectGrizzlyClient.exe 실행
-5. 서버 접속 : Go To Zone - 서버IP 입력 후 서버 접속 (기본 포트 7777)
 
 ---
 
